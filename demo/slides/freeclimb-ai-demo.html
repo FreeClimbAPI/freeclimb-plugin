@@ -1,0 +1,1330 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FreeClimb for AI Agents</title>
+  <link rel="icon" type="image/svg+xml" href="assets/fc-favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --brand-blue: #004e63;
+      --brand-blue-hover: #26697a;
+      --brand-green: #c2ff18;
+      --brand-orange: #fa660a;
+      --brand-orange-hover: #ff8038;
+      --background-blue: #00333f;
+      --inner-blue: #003744;
+      --background-dark: #11242d;
+      --mist-blue: #a1d0d3;
+      --green-lightest: #ecf6f6;
+      --operational-blue: #20bcfa;
+      --error-red: #fc796f;
+      --white: rgba(255, 255, 255, 0.92);
+      --muted: rgba(255, 255, 255, 0.66);
+      --faint: rgba(255, 255, 255, 0.12);
+      --shadow: 0 24px 60px rgba(0, 0, 0, 0.24);
+      --brand-shadow: 0 28px 90px rgba(194, 255, 24, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--background-dark);
+      color: var(--white);
+      font-family: "Atkinson Hyperlegible", Helvetica, sans-serif;
+      overflow: hidden;
+    }
+
+    .deck {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      padding: 52px 72px;
+      display: none;
+      grid-template-rows: auto 1fr auto;
+      gap: 28px;
+      background: linear-gradient(135deg, var(--background-blue), var(--background-dark));
+    }
+
+    .slide.active {
+      display: grid;
+      animation: fadeIn 220ms ease-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .slide.active {
+        animation: none;
+      }
+
+      .deck-progress i {
+        transition: none;
+      }
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--white);
+    }
+
+    .logo svg {
+      width: 214px;
+      height: 36px;
+    }
+
+    .eyebrow {
+      color: var(--brand-green);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .slide-number,
+    .deck-mark {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    main {
+      display: grid;
+      align-items: center;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      max-width: 980px;
+      font-size: clamp(58px, 7vw, 96px);
+      line-height: 0.98;
+      letter-spacing: -0.05em;
+      font-weight: 700;
+    }
+
+    h2 {
+      max-width: 960px;
+      font-size: clamp(42px, 5vw, 72px);
+      line-height: 1.04;
+      letter-spacing: -0.04em;
+      font-weight: 700;
+    }
+
+    h3 {
+      font-size: 22px;
+      line-height: 1.2;
+      font-weight: 700;
+    }
+
+    .lead {
+      max-width: 780px;
+      margin-top: 24px;
+      color: var(--muted);
+      font-size: 24px;
+      line-height: 1.45;
+    }
+
+    .hero-single {
+      display: grid;
+      align-content: center;
+      justify-items: start;
+      min-height: 100%;
+    }
+
+    .hero-single h1 {
+      max-width: 1060px;
+    }
+
+    .value p {
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.5;
+    }
+
+    .demo-box {
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+      gap: 28px;
+      align-items: center;
+    }
+
+    .prompt {
+      display: grid;
+      gap: 14px;
+      padding: 30px 32px;
+      border: 1px solid var(--faint);
+      border-radius: 18px;
+      background: rgba(0, 55, 68, 0.6);
+      color: var(--white);
+      font-size: 26px;
+      line-height: 1.45;
+      font-weight: 600;
+    }
+
+    .prompt__tag {
+      justify-self: start;
+      color: var(--brand-green);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .checklist {
+      display: grid;
+      gap: 14px;
+    }
+
+    .check {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      padding: 18px 20px;
+      border: 1px solid var(--brand-blue);
+      border-radius: 14px;
+      background: rgba(0, 55, 68, 0.72);
+      color: var(--white);
+      font-size: 20px;
+      line-height: 1.35;
+    }
+
+    .check span {
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--brand-orange);
+      color: #11242d;
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    .value-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .value {
+      padding: 26px;
+      border: 1px solid var(--brand-blue);
+      border-radius: 16px;
+      background: rgba(0, 55, 68, 0.84);
+    }
+
+    footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .deck-progress {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 3px;
+      background: var(--faint);
+      z-index: 50;
+    }
+
+    .deck-progress i {
+      display: block;
+      height: 100%;
+      background: var(--brand-green);
+      transform: scaleX(0);
+      transform-origin: left center;
+      transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .kbd {
+      color: var(--muted);
+    }
+
+    .accent {
+      color: var(--brand-green);
+    }
+
+    .orange-text {
+      color: var(--brand-orange);
+    }
+
+    .kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 22px;
+      color: var(--brand-green);
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .kicker::before {
+      content: "";
+      width: 30px;
+      height: 2px;
+      background: var(--brand-green);
+    }
+
+    .lead-out {
+      max-width: 760px;
+      margin-top: 22px;
+      color: var(--muted);
+      font-size: 22px;
+      line-height: 1.45;
+    }
+
+    .lead-out b {
+      color: var(--white);
+      font-weight: 700;
+    }
+
+    .wrap-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+      gap: 32px;
+      align-items: stretch;
+      margin-top: 30px;
+    }
+
+    .plugin-wrap {
+      position: relative;
+      padding: 36px 24px 22px;
+      border: 1px solid rgba(194, 255, 24, 0.4);
+      border-radius: 26px;
+      background: rgba(0, 55, 68, 0.5);
+    }
+
+    .plugin-wrap__tab {
+      position: absolute;
+      top: -16px;
+      left: 26px;
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 8px 16px;
+      border-radius: 999px;
+      background: var(--brand-green);
+      color: #11242d;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .plugin-wrap__tab svg {
+      width: 16px;
+      height: 16px;
+      fill: #11242d;
+    }
+
+    .wrap-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .wrap-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      border: 1px solid rgba(161, 208, 211, 0.22);
+      border-radius: 14px;
+      background: rgba(17, 36, 45, 0.52);
+      color: var(--white);
+      font-size: 17px;
+      font-weight: 700;
+    }
+
+    .wrap-item i {
+      flex: 0 0 auto;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--brand-green);
+    }
+
+    .plugin-wrap__note {
+      margin-top: 16px;
+      color: var(--mist-blue);
+      font-size: 15px;
+      line-height: 1.4;
+    }
+
+    .operate {
+      display: grid;
+      gap: 14px;
+      align-content: start;
+    }
+
+    .operate .check {
+      font-size: 17px;
+      padding: 16px 18px;
+    }
+
+    .permission {
+      padding: 22px;
+      border: 1px solid rgba(194, 255, 24, 0.5);
+      border-radius: 16px;
+      background: rgba(194, 255, 24, 0.08);
+    }
+
+    .permission b {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      color: var(--brand-green);
+      font-size: 18px;
+    }
+
+    .permission b svg {
+      flex: 0 0 auto;
+      width: 20px;
+      height: 20px;
+      fill: var(--brand-green);
+    }
+
+    .permission p {
+      color: var(--white);
+      font-size: 17px;
+      line-height: 1.45;
+    }
+
+    .connect-flow {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 0.82fr) auto minmax(0, 0.9fr);
+      gap: 16px;
+      align-items: stretch;
+      margin-top: 34px;
+    }
+
+    .stage {
+      display: grid;
+      align-content: start;
+      gap: 14px;
+      padding: 24px;
+      border: 1px solid var(--brand-blue);
+      border-radius: 20px;
+      background: rgba(0, 55, 68, 0.8);
+    }
+
+    .stage--plugin {
+      border-color: rgba(194, 255, 24, 0.4);
+      background: rgba(0, 78, 99, 0.55);
+    }
+
+    .stage--burden {
+      border-style: dashed;
+      border-color: rgba(161, 208, 211, 0.4);
+      background: rgba(0, 55, 68, 0.5);
+    }
+
+    .stage--burden .stage__label {
+      color: var(--mist-blue);
+    }
+
+    .flow-arrow--muted {
+      color: var(--mist-blue);
+      opacity: 0.7;
+    }
+
+    .compete {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-top: 24px;
+      padding: 16px 22px;
+      border: 1px solid rgba(250, 102, 10, 0.42);
+      border-radius: 12px;
+      background: rgba(250, 102, 10, 0.08);
+      color: var(--white);
+      font-size: 19px;
+      line-height: 1.45;
+    }
+
+    .compete svg {
+      flex: 0 0 auto;
+      width: 24px;
+      height: 24px;
+      fill: var(--brand-orange);
+    }
+
+    .compete b {
+      color: var(--brand-orange);
+    }
+
+    .stage__label {
+      color: var(--brand-green);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .stage--plugin .stage__label {
+      color: var(--brand-green);
+    }
+
+    .stage h3 {
+      font-size: 23px;
+      letter-spacing: -0.02em;
+    }
+
+    .stage p {
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.4;
+    }
+
+    .app-logos {
+      display: grid;
+      gap: 10px;
+    }
+
+    .app-logo {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 11px 14px;
+      border: 1px solid rgba(161, 208, 211, 0.22);
+      border-radius: 13px;
+      background: rgba(17, 36, 45, 0.52);
+    }
+
+    .app-logo__mark {
+      flex: 0 0 auto;
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      color: var(--white);
+    }
+
+    .app-logo__mark svg {
+      width: 24px;
+      height: 24px;
+      fill: currentColor;
+    }
+
+    .app-logo b {
+      font-size: 17px;
+    }
+
+    .flow-arrow {
+      display: grid;
+      place-items: center;
+      color: var(--brand-green);
+    }
+
+    .flow-arrow svg {
+      width: 30px;
+      height: 30px;
+      fill: currentColor;
+    }
+
+    .platform-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .platform-list span {
+      padding: 7px 12px;
+      border: 1px solid rgba(161, 208, 211, 0.3);
+      border-radius: 999px;
+      color: var(--mist-blue);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .mcp-diagram {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto minmax(216px, 0.84fr) auto minmax(0, 1fr);
+      align-items: stretch;
+      margin-top: 30px;
+    }
+
+    .mcp-col {
+      display: grid;
+      grid-template-rows: repeat(3, 1fr) auto;
+      gap: 16px;
+    }
+
+    .mcp-box {
+      display: grid;
+      align-content: center;
+      gap: 4px;
+      padding: 16px 20px;
+      border: 1px solid var(--brand-blue);
+      border-radius: 14px;
+      background: rgba(0, 55, 68, 0.8);
+    }
+
+    .mcp-box b {
+      font-size: 18px;
+    }
+
+    .mcp-box p {
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.35;
+    }
+
+    .mcp-col__title {
+      align-self: center;
+      justify-self: center;
+      margin-top: 8px;
+      color: var(--mist-blue);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .mcp-side {
+      display: grid;
+      grid-template-rows: 1fr auto;
+      gap: 16px;
+    }
+
+    .mcp-super {
+      align-self: stretch;
+      display: grid;
+      align-content: center;
+      gap: 22px;
+      padding: 30px 28px;
+      border: 1px solid var(--brand-blue);
+      border-radius: 14px;
+      background: rgba(0, 55, 68, 0.8);
+    }
+
+    .mcp-super__apps {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 18px 20px;
+    }
+
+    .mcp-app {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--white);
+    }
+
+    .mcp-app svg {
+      flex: 0 0 auto;
+      width: 26px;
+      height: 26px;
+      fill: currentColor;
+    }
+
+    .mcp-super__note {
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.45;
+    }
+
+    .mcp-link {
+      display: grid;
+      grid-template-rows: repeat(3, 1fr) auto;
+      align-items: center;
+      justify-items: center;
+      min-width: 92px;
+      padding: 0 8px;
+    }
+
+    .mcp-link svg {
+      width: 56px;
+      height: 22px;
+      fill: none;
+      stroke: var(--mist-blue);
+      stroke-width: 1.6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .mcp-hub {
+      align-self: center;
+      display: grid;
+      gap: 8px;
+      justify-items: center;
+      text-align: center;
+      padding: 34px 26px;
+      border: 1px solid rgba(194, 255, 24, 0.45);
+      border-radius: 22px;
+      background: rgba(0, 78, 99, 0.6);
+    }
+
+    .mcp-hub__logo {
+      width: 58px;
+      height: 58px;
+      object-fit: contain;
+      border-radius: 14px;
+      margin-bottom: 4px;
+    }
+
+    .mcp-hub b {
+      color: var(--brand-green);
+      font-size: 36px;
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+
+    .mcp-hub p {
+      font-size: 19px;
+      font-weight: 700;
+    }
+
+    .mcp-hub span {
+      color: var(--mist-blue);
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .duo {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 30px;
+    }
+
+    .duo-card {
+      display: grid;
+      gap: 12px;
+      align-content: start;
+      padding: 30px;
+      border: 1px solid var(--brand-blue);
+      border-radius: 18px;
+      background: rgba(0, 55, 68, 0.55);
+    }
+
+    .duo-card__icon {
+      width: 46px;
+      height: 46px;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      border: 1px solid rgba(161, 208, 211, 0.18);
+      background: rgba(17, 36, 45, 0.55);
+      color: var(--mist-blue);
+    }
+
+    .duo-card__icon svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    .duo-card__icon--img {
+      padding: 6px;
+    }
+
+    .duo-card__icon--img img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .duo-card__tag {
+      color: var(--mist-blue);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .duo-card h3 {
+      font-size: 26px;
+      letter-spacing: -0.02em;
+    }
+
+    .duo-card p {
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.5;
+    }
+
+    .duo-card--mcp .duo-card__icon,
+    .duo-card--mcp .duo-card__tag {
+      color: var(--brand-green);
+    }
+
+    .duo-note {
+      max-width: 980px;
+      margin-top: 22px;
+      color: var(--muted);
+      font-size: 20px;
+      line-height: 1.5;
+    }
+
+    .duo-note b {
+      color: var(--white);
+      font-weight: 700;
+    }
+
+    .timeline {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      margin-top: 56px;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      top: 22px;
+      left: 10%;
+      right: 10%;
+      height: 2px;
+      background: rgba(161, 208, 211, 0.26);
+    }
+
+    .tl-item {
+      display: grid;
+      grid-template-rows: 46px auto;
+      justify-items: center;
+      text-align: center;
+      padding: 0 16px;
+      align-content: start;
+    }
+
+    .tl-marker {
+      align-self: center;
+      z-index: 1;
+    }
+
+    .tl-dot {
+      width: 22px;
+      height: 22px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      border: 2px solid var(--brand-green);
+      background: var(--background-blue);
+    }
+
+    .tl-dot::after {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--brand-green);
+    }
+
+    .tl-logo {
+      width: 46px;
+      height: 46px;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: #0c2330;
+    }
+
+    .tl-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .tl-logo--plugin {
+      border-color: rgba(194, 255, 24, 0.4);
+      background: rgba(0, 78, 99, 0.55);
+    }
+
+    .tl-logo--plugin svg {
+      width: 26px;
+      height: 26px;
+      fill: var(--brand-green);
+    }
+
+    .tl-body {
+      display: grid;
+      gap: 6px;
+      margin-top: 16px;
+    }
+
+    .tl-year {
+      color: var(--brand-green);
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+
+    .tl-item h3 {
+      font-size: 19px;
+      line-height: 1.15;
+    }
+
+    .tl-item p {
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.4;
+    }
+
+    @media (max-width: 900px) {
+      body {
+        overflow: auto;
+      }
+
+      .deck {
+        min-height: 100vh;
+      }
+
+      .slide {
+        position: relative;
+        min-height: 100vh;
+        padding: 32px 24px;
+      }
+
+      .demo-box,
+      .value-grid,
+      .wrap-layout,
+      .connect-flow,
+      .mcp-diagram,
+      .mcp-side,
+      .duo,
+      .timeline {
+        grid-template-columns: 1fr;
+      }
+
+      .timeline::before {
+        display: none;
+      }
+
+      .tl-item {
+        grid-template-rows: auto;
+        grid-template-columns: 46px 1fr;
+        justify-items: start;
+        text-align: left;
+        gap: 14px;
+        margin-bottom: 18px;
+      }
+
+      .tl-body {
+        margin-top: 0;
+      }
+
+      .flow-arrow svg {
+        transform: rotate(90deg);
+      }
+
+      .mcp-col,
+      .mcp-link {
+        grid-template-rows: none;
+      }
+
+      .mcp-link svg {
+        transform: rotate(90deg);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="deck" id="deck">
+    <section class="slide active">
+      <header>
+        <div class="logo">
+          <svg width="214" height="36" viewBox="0 0 143 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3.07809 5.1282H12.0948V2.64328H0.306885V21.1354H3.07809V13.6874H9.98894V11.2294H3.07809V5.1282Z" fill="white"/>
+            <path d="M28.9073 21.1354L24.8053 13.6604C27.1478 12.7345 28.7872 10.7277 28.7872 8.29665C28.7872 5.15178 26.1498 2.64328 22.9224 2.64328H15.0924V21.1354H17.9185V13.8961H21.9278L25.6216 21.1354H28.9073ZM17.9151 11.6267V5.20901H22.7063C24.4555 5.20901 25.9886 6.63667 25.9886 8.3539C25.9886 10.1755 24.4555 11.6301 22.7063 11.6301H17.9151V11.6267Z" fill="white"/>
+            <path d="M99.2677 2.63318H94.2466V21.1657H99.2677V2.63318Z" fill="white"/>
+            <path d="M85.8951 2.63318H80.9015V21.1657H91.7154V16.5124H85.8951V2.63318Z" fill="white"/>
+            <path d="M51.6051 18.6741V13.0005H56.3586L57.5488 10.5189L51.6051 10.5156V5.1282H60.1485L61.342 2.64328H48.8339L48.8304 21.1354H52.4522L53.632 18.6741H51.6051Z" fill="white"/>
+            <path d="M56.3688 13.0005L57.5623 10.519H57.5486L56.3585 13.0005H56.3688Z" fill="white"/>
+            <path opacity="0.27" d="M56.3688 13.0005L57.5623 10.519H57.5486L56.3585 13.0005H56.3688Z" fill="white"/>
+            <path d="M59.1435 21.1354L60.2993 18.6741H53.632L52.4521 21.1354H59.1435Z" fill="#BEBEBE"/>
+            <path d="M75.0573 15.0309C75.0573 15.0309 74.7555 15.2834 74.5497 15.4484C73.7506 16.0679 72.6393 16.4383 71.5761 16.4383C69.0279 16.4383 67.0318 14.4113 67.0318 11.8254C67.0318 9.19567 69.0176 7.13836 71.5521 7.13836C72.5502 7.13836 73.5414 7.45488 74.313 8.00708C74.7452 8.36736 74.9818 8.59295 74.9818 8.59295L75.3351 8.93303L78.6825 5.51542L78.3292 5.18208C78.0206 4.88914 77.6158 4.56253 77.5987 4.54906L77.2386 4.2696L77.2352 4.27296C75.5409 2.98336 73.682 2.38065 71.4184 2.38065C70.386 2.38065 69.3708 2.54901 68.3968 2.85878L62.3811 15.3878C63.8216 19.004 67.4125 21.4149 71.4184 21.4149C73.6408 21.4149 75.6952 20.7044 77.3689 19.3609H77.3861L77.5335 19.2397C78.0857 18.7852 78.3429 18.4788 78.3532 18.4653L78.6242 18.1421L75.414 14.7278L75.0573 15.0309Z" fill="white"/>
+            <path d="M44.7764 18.6741H35.7563V13.0005H40.5819L41.7755 10.5189L35.7563 10.5156V5.1282H43.336L44.5295 2.64328H32.9851V21.1354H43.5966L44.7764 18.6741Z" fill="white"/>
+            <path d="M114.941 21.1657L118.958 13.1789L120.254 21.1657H125.275L122.394 2.63318H118.625L113.425 13.0847L108.212 2.63318H104.46L101.548 21.1657H106.59L107.866 13.1789L111.896 21.1657H114.941Z" fill="white"/>
+            <path d="M138.078 11.6941C139.361 10.8119 140.51 9.4381 140.51 7.78148C140.51 4.89251 137.879 2.62982 134.522 2.62982H127.556V21.1623H134.906C138.308 21.1623 140.969 18.8222 140.969 15.8356C140.969 13.6941 139.409 12.4045 138.078 11.6941ZM135.742 15.2632C135.742 16.0073 135.139 16.6134 134.395 16.6134H132.56V13.9904H134.137C134.882 13.9871 135.742 14.546 135.742 15.2632ZM132.56 9.76134V7.21244H134.062C134.803 7.21244 135.358 7.73772 135.358 8.43807C135.358 9.16874 134.775 9.76134 134.062 9.76134H132.56Z" fill="white"/>
+          </svg>
+        </div>
+        <div class="deck-mark">FreeClimb Plugin Demo</div>
+      </header>
+      <main class="hero-single">
+
+        <div class="kicker">FreeClimb Plugin Demo</div>
+        <h1>FreeClimb for AI Agents</h1>
+        <p class="lead">From a business request to a working phone workflow in minutes.</p>
+      </main>
+      <footer><span>FreeClimb Plugin Demo</span><span class="kbd">Use ← →</span></footer>
+    </section>
+
+    <section class="slide">
+      <header><div class="eyebrow">The problem</div><div class="deck-mark">FreeClimb Plugin Demo</div></header>
+      <main>
+        <h2>FreeClimb is flexible. That flexibility can feel heavy at first.</h2>
+        <p class="lead">The traditional way: every call relies on an app you build, host, and wire up by hand.</p>
+        <div class="connect-flow">
+          <div class="stage">
+            <div class="stage__label">Trigger</div>
+            <h3>Caller dials your number</h3>
+            <p>A real call arrives at FreeClimb and waits for instructions.</p>
+          </div>
+          <div class="flow-arrow flow-arrow--muted"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11h12.2l-5.6-5.6L12 4l8 8-8 8-1.4-1.4 5.6-5.6H4z"/></svg></div>
+          <div class="stage stage--burden">
+            <div class="stage__label">You build &amp; run it</div>
+            <h3>Your app</h3>
+            <p>Stand up a server, expose a public tunnel, wire webhooks, and hand-write PerCL for every call.</p>
+            <div class="platform-list">
+              <span>Server</span><span>Tunnel</span><span>Webhooks</span><span>PerCL</span><span>Trial limits</span>
+            </div>
+          </div>
+          <div class="flow-arrow flow-arrow--muted"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11h12.2l-5.6-5.6L12 4l8 8-8 8-1.4-1.4 5.6-5.6H4z"/></svg></div>
+          <div class="stage">
+            <div class="stage__label">Result</div>
+            <h3>A working call</h3>
+            <p>Reachable only after all of that setup is built and maintained.</p>
+          </div>
+        </div>
+      </main>
+      <footer><span>Business issue: adoption friction</span><span class="kbd">Use ← →</span></footer>
+    </section>
+
+    <section class="slide">
+      <header><div class="eyebrow">The opportunity</div><div class="deck-mark">FreeClimb Plugin Demo</div></header>
+      <main>
+        <h2>The agent absorbs the setup when it has <span class="accent">knowledge, actions, and guardrails.</span></h2>
+        <p class="lead">The new way: describe what you want, and the agent builds, runs, and wires it up through the FreeClimb plugin.</p>
+        <div class="connect-flow">
+          <div class="stage">
+            <div class="stage__label">Trigger</div>
+            <h3>You describe it</h3>
+            <p>“Build a support line that routes callers to billing or sales.”</p>
+          </div>
+          <div class="flow-arrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11h12.2l-5.6-5.6L12 4l8 8-8 8-1.4-1.4 5.6-5.6H4z"/></svg></div>
+          <div class="stage stage--plugin">
+            <div class="stage__label">Agent + FreeClimb plugin</div>
+            <h3>Builds &amp; runs it for you</h3>
+            <p>The plugin brings the knowledge, live actions, and guardrails — the agent does the wiring.</p>
+            <div class="platform-list">
+              <span>Knowledge</span><span>MCP</span><span>CLI</span><span>Guardrails</span>
+            </div>
+          </div>
+          <div class="flow-arrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11h12.2l-5.6-5.6L12 4l8 8-8 8-1.4-1.4 5.6-5.6H4z"/></svg></div>
+          <div class="stage">
+            <div class="stage__label">Result</div>
+            <h3>A working call</h3>
+            <p>A live number answering calls in minutes — not days.</p>
+          </div>
+        </div>
+      </main>
+      <footer><span>The shift: flexibility becomes an advantage</span><span class="kbd">Use ← →</span></footer>
+    </section>
+
+    <section class="slide">
+      <header><div class="eyebrow">What we built</div><div class="deck-mark">FreeClimb Plugin Demo</div></header>
+      <main>
+        <h2>The plugin is the product wrapper for the agent.</h2>
+        <p class="lead-out">Everything the agent needs to build with FreeClimb — <b>knowledge, actions, and guardrails packaged as one installable plugin.</b></p>
+        <div class="wrap-layout">
+          <div class="plugin-wrap">
+            <div class="plugin-wrap__tab">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 2 7v10l10 5 10-5V7L12 2Zm0 2.2 6.5 3.25L12 10.7 5.5 7.45 12 4.2ZM4 9.1l7 3.5v7.1l-7-3.5V9.1Zm16 0v7.1l-7 3.5v-7.1l7-3.5Z"/></svg>
+              FreeClimb Plugin
+            </div>
+            <div class="wrap-grid">
+              <div class="wrap-item"><i></i>MCP tools</div>
+              <div class="wrap-item"><i></i>CLI workflows</div>
+              <div class="wrap-item"><i></i>Skills</div>
+              <div class="wrap-item"><i></i>Docs</div>
+              <div class="wrap-item"><i></i>Rules</div>
+              <div class="wrap-item"><i></i>Subagents</div>
+            </div>
+            <p class="plugin-wrap__note">Install once. Everything inside the wrapper travels with the agent into any AI app.</p>
+          </div>
+          <div class="operate">
+            <div class="check"><span>1</span><div>Understands FreeClimb concepts and call-flow patterns.</div></div>
+            <div class="check"><span>2</span><div>Inspects live account resources through MCP and runs workflows locally through the CLI.</div></div>
+            <div class="check"><span>3</span><div>Works within guardrails for secrets, trial accounts, and risky actions.</div></div>
+            <div class="permission">
+              <b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5l-8-3Zm-1 13-3.5-3.5 1.4-1.4L11 12.2l4.1-4.1 1.4 1.4L11 15Z"/></svg>You set the permissions</b>
+              <p>Keep approvals on every risky step, or grant full autonomy so the agent builds complete apps end to end — no accept/deny prompts.</p>
+            </div>
+          </div>
+        </div>
+      </main>
+      <footer><span>Plugin = packaged capability for the agent</span><span class="kbd">Use ← →</span></footer>
+    </section>
+
+    <section class="slide">
+      <header><div class="eyebrow">Why plugins matter</div><div class="deck-mark">FreeClimb Plugin Demo</div></header>
+      <main>
+        <h2>AI tools are converging into super apps.</h2>
+        <p class="lead-out"><b>FreeClimb should be available wherever the user brings their agent.</b> The plugin is how that expertise and those actions get there.</p>
+        <div class="connect-flow">
+          <div class="stage">
+            <div class="stage__label">User + super app</div>
+            <div class="app-logos">
+              <div class="app-logo">
+                <span class="app-logo__mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11.503.131 1.891 5.678a.84.84 0 0 0-.42.726v11.188c0 .3.162.575.42.724l9.609 5.55a1 1 0 0 0 .998 0l9.61-5.55a.84.84 0 0 0 .42-.724V6.404a.84.84 0 0 0-.42-.726L12.497.131a1.01 1.01 0 0 0-.996 0M2.657 6.338h18.55c.263 0 .43.287.297.515L12.23 22.918c-.062.107-.229.064-.229-.06V12.335a.59.59 0 0 0-.295-.51l-9.11-5.257c-.109-.063-.064-.23.061-.23"/></svg></span>
+                <b>Cursor</b>
+              </div>
+              <div class="app-logo">
+                <span class="app-logo__mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4.7144 15.9555 4.7174-2.6471.079-.2307-.079-.1275h-.2307l-.7893-.0486-2.6956-.0729-2.3375-.0971-2.2646-.1214-.5707-.1215-.5343-.7042.0546-.3522.4797-.3218.686.0608 1.5179.1032 2.2767.1578 1.6514.0972 2.4468.255h.3886l.0546-.1579-.1336-.0971-.1032-.0972L6.973 9.8356l-2.55-1.6879-1.3356-.9714-.7225-.4918-.3643-.4614-.1578-1.0078.6557-.7225.8803.0607.2246.0607.8925.686 1.9064 1.4754 2.4893 1.8336.3643.3035.1457-.1032.0182-.0728-.164-.2733-1.3539-2.4467-1.445-2.4893-.6435-1.032-.17-.6194c-.0607-.255-.1032-.4674-.1032-.7285L6.287.1335 6.6997 0l.9957.1336.419.3642.6192 1.4147 1.0018 2.2282 1.5543 3.0296.4553.8985.2429.8318.091.255h.1579v-.1457l.1275-1.706.2368-2.0947.2307-2.6957.0789-.7589.3764-.9107.7468-.4918.5828.2793.4797.686-.0668.4433-.2853 1.8517-.5586 2.9021-.3643 1.9429h.2125l.2429-.2429.9835-1.3053 1.6514-2.0643.7286-.8196.85-.9046.5464-.4311h1.0321l.759 1.1293-.34 1.1657-1.0625 1.3478-.8804 1.1414-1.2628 1.7-.7893 1.36.0729.1093.1882-.0183 2.8535-.607 1.5421-.2794 1.8396-.3157.8318.3886.091.3946-.3278.8075-1.967.4857-2.3072.4614-3.4364.8136-.0425.0304.0486.0607 1.5482.1457.6618.0364h1.621l3.0175.2247.7892.522.4736.6376-.079.4857-1.2142.6193-1.6393-.3886-3.825-.9107-1.3113-.3279h-.1822v.1093l1.0929 1.0686 2.0035 1.8092 2.5075 2.3314.1275.5768-.3218.4554-.34-.0486-2.2039-1.6575-.85-.7468-1.9246-1.621h-.1275v.17l.4432.6496 2.3436 3.5214.1214 1.0807-.17.3521-.6071.2125-.6679-.1214-1.3721-1.9246L14.38 17.959l-1.1414-1.9428-.1397.079-.674 7.2552-.3156.3703-.7286.2793-.6071-.4614-.3218-.7468.3218-1.4753.3886-1.9246.3157-1.53.2853-1.9004.17-.6314-.0121-.0425-.1397.0182-1.4328 1.9672-2.1796 2.9446-1.7243 1.8456-.4128.164-.7164-.3704.0667-.6618.4008-.5889 2.386-3.0357 1.4389-1.882.929-1.0868-.0062-.1579h-.0546l-6.3385 4.1164-1.1293.1457-.4857-.4554.0608-.7467.2307-.2429 1.9064-1.3114Z"/></svg></span>
+                <b>Claude</b>
+              </div>
+              <div class="app-logo">
+                <span class="app-logo__mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z"/></svg></span>
+                <b>Codex</b>
+              </div>
+            </div>
+          </div>
+          <div class="flow-arrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11h12.2l-5.6-5.6L12 4l8 8-8 8-1.4-1.4 5.6-5.6H4z"/></svg></div>
+          <div class="stage stage--plugin">
+            <div class="stage__label">FreeClimb plugin</div>
+            <h3>Knowledge, actions &amp; guardrails</h3>
+            <p>MCP tools, CLI, skills, docs, and rules — packaged so the agent speaks FreeClimb.</p>
+          </div>
+          <div class="flow-arrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11h12.2l-5.6-5.6L12 4l8 8-8 8-1.4-1.4 5.6-5.6H4z"/></svg></div>
+          <div class="stage">
+            <div class="stage__label">FreeClimb platform</div>
+            <h3>Live communications</h3>
+            <p>The carrier-grade voice and SMS network the agent's workflow runs on.</p>
+            <div class="platform-list">
+              <span>Voice</span><span>SMS</span><span>Numbers</span><span>Calls</span><span>PerCL</span>
+            </div>
+          </div>
+        </div>
+        <p class="compete"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 1 21h22L12 2Zm0 4.5L18.5 19h-13L12 6.5ZM11 10v4h2v-4h-2Zm0 6v2h2v-2h-2Z"/></svg><span><b>Twilio already ships Cursor and Codex plugins.</b> Without one, users — and their agents — reach for a competitor by default.</span></p>
+      </main>
+      <footer><span>Meet builders inside their preferred AI workspace</span><span class="kbd">Use ← →</span></footer>
+    </section>
+
+    <section class="slide">
+      <header><div class="eyebrow">More options</div><div class="deck-mark">FreeClimb Plugin Demo</div></header>
+      <main>
+        <h2>Two ways the agent works with FreeClimb.</h2>
+        <div class="duo">
+          <div class="duo-card duo-card--mcp">
+            <span class="duo-card__icon duo-card__icon--img"><img src="assets/fc-mcp-logo.png" alt="FreeClimb MCP"></span>
+            <div class="duo-card__tag">MCP</div>
+            <h3>Talk to the live platform</h3>
+            <p>A standard way for the agent to ask FreeClimb questions and take action — read the account, check call logs, place a call, send a text — using real, live data inside any AI app.</p>
+          </div>
+          <div class="duo-card duo-card--cli">
+            <span class="duo-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3"/><path d="M13 15h4"/></svg></span>
+            <div class="duo-card__tag">CLI</div>
+            <h3>Build and run on your machine</h3>
+            <p>A command-line toolkit the agent runs locally to scaffold the project, start a server, expose webhooks, and test the whole call flow end to end.</p>
+          </div>
+        </div>
+        <p class="duo-note"><b>More options, one agent.</b> MCP gives it live awareness and actions; the CLI lets it build and run real apps — so it goes from idea to a working call without anyone stitching tools together.</p>
+      </main>
+      <footer><span>MCP for live actions, CLI for building locally</span><span class="kbd">Use ← →</span></footer>
+    </section>
+
+    <section class="slide">
+      <header><div class="eyebrow">How it connects</div><div class="deck-mark">FreeClimb Plugin Demo</div></header>
+      <main>
+        <h2>One protocol connects every agent to FreeClimb.</h2>
+        <div class="mcp-diagram">
+          <div class="mcp-side">
+            <div class="mcp-super">
+              <div class="mcp-super__apps">
+                <span class="mcp-app"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11.503.131 1.891 5.678a.84.84 0 0 0-.42.726v11.188c0 .3.162.575.42.724l9.609 5.55a1 1 0 0 0 .998 0l9.61-5.55a.84.84 0 0 0 .42-.724V6.404a.84.84 0 0 0-.42-.726L12.497.131a1.01 1.01 0 0 0-.996 0M2.657 6.338h18.55c.263 0 .43.287.297.515L12.23 22.918c-.062.107-.229.064-.229-.06V12.335a.59.59 0 0 0-.295-.51l-9.11-5.257c-.109-.063-.064-.23.061-.23"/></svg>Cursor</span>
+                <span class="mcp-app"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4.7144 15.9555 4.7174-2.6471.079-.2307-.079-.1275h-.2307l-.7893-.0486-2.6956-.0729-2.3375-.0971-2.2646-.1214-.5707-.1215-.5343-.7042.0546-.3522.4797-.3218.686.0608 1.5179.1032 2.2767.1578 1.6514.0972 2.4468.255h.3886l.0546-.1579-.1336-.0971-.1032-.0972L6.973 9.8356l-2.55-1.6879-1.3356-.9714-.7225-.4918-.3643-.4614-.1578-1.0078.6557-.7225.8803.0607.2246.0607.8925.686 1.9064 1.4754 2.4893 1.8336.3643.3035.1457-.1032.0182-.0728-.164-.2733-1.3539-2.4467-1.445-2.4893-.6435-1.032-.17-.6194c-.0607-.255-.1032-.4674-.1032-.7285L6.287.1335 6.6997 0l.9957.1336.419.3642.6192 1.4147 1.0018 2.2282 1.5543 3.0296.4553.8985.2429.8318.091.255h.1579v-.1457l.1275-1.706.2368-2.0947.2307-2.6957.0789-.7589.3764-.9107.7468-.4918.5828.2793.4797.686-.0668.4433-.2853 1.8517-.5586 2.9021-.3643 1.9429h.2125l.2429-.2429.9835-1.3053 1.6514-2.0643.7286-.8196.85-.9046.5464-.4311h1.0321l.759 1.1293-.34 1.1657-1.0625 1.3478-.8804 1.1414-1.2628 1.7-.7893 1.36.0729.1093.1882-.0183 2.8535-.607 1.5421-.2794 1.8396-.3157.8318.3886.091.3946-.3278.8075-1.967.4857-2.3072.4614-3.4364.8136-.0425.0304.0486.0607 1.5482.1457.6618.0364h1.621l3.0175.2247.7892.522.4736.6376-.079.4857-1.2142.6193-1.6393-.3886-3.825-.9107-1.3113-.3279h-.1822v.1093l1.0929 1.0686 2.0035 1.8092 2.5075 2.3314.1275.5768-.3218.4554-.34-.0486-2.2039-1.6575-.85-.7468-1.9246-1.621h-.1275v.17l.4432.6496 2.3436 3.5214.1214 1.0807-.17.3521-.6071.2125-.6679-.1214-1.3721-1.9246L14.38 17.959l-1.1414-1.9428-.1397.079-.674 7.2552-.3156.3703-.7286.2793-.6071-.4614-.3218-.7468.3218-1.4753.3886-1.9246.3157-1.53.2853-1.9004.17-.6314-.0121-.0425-.1397.0182-1.4328 1.9672-2.1796 2.9446-1.7243 1.8456-.4128.164-.7164-.3704.0667-.6618.4008-.5889 2.386-3.0357 1.4389-1.882.929-1.0868-.0062-.1579h-.0546l-6.3385 4.1164-1.1293.1457-.4857-.4554.0608-.7467.2307-.2429 1.9064-1.3114Z"/></svg>Claude</span>
+                <span class="mcp-app"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z"/></svg>ChatGPT</span>
+                <span class="mcp-app"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z"/></svg>Codex</span>
+              </div>
+              <p class="mcp-super__note">Chat, IDEs, and autonomous agents — the workspace the user already lives in.</p>
+            </div>
+            <span class="mcp-col__title">Super app</span>
+          </div>
+          <div class="mcp-link">
+            <svg viewBox="0 0 56 22" aria-hidden="true"><path d="M3 11h50M3 11l6-5M3 11l6 5M53 11l-6-5M53 11l-6 5"/></svg>
+            <svg viewBox="0 0 56 22" aria-hidden="true"><path d="M3 11h50M3 11l6-5M3 11l6 5M53 11l-6-5M53 11l-6 5"/></svg>
+            <svg viewBox="0 0 56 22" aria-hidden="true"><path d="M3 11h50M3 11l6-5M3 11l6 5M53 11l-6-5M53 11l-6 5"/></svg>
+          </div>
+          <div class="mcp-hub">
+            <img class="mcp-hub__logo" src="assets/fc-mcp-logo.png" alt="FreeClimb MCP">
+            <b>MCP</b>
+            <p>Standardized protocol</p>
+            <span>The FreeClimb plugin speaks it natively</span>
+          </div>
+          <div class="mcp-link">
+            <svg viewBox="0 0 56 22" aria-hidden="true"><path d="M3 11h50M3 11l6-5M3 11l6 5M53 11l-6-5M53 11l-6 5"/></svg>
+            <svg viewBox="0 0 56 22" aria-hidden="true"><path d="M3 11h50M3 11l6-5M3 11l6 5M53 11l-6-5M53 11l-6 5"/></svg>
+            <svg viewBox="0 0 56 22" aria-hidden="true"><path d="M3 11h50M3 11l6-5M3 11l6 5M53 11l-6-5M53 11l-6 5"/></svg>
+          </div>
+          <div class="mcp-col">
+            <div class="mcp-box"><b>Accounts &amp; numbers</b><p>Provisioning, configuration</p></div>
+            <div class="mcp-box"><b>Voice &amp; SMS</b><p>Calls, messaging, delivery</p></div>
+            <div class="mcp-box"><b>Call control &amp; logs</b><p>PerCL, analytics</p></div>
+            <span class="mcp-col__title">FreeClimb platform</span>
+          </div>
+        </div>
+      </main>
+      <footer><span>One integration standard, every AI app</span><span class="kbd">Use ← →</span></footer>
+    </section>
+
+    <section class="slide">
+      <header><div class="eyebrow">How we got here</div><div class="deck-mark">FreeClimb Plugin Demo</div></header>
+      <main>
+        <h2>From standalone tools to an agent-ready platform.</h2>
+        <div class="timeline">
+          <div class="tl-item">
+            <div class="tl-marker"><div class="tl-logo"><img src="assets/fc-favicon.svg" alt="FreeClimb CLI"></div></div>
+            <div class="tl-body">
+              <div class="tl-year">2020</div>
+              <h3>FreeClimb CLI</h3>
+              <p>Command-line tools to build and test call flows from the terminal.</p>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-marker"><div class="tl-dot"></div></div>
+            <div class="tl-body">
+              <div class="tl-year">Nov 2024</div>
+              <h3>MCP arrives</h3>
+              <p>An open standard for connecting AI agents to live tools and data.</p>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-marker"><div class="tl-logo"><img src="assets/fc-mcp-logo.png" alt="FreeClimb MCP logo"></div></div>
+            <div class="tl-body">
+              <div class="tl-year">April 2025</div>
+              <h3>FreeClimb MCP</h3>
+              <p>A custom MCP server puts FreeClimb's platform directly in agents' hands.</p>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-marker"><div class="tl-logo"><img src="assets/fc-favicon.svg" alt="FreeClimb CLI"></div></div>
+            <div class="tl-body">
+              <div class="tl-year">March 2026</div>
+              <h3>CLI built for agents</h3>
+              <p>An agent-friendly overhaul makes the CLI a first-class tool for AI builders.</p>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-marker"><div class="tl-logo tl-logo--plugin"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 2 7v10l10 5 10-5V7L12 2Zm0 2.2 6.5 3.25L12 10.7 5.5 7.45 12 4.2ZM4 9.1l7 3.5v7.1l-7-3.5V9.1Zm16 0v7.1l-7 3.5v-7.1l7-3.5Z"/></svg></div></div>
+            <div class="tl-body">
+              <div class="tl-year">June 2026</div>
+              <h3>FreeClimb plugin</h3>
+              <p>Knowledge, MCP, CLI, and guardrails packaged as one installable plugin for any AI app.</p>
+            </div>
+          </div>
+        </div>
+      </main>
+      <footer><span>Years of tooling, now agent-native</span><span class="kbd">Use ← →</span></footer>
+    </section>
+
+    <section class="slide">
+      <header><div class="eyebrow">Live demo</div><div class="deck-mark">FreeClimb Plugin Demo</div></header>
+      <main class="demo-box">
+        <div>
+          <h2>Build a support line from a business prompt.</h2>
+          <p class="lead">No one in the room needs to think in PerCL, webhook routes, or API resources first.</p>
+        </div>
+        <div class="prompt"><span class="prompt__tag">What you type</span>Create a simple FreeClimb support line. Greet callers, ask them to press 1 for sales or 2 for support, and send everyone else to voicemail.</div>
+      </main>
+      <footer><span>Then call the number live</span><span class="kbd">Use ← →</span></footer>
+    </section>
+
+    <section class="slide">
+      <header><div class="eyebrow">Why it matters</div><div class="deck-mark">FreeClimb Plugin Demo</div></header>
+      <main>
+        <h2>Shorter path from idea to working communications.</h2>
+        <div class="value-grid" style="margin-top: 42px;">
+          <div class="value"><h3>Faster prototypes</h3><p>Teams can validate voice and SMS workflows before building production systems.</p></div>
+          <div class="value"><h3>Easier onboarding</h3><p>The agent explains the workflow and handles the setup sequence.</p></div>
+          <div class="value"><h3>Better docs for humans and agents</h3><p>The same clarity that helps agents also reduces friction for new developers.</p></div>
+          <div class="value"><h3>New AI communication workflows</h3><p>FreeClimb can become the telephony layer for AI-powered products and operations.</p></div>
+        </div>
+      </main>
+      <footer><span>Business value, not just tooling</span><span class="kbd">Use ← →</span></footer>
+    </section>
+
+    <section class="slide">
+      <header><div class="eyebrow">Next steps</div><div class="deck-mark">FreeClimb Plugin Demo</div></header>
+      <main>
+        <h2>Turn the demo into product direction.</h2>
+        <div class="checklist" style="margin-top: 42px;">
+          <div class="check"><span>1</span><div>Harden the FreeClimb MCP path and add smoke tests.</div></div>
+          <div class="check"><span>2</span><div>Package a polished FreeClimb Cursor plugin for internal use.</div></div>
+          <div class="check"><span>3</span><div>Make docs more agent-readable with task-oriented workflows.</div></div>
+          <div class="check"><span>4</span><div>Identify the first customer-facing AI workflows FreeClimb should support.</div></div>
+        </div>
+      </main>
+      <footer><span>Recommendation: make FreeClimb agent-ready</span><span class="kbd">Use ← →</span></footer>
+    </section>
+    <div class="deck-progress"><i></i></div>
+  </div>
+  <script>
+    const slides = Array.from(document.querySelectorAll(".slide"))
+    const progressBar = document.querySelector(".deck-progress i")
+    const params = new URLSearchParams(window.location.search)
+    const requestedSlide = Number(params.get("slide") || 1)
+    let index = requestedSlide > 0 ? requestedSlide - 1 : 0
+
+    function show(next) {
+      index = Math.max(0, Math.min(slides.length - 1, next))
+      slides.forEach((slide, i) => {
+        slide.classList.toggle("active", i === index)
+      })
+      if (progressBar) {
+        progressBar.style.transform = `scaleX(${(index + 1) / slides.length})`
+      }
+    }
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowRight" || event.key === " ") show(index + 1)
+      if (event.key === "ArrowLeft") show(index - 1)
+      if (event.key === "Home") show(0)
+      if (event.key === "End") show(slides.length - 1)
+    })
+
+    show(index)
+  </script>
+</body>
+</html>

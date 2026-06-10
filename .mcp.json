@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "freeclimb": {
+      "command": "node",
+      "args": ["/Users/jbohne/Projects/Freeclimb/freeclimb-cli/bin/run", "mcp:start"],
+      "_meta": {
+        "ideToolTitles": {
+          "get_account": "Get FreeClimb Account",
+          "list_numbers": "List FreeClimb Numbers",
+          "list_applications": "List FreeClimb Applications",
+          "list_calls": "List FreeClimb Calls",
+          "filter_logs": "Filter FreeClimb Logs",
+          "send_sms": "Send FreeClimb SMS",
+          "make_call": "Make FreeClimb Call",
+          "generate_percl": "Generate PerCL"
+        }
+      }
+    }
+  }
+}

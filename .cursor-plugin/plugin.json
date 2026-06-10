@@ -1,0 +1,30 @@
+{
+  "name": "freeclimb",
+  "displayName": "FreeClimb",
+  "version": "0.1.0",
+  "description": "Local Cursor plugin for building and operating FreeClimb voice and SMS workflows with AI agents.",
+  "author": {
+    "name": "FreeClimb"
+  },
+  "license": "MIT",
+  "keywords": [
+    "freeclimb",
+    "telephony",
+    "sms",
+    "voice",
+    "mcp",
+    "agents"
+  ],
+  "category": "developer-tools",
+  "tags": [
+    "communications",
+    "telephony",
+    "mcp",
+    "ai-agents"
+  ],
+  "skills": "./skills/",
+  "rules": "./rules/",
+  "commands": "./commands/",
+  "agents": "./agents/",
+  "mcpServers": "./.mcp.json"
+}
