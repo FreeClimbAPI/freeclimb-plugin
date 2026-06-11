@@ -9,6 +9,8 @@ Use this skill when creating or reviewing webhook responses for FreeClimb voice 
 
 PerCL is a JSON array of command objects returned by a webhook server. FreeClimb executes the commands in order.
 
+Every `actionUrl` must be an absolute, publicly reachable URL (FreeClimb does not accept relative paths or `localhost`). Build `actionUrl`s from a public base such as the `freeclimb dev` tunnel URL, not a local address.
+
 ## Common Commands
 
 ### Say

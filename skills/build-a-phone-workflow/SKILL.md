@@ -31,6 +31,22 @@ Translate the request into:
 
 For local development, prefer `freeclimb dev` because it creates a tunnel, configures webhook URLs, and can assign a number.
 
+## Make Webhook URLs Publicly Reachable
+
+FreeClimb requires every PerCL `actionUrl` to be an absolute, publicly reachable URL. Relative paths and `localhost` URLs fail silently: the caller hears the first greeting, then the menu or recording step dies because FreeClimb cannot reach the next route.
+
+Build the app so it constructs absolute URLs from a configurable public base instead of hardcoding `localhost`:
+
+- Read a base URL from an environment variable (for example `BASE_URL`), defaulting to `http://localhost:PORT` only for local checks.
+- Build every `actionUrl` as `${BASE_URL}/route`.
+- When running with `freeclimb dev`, set `BASE_URL` to the tunnel URL it prints (the `tunnelUrl` in the ready event), then start the app:
+
+```bash
+BASE_URL='<tunnelUrl>' PORT=3000 npm start
+```
+
+`freeclimb dev` points the Application `voiceUrl` at `<tunnel>/voice`, so the app must serve `/voice` and emit matching absolute `actionUrl`s for the remaining routes. The tunnel URL changes each restart, so re-set `BASE_URL` whenever you restart `freeclimb dev`.
+
 ## Demo Support Line
 
 For the live demo, build this flow:
