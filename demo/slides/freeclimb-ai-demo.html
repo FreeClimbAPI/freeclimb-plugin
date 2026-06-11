@@ -267,11 +267,6 @@
       border-color: rgba(194, 255, 24, 0.5);
     }
 
-    .checklist {
-      display: grid;
-      gap: 14px;
-    }
-
     .check {
       display: flex;
       gap: 14px;
@@ -510,6 +505,10 @@
       gap: 16px;
       align-items: stretch;
       margin-top: 34px;
+    }
+
+    .connect-flow--even {
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
     }
 
     .stage {
@@ -1092,9 +1091,123 @@
     </section>
 
     <section class="slide">
+      <header><div class="eyebrow">How we got here</div><div class="deck-mark">FreeClimb Plugin Demo</div></header>
+      <main>
+        <h2>From standalone tools to an agent-ready platform.</h2>
+        <div class="timeline">
+          <div class="tl-item">
+            <div class="tl-marker"><div class="tl-logo tl-logo--fav"><svg viewBox="0 20 96 56" aria-hidden="true"><path d="M33.2312 24H62.7688L96 70.7027H65.3103L47.7676 48.7139L30.2299 70.7027H0L33.2312 24Z"/></svg></div></div>
+            <div class="tl-body">
+              <div class="tl-year">2020</div>
+              <h3>FreeClimb CLI</h3>
+              <p>Command-line tools to build and test call flows from the terminal.</p>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-marker"><div class="tl-dot"></div></div>
+            <div class="tl-body">
+              <div class="tl-year">Nov 2024</div>
+              <h3>MCP arrives</h3>
+              <p>An open standard for connecting AI agents to live tools and data.</p>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-marker"><div class="tl-logo"><img src="assets/fc-mcp-logo.png" alt="FreeClimb MCP logo"></div></div>
+            <div class="tl-body">
+              <div class="tl-year">April 2025</div>
+              <h3>FreeClimb MCP</h3>
+              <p>A custom MCP server puts FreeClimb's platform directly in agents' hands.</p>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-marker"><div class="tl-logo tl-logo--fav"><svg viewBox="0 20 96 56" aria-hidden="true"><path d="M33.2312 24H62.7688L96 70.7027H65.3103L47.7676 48.7139L30.2299 70.7027H0L33.2312 24Z"/></svg></div></div>
+            <div class="tl-body">
+              <div class="tl-year">March 2026</div>
+              <h3>CLI built for agents</h3>
+              <p>An agent-friendly overhaul makes the CLI a first-class tool for AI builders.</p>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-marker"><div class="tl-logo tl-logo--plugin"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 2 7v10l10 5 10-5V7L12 2Zm0 2.2 6.5 3.25L12 10.7 5.5 7.45 12 4.2ZM4 9.1l7 3.5v7.1l-7-3.5V9.1Zm16 0v7.1l-7 3.5v-7.1l7-3.5Z"/></svg></div></div>
+            <div class="tl-body">
+              <div class="tl-year">June 2026</div>
+              <h3>FreeClimb plugin</h3>
+              <p>One install brings FreeClimb's tools, docs, and guardrails into any AI app.</p>
+            </div>
+          </div>
+        </div>
+      </main>
+      <footer><span>Years of tooling, now agent-native</span><span class="slide-number"></span><span class="kbd">Use ← →</span></footer>
+    </section>
+
+    <section class="slide">
+      <header><div class="eyebrow">How it connects</div><div class="deck-mark">FreeClimb Plugin Demo</div></header>
+      <main>
+        <h2>One protocol connects every agent to FreeClimb.</h2>
+        <div class="mcp-diagram">
+          <div class="mcp-side">
+            <div class="mcp-super">
+              <div class="mcp-super__apps">
+                <span class="mcp-app"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11.503.131 1.891 5.678a.84.84 0 0 0-.42.726v11.188c0 .3.162.575.42.724l9.609 5.55a1 1 0 0 0 .998 0l9.61-5.55a.84.84 0 0 0 .42-.724V6.404a.84.84 0 0 0-.42-.726L12.497.131a1.01 1.01 0 0 0-.996 0M2.657 6.338h18.55c.263 0 .43.287.297.515L12.23 22.918c-.062.107-.229.064-.229-.06V12.335a.59.59 0 0 0-.295-.51l-9.11-5.257c-.109-.063-.064-.23.061-.23"/></svg>Cursor</span>
+                <span class="mcp-app"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4.7144 15.9555 4.7174-2.6471.079-.2307-.079-.1275h-.2307l-.7893-.0486-2.6956-.0729-2.3375-.0971-2.2646-.1214-.5707-.1215-.5343-.7042.0546-.3522.4797-.3218.686.0608 1.5179.1032 2.2767.1578 1.6514.0972 2.4468.255h.3886l.0546-.1579-.1336-.0971-.1032-.0972L6.973 9.8356l-2.55-1.6879-1.3356-.9714-.7225-.4918-.3643-.4614-.1578-1.0078.6557-.7225.8803.0607.2246.0607.8925.686 1.9064 1.4754 2.4893 1.8336.3643.3035.1457-.1032.0182-.0728-.164-.2733-1.3539-2.4467-1.445-2.4893-.6435-1.032-.17-.6194c-.0607-.255-.1032-.4674-.1032-.7285L6.287.1335 6.6997 0l.9957.1336.419.3642.6192 1.4147 1.0018 2.2282 1.5543 3.0296.4553.8985.2429.8318.091.255h.1579v-.1457l.1275-1.706.2368-2.0947.2307-2.6957.0789-.7589.3764-.9107.7468-.4918.5828.2793.4797.686-.0668.4433-.2853 1.8517-.5586 2.9021-.3643 1.9429h.2125l.2429-.2429.9835-1.3053 1.6514-2.0643.7286-.8196.85-.9046.5464-.4311h1.0321l.759 1.1293-.34 1.1657-1.0625 1.3478-.8804 1.1414-1.2628 1.7-.7893 1.36.0729.1093.1882-.0183 2.8535-.607 1.5421-.2794 1.8396-.3157.8318.3886.091.3946-.3278.8075-1.967.4857-2.3072.4614-3.4364.8136-.0425.0304.0486.0607 1.5482.1457.6618.0364h1.621l3.0175.2247.7892.522.4736.6376-.079.4857-1.2142.6193-1.6393-.3886-3.825-.9107-1.3113-.3279h-.1822v.1093l1.0929 1.0686 2.0035 1.8092 2.5075 2.3314.1275.5768-.3218.4554-.34-.0486-2.2039-1.6575-.85-.7468-1.9246-1.621h-.1275v.17l.4432.6496 2.3436 3.5214.1214 1.0807-.17.3521-.6071.2125-.6679-.1214-1.3721-1.9246L14.38 17.959l-1.1414-1.9428-.1397.079-.674 7.2552-.3156.3703-.7286.2793-.6071-.4614-.3218-.7468.3218-1.4753.3886-1.9246.3157-1.53.2853-1.9004.17-.6314-.0121-.0425-.1397.0182-1.4328 1.9672-2.1796 2.9446-1.7243 1.8456-.4128.164-.7164-.3704.0667-.6618.4008-.5889 2.386-3.0357 1.4389-1.882.929-1.0868-.0062-.1579h-.0546l-6.3385 4.1164-1.1293.1457-.4857-.4554.0608-.7467.2307-.2429 1.9064-1.3114Z"/></svg>Claude</span>
+                <span class="mcp-app"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z"/></svg>ChatGPT/Codex</span>
+              </div>
+            </div>
+            <span class="mcp-col__title">Super app</span>
+          </div>
+          <div class="mcp-link">
+            <svg viewBox="0 0 56 22" aria-hidden="true"><path d="M3 11h50M3 11l6-5M3 11l6 5M53 11l-6-5M53 11l-6 5"/></svg>
+            <svg viewBox="0 0 56 22" aria-hidden="true"><path d="M3 11h50M3 11l6-5M3 11l6 5M53 11l-6-5M53 11l-6 5"/></svg>
+            <svg viewBox="0 0 56 22" aria-hidden="true"><path d="M3 11h50M3 11l6-5M3 11l6 5M53 11l-6-5M53 11l-6 5"/></svg>
+          </div>
+          <div class="mcp-hub">
+            <img class="mcp-hub__logo" src="assets/fc-mcp-logo.png" alt="FreeClimb MCP">
+            <b>MCP</b>
+            <p>Standardized protocol</p>
+          </div>
+          <div class="mcp-link">
+            <svg viewBox="0 0 56 22" aria-hidden="true"><path d="M3 11h50M3 11l6-5M3 11l6 5M53 11l-6-5M53 11l-6 5"/></svg>
+            <svg viewBox="0 0 56 22" aria-hidden="true"><path d="M3 11h50M3 11l6-5M3 11l6 5M53 11l-6-5M53 11l-6 5"/></svg>
+            <svg viewBox="0 0 56 22" aria-hidden="true"><path d="M3 11h50M3 11l6-5M3 11l6 5M53 11l-6-5M53 11l-6 5"/></svg>
+          </div>
+          <div class="mcp-col">
+            <div class="mcp-box"><b>Accounts &amp; numbers</b><p>Provisioning, configuration</p></div>
+            <div class="mcp-box"><b>Voice &amp; SMS</b><p>Calls, messaging, delivery</p></div>
+            <div class="mcp-box"><b>Call control &amp; logs</b><p>PerCL, analytics</p></div>
+            <span class="mcp-col__title">FreeClimb platform</span>
+          </div>
+        </div>
+      </main>
+      <footer><span>One integration standard, every AI app</span><span class="slide-number"></span><span class="kbd">Use ← →</span></footer>
+    </section>
+
+    <section class="slide">
+      <header><div class="eyebrow">More options</div><div class="deck-mark">FreeClimb Plugin Demo</div></header>
+      <main>
+        <h2>Two ways the agent works with FreeClimb.</h2>
+        <div class="duo">
+          <div class="duo-card duo-card--mcp">
+            <img class="duo-card__logo" src="assets/fc-mcp-logo.png" alt="FreeClimb MCP">
+            <div class="duo-card__tag">MCP</div>
+            <h3>Talk to the live platform</h3>
+            <p>A standard way for the agent to ask FreeClimb questions and take action: read the account, check call logs, place a call, or send a text, all using real, live data inside any AI app.</p>
+          </div>
+          <div class="duo-card duo-card--cli">
+            <svg class="duo-card__peak" viewBox="0 20 96 56" aria-hidden="true"><path d="M33.2312 24H62.7688L96 70.7027H65.3103L47.7676 48.7139L30.2299 70.7027H0L33.2312 24Z"/></svg>
+            <div class="duo-card__tag">CLI</div>
+            <h3>Build and run on your machine</h3>
+            <p>A command-line toolkit the agent runs locally to scaffold the project, start a server, expose webhooks, and test the whole call flow end to end.</p>
+          </div>
+        </div>
+        <p class="duo-note"><b>More options, one agent.</b> MCP gives it live awareness and actions; the CLI lets it build and run real apps, so it goes from idea to a working call without anyone stitching tools together.</p>
+      </main>
+      <footer><span>MCP for live actions, CLI for building locally</span><span class="slide-number"></span><span class="kbd">Use ← →</span></footer>
+    </section>
+
+    <section class="slide">
       <header><div class="eyebrow">What we built</div><div class="deck-mark">FreeClimb Plugin Demo</div></header>
       <main>
-        <h2>The plugin is the product wrapper for the agent.</h2>
+        <h2>I packaged FreeClimb into a single plugin.</h2>
         <p class="lead-out">Everything the agent needs to build with FreeClimb, <b>packaged as one installable plugin.</b></p>
         <div class="wrap-layout">
           <div class="plugin-wrap">
@@ -1171,120 +1284,6 @@
     </section>
 
     <section class="slide">
-      <header><div class="eyebrow">More options</div><div class="deck-mark">FreeClimb Plugin Demo</div></header>
-      <main>
-        <h2>Two ways the agent works with FreeClimb.</h2>
-        <div class="duo">
-          <div class="duo-card duo-card--mcp">
-            <img class="duo-card__logo" src="assets/fc-mcp-logo.png" alt="FreeClimb MCP">
-            <div class="duo-card__tag">MCP</div>
-            <h3>Talk to the live platform</h3>
-            <p>A standard way for the agent to ask FreeClimb questions and take action: read the account, check call logs, place a call, or send a text, all using real, live data inside any AI app.</p>
-          </div>
-          <div class="duo-card duo-card--cli">
-            <svg class="duo-card__peak" viewBox="0 20 96 56" aria-hidden="true"><path d="M33.2312 24H62.7688L96 70.7027H65.3103L47.7676 48.7139L30.2299 70.7027H0L33.2312 24Z"/></svg>
-            <div class="duo-card__tag">CLI</div>
-            <h3>Build and run on your machine</h3>
-            <p>A command-line toolkit the agent runs locally to scaffold the project, start a server, expose webhooks, and test the whole call flow end to end.</p>
-          </div>
-        </div>
-        <p class="duo-note"><b>More options, one agent.</b> MCP gives it live awareness and actions; the CLI lets it build and run real apps, so it goes from idea to a working call without anyone stitching tools together.</p>
-      </main>
-      <footer><span>MCP for live actions, CLI for building locally</span><span class="slide-number"></span><span class="kbd">Use ← →</span></footer>
-    </section>
-
-    <section class="slide">
-      <header><div class="eyebrow">How it connects</div><div class="deck-mark">FreeClimb Plugin Demo</div></header>
-      <main>
-        <h2>One protocol connects every agent to FreeClimb.</h2>
-        <div class="mcp-diagram">
-          <div class="mcp-side">
-            <div class="mcp-super">
-              <div class="mcp-super__apps">
-                <span class="mcp-app"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11.503.131 1.891 5.678a.84.84 0 0 0-.42.726v11.188c0 .3.162.575.42.724l9.609 5.55a1 1 0 0 0 .998 0l9.61-5.55a.84.84 0 0 0 .42-.724V6.404a.84.84 0 0 0-.42-.726L12.497.131a1.01 1.01 0 0 0-.996 0M2.657 6.338h18.55c.263 0 .43.287.297.515L12.23 22.918c-.062.107-.229.064-.229-.06V12.335a.59.59 0 0 0-.295-.51l-9.11-5.257c-.109-.063-.064-.23.061-.23"/></svg>Cursor</span>
-                <span class="mcp-app"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4.7144 15.9555 4.7174-2.6471.079-.2307-.079-.1275h-.2307l-.7893-.0486-2.6956-.0729-2.3375-.0971-2.2646-.1214-.5707-.1215-.5343-.7042.0546-.3522.4797-.3218.686.0608 1.5179.1032 2.2767.1578 1.6514.0972 2.4468.255h.3886l.0546-.1579-.1336-.0971-.1032-.0972L6.973 9.8356l-2.55-1.6879-1.3356-.9714-.7225-.4918-.3643-.4614-.1578-1.0078.6557-.7225.8803.0607.2246.0607.8925.686 1.9064 1.4754 2.4893 1.8336.3643.3035.1457-.1032.0182-.0728-.164-.2733-1.3539-2.4467-1.445-2.4893-.6435-1.032-.17-.6194c-.0607-.255-.1032-.4674-.1032-.7285L6.287.1335 6.6997 0l.9957.1336.419.3642.6192 1.4147 1.0018 2.2282 1.5543 3.0296.4553.8985.2429.8318.091.255h.1579v-.1457l.1275-1.706.2368-2.0947.2307-2.6957.0789-.7589.3764-.9107.7468-.4918.5828.2793.4797.686-.0668.4433-.2853 1.8517-.5586 2.9021-.3643 1.9429h.2125l.2429-.2429.9835-1.3053 1.6514-2.0643.7286-.8196.85-.9046.5464-.4311h1.0321l.759 1.1293-.34 1.1657-1.0625 1.3478-.8804 1.1414-1.2628 1.7-.7893 1.36.0729.1093.1882-.0183 2.8535-.607 1.5421-.2794 1.8396-.3157.8318.3886.091.3946-.3278.8075-1.967.4857-2.3072.4614-3.4364.8136-.0425.0304.0486.0607 1.5482.1457.6618.0364h1.621l3.0175.2247.7892.522.4736.6376-.079.4857-1.2142.6193-1.6393-.3886-3.825-.9107-1.3113-.3279h-.1822v.1093l1.0929 1.0686 2.0035 1.8092 2.5075 2.3314.1275.5768-.3218.4554-.34-.0486-2.2039-1.6575-.85-.7468-1.9246-1.621h-.1275v.17l.4432.6496 2.3436 3.5214.1214 1.0807-.17.3521-.6071.2125-.6679-.1214-1.3721-1.9246L14.38 17.959l-1.1414-1.9428-.1397.079-.674 7.2552-.3156.3703-.7286.2793-.6071-.4614-.3218-.7468.3218-1.4753.3886-1.9246.3157-1.53.2853-1.9004.17-.6314-.0121-.0425-.1397.0182-1.4328 1.9672-2.1796 2.9446-1.7243 1.8456-.4128.164-.7164-.3704.0667-.6618.4008-.5889 2.386-3.0357 1.4389-1.882.929-1.0868-.0062-.1579h-.0546l-6.3385 4.1164-1.1293.1457-.4857-.4554.0608-.7467.2307-.2429 1.9064-1.3114Z"/></svg>Claude</span>
-                <span class="mcp-app"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z"/></svg>ChatGPT/Codex</span>
-              </div>
-            </div>
-            <span class="mcp-col__title">Super app</span>
-          </div>
-          <div class="mcp-link">
-            <svg viewBox="0 0 56 22" aria-hidden="true"><path d="M3 11h50M3 11l6-5M3 11l6 5M53 11l-6-5M53 11l-6 5"/></svg>
-            <svg viewBox="0 0 56 22" aria-hidden="true"><path d="M3 11h50M3 11l6-5M3 11l6 5M53 11l-6-5M53 11l-6 5"/></svg>
-            <svg viewBox="0 0 56 22" aria-hidden="true"><path d="M3 11h50M3 11l6-5M3 11l6 5M53 11l-6-5M53 11l-6 5"/></svg>
-          </div>
-          <div class="mcp-hub">
-            <img class="mcp-hub__logo" src="assets/fc-mcp-logo.png" alt="FreeClimb MCP">
-            <b>MCP</b>
-            <p>Standardized protocol</p>
-          </div>
-          <div class="mcp-link">
-            <svg viewBox="0 0 56 22" aria-hidden="true"><path d="M3 11h50M3 11l6-5M3 11l6 5M53 11l-6-5M53 11l-6 5"/></svg>
-            <svg viewBox="0 0 56 22" aria-hidden="true"><path d="M3 11h50M3 11l6-5M3 11l6 5M53 11l-6-5M53 11l-6 5"/></svg>
-            <svg viewBox="0 0 56 22" aria-hidden="true"><path d="M3 11h50M3 11l6-5M3 11l6 5M53 11l-6-5M53 11l-6 5"/></svg>
-          </div>
-          <div class="mcp-col">
-            <div class="mcp-box"><b>Accounts &amp; numbers</b><p>Provisioning, configuration</p></div>
-            <div class="mcp-box"><b>Voice &amp; SMS</b><p>Calls, messaging, delivery</p></div>
-            <div class="mcp-box"><b>Call control &amp; logs</b><p>PerCL, analytics</p></div>
-            <span class="mcp-col__title">FreeClimb platform</span>
-          </div>
-        </div>
-      </main>
-      <footer><span>One integration standard, every AI app</span><span class="slide-number"></span><span class="kbd">Use ← →</span></footer>
-    </section>
-
-    <section class="slide">
-      <header><div class="eyebrow">How we got here</div><div class="deck-mark">FreeClimb Plugin Demo</div></header>
-      <main>
-        <h2>From standalone tools to an agent-ready platform.</h2>
-        <div class="timeline">
-          <div class="tl-item">
-            <div class="tl-marker"><div class="tl-logo tl-logo--fav"><svg viewBox="0 20 96 56" aria-hidden="true"><path d="M33.2312 24H62.7688L96 70.7027H65.3103L47.7676 48.7139L30.2299 70.7027H0L33.2312 24Z"/></svg></div></div>
-            <div class="tl-body">
-              <div class="tl-year">2020</div>
-              <h3>FreeClimb CLI</h3>
-              <p>Command-line tools to build and test call flows from the terminal.</p>
-            </div>
-          </div>
-          <div class="tl-item">
-            <div class="tl-marker"><div class="tl-dot"></div></div>
-            <div class="tl-body">
-              <div class="tl-year">Nov 2024</div>
-              <h3>MCP arrives</h3>
-              <p>An open standard for connecting AI agents to live tools and data.</p>
-            </div>
-          </div>
-          <div class="tl-item">
-            <div class="tl-marker"><div class="tl-logo"><img src="assets/fc-mcp-logo.png" alt="FreeClimb MCP logo"></div></div>
-            <div class="tl-body">
-              <div class="tl-year">April 2025</div>
-              <h3>FreeClimb MCP</h3>
-              <p>A custom MCP server puts FreeClimb's platform directly in agents' hands.</p>
-            </div>
-          </div>
-          <div class="tl-item">
-            <div class="tl-marker"><div class="tl-logo tl-logo--fav"><svg viewBox="0 20 96 56" aria-hidden="true"><path d="M33.2312 24H62.7688L96 70.7027H65.3103L47.7676 48.7139L30.2299 70.7027H0L33.2312 24Z"/></svg></div></div>
-            <div class="tl-body">
-              <div class="tl-year">March 2026</div>
-              <h3>CLI built for agents</h3>
-              <p>An agent-friendly overhaul makes the CLI a first-class tool for AI builders.</p>
-            </div>
-          </div>
-          <div class="tl-item">
-            <div class="tl-marker"><div class="tl-logo tl-logo--plugin"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 2 7v10l10 5 10-5V7L12 2Zm0 2.2 6.5 3.25L12 10.7 5.5 7.45 12 4.2ZM4 9.1l7 3.5v7.1l-7-3.5V9.1Zm16 0v7.1l-7 3.5v-7.1l7-3.5Z"/></svg></div></div>
-            <div class="tl-body">
-              <div class="tl-year">June 2026</div>
-              <h3>FreeClimb plugin</h3>
-              <p>One install brings FreeClimb's tools, docs, and guardrails into any AI app.</p>
-            </div>
-          </div>
-        </div>
-      </main>
-      <footer><span>Years of tooling, now agent-native</span><span class="slide-number"></span><span class="kbd">Use ← →</span></footer>
-    </section>
-
-    <section class="slide">
       <header><div class="eyebrow">Live demo</div><div class="deck-mark">FreeClimb Plugin Demo</div></header>
       <main class="demo-box">
         <div>
@@ -1303,7 +1302,7 @@
     <section class="slide">
       <header><div class="eyebrow">Why it matters</div><div class="deck-mark">FreeClimb Plugin Demo</div></header>
       <main>
-        <h2>Shorter path from idea to working communications.</h2>
+        <h2>Shorter path from idea to a working FreeClimb application.</h2>
         <div class="value-grid" style="margin-top: 42px;">
           <div class="value"><h3>Faster prototypes</h3><p>Teams can validate voice and SMS workflows before building production systems.</p></div>
           <div class="value"><h3>Easier onboarding</h3><p>The agent explains the workflow and handles the setup sequence.</p></div>
@@ -1315,17 +1314,34 @@
     </section>
 
     <section class="slide">
-      <header><div class="eyebrow">Next steps</div><div class="deck-mark">FreeClimb Plugin Demo</div></header>
+      <header><div class="eyebrow">The roadmap</div><div class="deck-mark">FreeClimb Plugin Demo</div></header>
       <main>
-        <h2>Turn the demo into product direction.</h2>
-        <div class="checklist" style="margin-top: 42px;">
-          <div class="check"><span>1</span><div>Harden the FreeClimb MCP path and add smoke tests.</div></div>
-          <div class="check"><span>2</span><div>Package a polished FreeClimb Cursor plugin for internal use.</div></div>
-          <div class="check"><span>3</span><div>Make docs more agent-readable with task-oriented workflows.</div></div>
-          <div class="check"><span>4</span><div>Identify the first customer-facing AI workflows FreeClimb should support.</div></div>
+        <h2>Where the FreeClimb plugin goes next.</h2>
+        <p class="lead">June 2026 was the launch. Here is how it grows from an internal demo into a customer-facing capability.</p>
+        <div class="connect-flow connect-flow--even">
+          <div class="stage stage--plugin">
+            <div class="stage__label">Now</div>
+            <h3>Plugin is live</h3>
+            <p>Internal teams build voice and SMS apps straight from a prompt.</p>
+            <div class="platform-list"><span>MCP</span><span>CLI</span><span>Skills &amp; docs</span></div>
+          </div>
+          <div class="flow-arrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11h12.2l-5.6-5.6L12 4l8 8-8 8-1.4-1.4 5.6-5.6H4z"/></svg></div>
+          <div class="stage">
+            <div class="stage__label">Next</div>
+            <h3>Production grade</h3>
+            <p>Harden the MCP path, ship polished Cursor, Codex, and Claude plugins, and make docs agent-readable.</p>
+            <div class="platform-list"><span>Smoke tests</span><span>Multi-app</span><span>Task docs</span></div>
+          </div>
+          <div class="flow-arrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11h12.2l-5.6-5.6L12 4l8 8-8 8-1.4-1.4 5.6-5.6H4z"/></svg></div>
+          <div class="stage">
+            <div class="stage__label">Later</div>
+            <h3>AI-native telephony</h3>
+            <p>FreeClimb becomes the communications layer for customer-facing AI products and agentic workflows.</p>
+            <div class="platform-list"><span>Customer apps</span><span>Agentic ops</span></div>
+          </div>
         </div>
       </main>
-      <footer><span>Recommendation: make FreeClimb agent-ready</span><span class="slide-number"></span><span class="kbd">Use ← →</span></footer>
+      <footer><span>From internal demo to customer-facing capability</span><span class="slide-number"></span><span class="kbd">Use ← →</span></footer>
     </section>
     <div class="deck-progress"><i></i></div>
   </div>
