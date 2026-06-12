@@ -1,18 +1,31 @@
 {
   "mcpServers": {
     "freeclimb": {
-      "command": "node",
-      "args": ["/Users/jbohne/Projects/Freeclimb/freeclimb-cli/bin/run", "mcp:start"],
+      "command": "freeclimb",
+      "args": ["mcp:start"],
       "_meta": {
         "ideToolTitles": {
           "get_account": "Get FreeClimb Account",
           "list_numbers": "List FreeClimb Numbers",
+          "get_number": "Get FreeClimb Number",
+          "search_available_numbers": "Search Available FreeClimb Numbers",
           "list_applications": "List FreeClimb Applications",
-          "list_calls": "List FreeClimb Calls",
-          "filter_logs": "Filter FreeClimb Logs",
-          "send_sms": "Send FreeClimb SMS",
+          "get_application": "Get FreeClimb Application",
           "make_call": "Make FreeClimb Call",
-          "generate_percl": "Generate PerCL"
+          "list_calls": "List FreeClimb Calls",
+          "get_call": "Get FreeClimb Call",
+          "update_call": "Update FreeClimb Call",
+          "send_sms": "Send FreeClimb SMS",
+          "list_sms": "List FreeClimb SMS",
+          "get_sms": "Get FreeClimb SMS",
+          "list_logs": "List FreeClimb Logs",
+          "filter_logs": "Filter FreeClimb Logs",
+          "list_recordings": "List FreeClimb Recordings",
+          "list_conferences": "List FreeClimb Conferences",
+          "list_queues": "List FreeClimb Queues",
+          "generate_percl": "Generate PerCL",
+          "generate_dashboard_prompt": "Generate FreeClimb Dashboard Prompt",
+          "render_dashboard": "Render FreeClimb Dashboard"
         }
       }
     }

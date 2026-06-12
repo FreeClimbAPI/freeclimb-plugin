@@ -53,4 +53,4 @@ Then map the request to FreeClimb resources:
 - voicemail -> `RecordUtterance`
 - call transfer -> `OutDial`
 
-Do not expose Account IDs, API keys, or secrets in generated files or presentation material.
+Do not expose Account IDs, API keys, or secrets in generated files or presentation material. Never ask the user to paste credentials into chat and never echo them back. The FreeClimb CLI holds credentials in the OS keyring, set via `freeclimb login` in the terminal; the agent only ever reads them indirectly through MCP and CLI commands.

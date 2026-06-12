@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "importHelpers": true,
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "outDir": "lib",
+    "rootDir": "src",
+    "strict": true,
+    "composite": true,
+    "target": "es2022",
+    "noEmit": false,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "jsx": "react-jsx"
+  },
+  "include": ["src/**/*", "src/**/*.json"]
+}

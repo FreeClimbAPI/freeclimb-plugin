@@ -1,0 +1,29 @@
+*-debug.log
+*-error.log
+/.nyc_output
+/.vscode/*
+!/.vscode/mcp.json
+/dist
+/lib
+/package-lock.json
+/tmp
+node_modules
+.env
+tsconfig.tsbuildinfo
+.DS_Store
+benchmarks/results/
+benchmarks/node_modules/
+benchmarks/dist/
+.claude/worktrees/
+
+# Generated files
+/oclif.manifest.json
+/.claude/
+
+# Design/media assets (no longer committed)
+/*.PNG
+/*.png
+/freeclimb-cli-*.html
+
+# VHS demo output
+/demos/out/

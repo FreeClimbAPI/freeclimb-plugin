@@ -1,0 +1,51 @@
+{
+  "root": "main",
+  "state": {
+    "account": { "$source": "account" },
+    "numbers": { "$source": "numbers" },
+    "applications": { "$source": "applications" },
+    "logs": { "$source": "logs", "params": { "maxItems": 20 } }
+  },
+  "elements": {
+    "main": {
+      "type": "Box",
+      "props": { "flexDirection": "column", "gap": 1 },
+      "children": ["header", "account-section", "logs-section", "footer"]
+    },
+    "header": {
+      "type": "Heading",
+      "props": { "level": "h1", "text": "System Health" }
+    },
+    "account-section": {
+      "type": "Card",
+      "props": { "title": "Account" },
+      "children": ["account-details"]
+    },
+    "account-details": {
+      "type": "KeyValue",
+      "props": {
+        "label": "Status",
+        "value": { "$state": "/account/status" }
+      }
+    },
+    "logs-section": {
+      "type": "Card",
+      "props": { "title": "Recent Logs" },
+      "children": ["logs-view"]
+    },
+    "logs-view": {
+      "type": "LogStream",
+      "props": {
+        "entries": { "$state": "/logs/logs" },
+        "maxLines": 15
+      }
+    },
+    "footer": {
+      "type": "StatusLine",
+      "props": {
+        "text": "Live updating \u2022 Ctrl+C to exit",
+        "status": "info"
+      }
+    }
+  }
+}

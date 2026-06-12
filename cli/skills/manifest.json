@@ -1,0 +1,151 @@
+{
+  "version": "1.0",
+  "description": "Model-agnostic skill definitions for the FreeClimb ecosystem. Consumable by any AI agent platform.",
+  "skills": [
+    {
+      "id": "freeclimb-platform-concepts",
+      "name": "FreeClimb Platform Concepts",
+      "description": "Core FreeClimb concepts: accounts, applications, webhooks, phone numbers, resource model, trial restrictions",
+      "path": "platform/concepts.md",
+      "tags": ["domain", "reference"],
+      "triggers": ["freeclimb", "telephony", "voice", "sms", "communications", "account", "application"],
+      "layer": 1,
+      "dependencies": []
+    },
+    {
+      "id": "freeclimb-percl-reference",
+      "name": "FreeClimb PerCL Reference",
+      "description": "PerCL (Performance Command Language) for controlling call flow: Say, GetDigits, OutDial, Enqueue, Record, etc.",
+      "path": "platform/percl-reference.md",
+      "tags": ["domain", "reference", "voice"],
+      "triggers": ["percl", "call flow", "say", "getdigits", "outdial", "enqueue", "record", "hangup", "ivr"],
+      "layer": 1,
+      "dependencies": ["freeclimb-platform-concepts"]
+    },
+    {
+      "id": "freeclimb-voice-applications",
+      "name": "FreeClimb Voice Applications",
+      "description": "Build voice apps with FreeClimb: webhook servers, IVR trees, call centers, voicemail, transfers, SMS auto-responders",
+      "path": "platform/voice-applications.md",
+      "tags": ["domain", "patterns", "voice"],
+      "triggers": ["ivr", "call center", "voicemail", "webhook", "voice app", "phone tree", "auto attendant", "call routing"],
+      "layer": 1,
+      "dependencies": ["freeclimb-platform-concepts", "freeclimb-percl-reference"]
+    },
+    {
+      "id": "freeclimb-error-recovery",
+      "name": "FreeClimb Error Recovery",
+      "description": "FreeClimb error codes, troubleshooting strategies, and common agent mistakes",
+      "path": "platform/error-recovery.md",
+      "tags": ["domain", "troubleshooting"],
+      "triggers": ["error", "failed", "troubleshoot", "debug", "fix", "broken", "not working"],
+      "layer": 1,
+      "dependencies": ["freeclimb-platform-concepts"]
+    },
+    {
+      "id": "freeclimb-cli-usage",
+      "name": "FreeClimb CLI Usage",
+      "description": "Use the FreeClimb CLI to make calls, send SMS, manage numbers, applications, conferences, queues, and recordings",
+      "path": "cli/usage.md",
+      "tags": ["cli", "usage"],
+      "triggers": ["freeclimb cli", "make call", "send sms", "list numbers", "cli command", "freeclimb command"],
+      "layer": 2,
+      "dependencies": ["freeclimb-platform-concepts"]
+    },
+    {
+      "id": "freeclimb-cli-workflows",
+      "name": "FreeClimb CLI Workflows",
+      "description": "Multi-step CLI recipes: onboarding, debugging failed calls, bulk operations, provisioning",
+      "path": "cli/workflows.md",
+      "tags": ["cli", "workflows", "recipes"],
+      "triggers": ["workflow", "onboard", "provision", "debug call", "bulk", "migrate", "step by step"],
+      "layer": 2,
+      "dependencies": ["freeclimb-cli-usage"]
+    },
+    {
+      "id": "freeclimb-mcp-tools",
+      "name": "FreeClimb MCP Tools",
+      "description": "Complete reference for the 19 MCP tools exposed by the FreeClimb CLI MCP server",
+      "path": "cli/mcp-tools.md",
+      "tags": ["cli", "mcp", "tools"],
+      "triggers": ["mcp", "mcp tool", "mcp server", "ai agent", "model context protocol"],
+      "layer": 2,
+      "dependencies": ["freeclimb-platform-concepts"]
+    },
+    {
+      "id": "freeclimb-cli-dev-architecture",
+      "name": "FreeClimb CLI Development",
+      "description": "Architecture, testing, and contribution guide for the FreeClimb CLI codebase (oclif v4, TypeScript)",
+      "path": "development/architecture.md",
+      "tags": ["development", "architecture"],
+      "triggers": ["cli source", "add command", "fix bug", "cli internals", "oclif", "contribute"],
+      "layer": 3,
+      "dependencies": []
+    },
+    {
+      "id": "freeclimb-cli-dev-subsystems",
+      "name": "FreeClimb CLI Subsystems",
+      "description": "Detailed reference for CLI subsystems: agent config, validation, errors, formatters, UI components, MCP, generation",
+      "path": "development/subsystems.md",
+      "tags": ["development", "reference"],
+      "triggers": ["subsystem", "validation", "formatter", "agent config", "error system", "ui component"],
+      "layer": 3,
+      "dependencies": ["freeclimb-cli-dev-architecture"]
+    },
+    {
+      "id": "freeclimb-command-generation",
+      "name": "FreeClimb Command Generation",
+      "description": "Auto-generate CLI commands from API schema: pipeline, schema format, adding endpoints, oclif v4 patterns",
+      "path": "development/command-generation.md",
+      "tags": ["development", "generation"],
+      "triggers": ["generate command", "code gen", "api schema", "add endpoint", "generation pipeline"],
+      "layer": 3,
+      "dependencies": ["freeclimb-cli-dev-architecture"]
+    },
+    {
+      "id": "freeclimb-dev-workflows",
+      "name": "FreeClimb Dev Workflows",
+      "description": "Build, test, lint, and MCP server commands for CLI development",
+      "path": "development/dev-workflows.md",
+      "tags": ["development", "workflows"],
+      "triggers": ["build", "test", "lint", "prepack", "mcp server"],
+      "layer": 3,
+      "dependencies": []
+    },
+    {
+      "id": "agent-tui",
+      "name": "Terminal UI Automation",
+      "description": "Drive terminal UI applications programmatically for testing, automation, and inspection with agent-tui",
+      "path": "tools/agent-tui/guide.md",
+      "tags": ["tools", "testing", "automation"],
+      "triggers": ["agent-tui", "tui automation", "terminal testing", "cli testing", "interactive testing"],
+      "layer": 4,
+      "dependencies": [],
+      "references": [
+        "tools/agent-tui/references/demo.md",
+        "tools/agent-tui/references/command-atlas.md",
+        "tools/agent-tui/references/decision-tree.md",
+        "tools/agent-tui/references/flows.md",
+        "tools/agent-tui/references/assertions.md",
+        "tools/agent-tui/references/recovery.md",
+        "tools/agent-tui/references/safety.md",
+        "tools/agent-tui/references/session-lifecycle.md",
+        "tools/agent-tui/references/use-cases.md",
+        "tools/agent-tui/references/test-plan.md",
+        "tools/agent-tui/references/output-contract.md",
+        "tools/agent-tui/references/prompt-templates.md",
+        "tools/agent-tui/references/clarifications.md"
+      ]
+    },
+    {
+      "id": "terminal-ui-design",
+      "name": "Terminal UI Design",
+      "description": "Production-grade terminal UI design: aesthetics, box drawing, color palettes, typography, layout, animation",
+      "path": "tools/terminal-ui-design.md",
+      "tags": ["tools", "design", "ui"],
+      "triggers": ["tui design", "terminal design", "cli aesthetics", "box drawing", "terminal colors"],
+      "layer": 4,
+      "dependencies": []
+    }
+  ]
+}

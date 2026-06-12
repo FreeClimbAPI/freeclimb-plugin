@@ -1,0 +1,63 @@
+{
+  "root": "main",
+  "state": {
+    "activeCalls": { "$source": "calls", "params": { "status": "inProgress" } },
+    "recentCalls": { "$source": "calls" },
+    "lastRefresh": null
+  },
+  "elements": {
+    "main": {
+      "type": "Box",
+      "props": { "flexDirection": "column", "gap": 1 },
+      "children": ["header", "metrics-row", "calls-section", "footer"]
+    },
+    "header": {
+      "type": "Heading",
+      "props": { "level": "h1", "text": "Call Overview" }
+    },
+    "metrics-row": {
+      "type": "Box",
+      "props": { "flexDirection": "row", "gap": 2 },
+      "children": ["metric-active", "metric-total"]
+    },
+    "metric-active": {
+      "type": "Metric",
+      "props": {
+        "label": "Active Calls",
+        "value": { "$state": "/activeCalls/total" }
+      }
+    },
+    "metric-total": {
+      "type": "Metric",
+      "props": {
+        "label": "Recent Calls",
+        "value": { "$state": "/recentCalls/total" }
+      }
+    },
+    "calls-section": {
+      "type": "Card",
+      "props": { "title": "Recent Calls" },
+      "children": ["calls-table"]
+    },
+    "calls-table": {
+      "type": "Table",
+      "props": {
+        "columns": [
+          { "key": "callId", "header": "Call ID" },
+          { "key": "from", "header": "From" },
+          { "key": "to", "header": "To" },
+          { "key": "status", "header": "Status" },
+          { "key": "direction", "header": "Direction" }
+        ],
+        "rows": { "$state": "/recentCalls/calls" }
+      }
+    },
+    "footer": {
+      "type": "StatusLine",
+      "props": {
+        "text": "Live updating \u2022 Ctrl+C to exit",
+        "status": "info"
+      }
+    }
+  }
+}

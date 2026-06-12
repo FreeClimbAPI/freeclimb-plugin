@@ -1,0 +1,15 @@
+{
+  "name": "freeclimb-plugin",
+  "version": "0.2.0",
+  "private": true,
+  "description": "FreeClimb Cursor plugin and bundled CLI monorepo.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FreeClimbAPI/freeclimb-plugin.git"
+  },
+  "scripts": {
+    "setup": "cd cli && npm install && npm run prepack",
+    "validate": "node scripts/validate-plugin.mjs"
+  }
+}

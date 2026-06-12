@@ -1,0 +1,42 @@
+{
+  "root": "main",
+  "state": {
+    "messages": { "$source": "sms" }
+  },
+  "elements": {
+    "main": {
+      "type": "Box",
+      "props": { "flexDirection": "column", "gap": 1 },
+      "children": ["header", "sms-section", "footer"]
+    },
+    "header": {
+      "type": "Heading",
+      "props": { "level": "h1", "text": "SMS Activity" }
+    },
+    "sms-section": {
+      "type": "Card",
+      "props": { "title": "Recent Messages" },
+      "children": ["sms-table"]
+    },
+    "sms-table": {
+      "type": "Table",
+      "props": {
+        "columns": [
+          { "key": "messageId", "header": "Message ID" },
+          { "key": "from", "header": "From" },
+          { "key": "to", "header": "To" },
+          { "key": "direction", "header": "Direction" },
+          { "key": "status", "header": "Status" }
+        ],
+        "rows": { "$state": "/messages/messages" }
+      }
+    },
+    "footer": {
+      "type": "StatusLine",
+      "props": {
+        "text": "Live updating \u2022 Ctrl+C to exit",
+        "status": "info"
+      }
+    }
+  }
+}

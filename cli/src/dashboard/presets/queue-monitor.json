@@ -1,0 +1,41 @@
+{
+  "root": "main",
+  "state": {
+    "queues": { "$source": "queues" }
+  },
+  "elements": {
+    "main": {
+      "type": "Box",
+      "props": { "flexDirection": "column", "gap": 1 },
+      "children": ["header", "queues-section", "footer"]
+    },
+    "header": {
+      "type": "Heading",
+      "props": { "level": "h1", "text": "Queue Monitor" }
+    },
+    "queues-section": {
+      "type": "Card",
+      "props": { "title": "Active Queues" },
+      "children": ["queues-table"]
+    },
+    "queues-table": {
+      "type": "Table",
+      "props": {
+        "columns": [
+          { "key": "alias", "header": "Queue" },
+          { "key": "currentSize", "header": "Size" },
+          { "key": "maxSize", "header": "Max" },
+          { "key": "averageQueueRemovalTime", "header": "Avg Wait" }
+        ],
+        "rows": { "$state": "/queues/queues" }
+      }
+    },
+    "footer": {
+      "type": "StatusLine",
+      "props": {
+        "text": "Live updating \u2022 Ctrl+C to exit",
+        "status": "info"
+      }
+    }
+  }
+}

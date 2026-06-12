@@ -1,0 +1,167 @@
+{
+  "name": "freeclimb-cli",
+  "version": "0.6.0",
+  "type": "module",
+  "author": "dev@freeclimb.com",
+  "bin": {
+    "freeclimb": "./bin/run"
+  },
+  "bugs": {
+    "url": "https://github.com/FreeClimbAPI/freeclimb-plugin/issues"
+  },
+  "dependencies": {
+    "@inquirer/prompts": "^8.3.2",
+    "@json-render/core": "^0.15.0",
+    "@json-render/ink": "^0.15.0",
+    "@modelcontextprotocol/sdk": "^1.27.1",
+    "@napi-rs/keyring": "^1",
+    "@ngrok/ngrok": "^1.7.0",
+    "@oclif/core": "^4",
+    "@oclif/plugin-autocomplete": "^3",
+    "@oclif/plugin-help": "^6",
+    "axios": "^1",
+    "chalk": "^4",
+    "dotenv": "^16",
+    "ink": "^6.0.0",
+    "react": "^19.0.0",
+    "tslib": "^2",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@oclif/test": "^4",
+    "@types/chai": "^4",
+    "@types/mocha": "^10",
+    "@types/node": "^18",
+    "@types/react": "^19.0.0",
+    "@types/sinon": "^21.0.0",
+    "@typescript-eslint/eslint-plugin": "^7",
+    "@typescript-eslint/parser": "^7",
+    "chai": "^4",
+    "eslint": "^8.57.1",
+    "eslint-config-oclif": "^5",
+    "eslint-config-oclif-typescript": "^3",
+    "eslint-config-prettier": "^9",
+    "eslint-import-resolver-typescript": "^4.4.4",
+    "eslint-plugin-import": "^2",
+    "eslint-plugin-no-only-tests": "^3",
+    "husky": "^9",
+    "ink-testing-library": "^4.0.0",
+    "lint-staged": "^15",
+    "mocha": "^10",
+    "nock": "^13",
+    "nyc": "^17",
+    "oclif": "^4",
+    "prettier": "^3",
+    "sinon": "^21.0.3",
+    "tsx": "^4",
+    "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "files": [
+    "/bin",
+    "/lib",
+    "/npm-shrinkwrap.json",
+    "/oclif.manifest.json",
+    "/skills"
+  ],
+  "homepage": "https://github.com/FreeClimbAPI/freeclimb-plugin/tree/main/cli",
+  "keywords": [
+    "oclif"
+  ],
+  "license": "MIT",
+  "main": "lib/index.js",
+  "oclif": {
+    "commands": "./lib/commands",
+    "bin": "freeclimb",
+    "helpClass": "./lib/help",
+    "macos": {
+      "identifier": "com.freeclimb.cli"
+    },
+    "hooks": {
+      "init": "./lib/hooks/init/version-check"
+    },
+    "update": {
+      "s3": {
+        "bucket": "vail-freeclimb-cli"
+      }
+    },
+    "plugins": [
+      "@oclif/plugin-help",
+      "@oclif/plugin-autocomplete"
+    ],
+    "topics": {
+      "sms": {
+        "description": " A Message instance resource represents an SMS Message sent between FreeClimb and a remote endpoint."
+      },
+      "recordings": {
+        "description": " A Recording instance resource represents an audio file created by FreeClimb during a Call or Conference."
+      },
+      "queue-members": {
+        "description": " A Queue Member is a subresource of a Queue resource and represents a Call currently in a particular Queue."
+      },
+      "logs": {
+        "description": " A Log instance resource represents a log entry made by FreeClimb in the course of processing a PerCL script or servicing a REST API request. It is mostly useful for debugging purposes. The Logs list resource represents the set of logs generated for an account."
+      },
+      "incoming-numbers": {
+        "description": " This is the collection of all the phone numbers that you have purchased from FreeClimb and which now belong to the account. These phone numbers can receive and send calls."
+      },
+      "conferences": {
+        "description": "A Conference represents a call between two or more participants."
+      },
+      "conference-participants": {
+        "description": " A Participant is a subresource of a Conference resource and represents a Call currently connected to a particular Conference."
+      },
+      "calls": {
+        "description": " A Call represents a voice connection between FreeClimb and a remote end point. This connection may be inbound or outbound (when an application initiates the Call, either via the REST API or the OutDial PerCL command. The Calls list resource represents the set of all phone Calls made to and from an account."
+      },
+      "call-queues": {
+        "description": " Queues are the primary means of keeping callers waiting. Queues can be created ahead of time and are deleted automatically when they change state from populated to empty."
+      },
+      "available-numbers": {
+        "description": " Available Numbers are FreeClimb phone numbers available for purchase. The properties of the Available Phone Numbers resource provides a means to search for phone numbers that are available to buy."
+      },
+      "applications": {
+        "description": " An Application in FreeClimb is just a set of configuration data and URLs that FreeClimb invokes to notify the app of an event or to retrieve instructions on how to behave in response to an event, such as when one of the phone numbers associated with the Application receives a Call."
+      },
+      "accounts": {
+        "description": " You get a FreeClimb Account at signup. This includes an account ID and an API key. These two properties enable you to connect and communicate with FreeClimb."
+      },
+      "dashboard": {
+        "description": "AI-driven terminal dashboards for monitoring FreeClimb resources"
+      }
+    }
+  },
+  "do-not-move": {
+    "important": "This key is required to be right after oclif/topics to prevent the autogeneration script from overrunning when generating OCLIF topics"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FreeClimbAPI/freeclimb-plugin.git"
+  },
+  "scripts": {
+    "postpack": "rm -f oclif.manifest.json",
+    "lint": "eslint . --ext .js,.ts,.tsx --config .eslintrc.json",
+    "lint-write": "eslint . --fix --ext .js,.ts,.tsx --config .eslintrc.json && prettier --write **.{js,ts,tsx,json,md}",
+    "prepack": "rm -rf lib; rm -f tsconfig.tsbuildinfo; tsc -b && oclif manifest && oclif readme --multi && npx tsx scripts/build-skills.ts",
+    "pretest": "tsc -b && oclif manifest",
+    "test": "nyc --extension .ts mocha --require tsx --require test/setup.ts --forbid-only \"test/**/*.test.ts\"",
+    "version": "oclif readme --multi && git add README.md docs/",
+    "setup": "bash scripts/setup.sh",
+    "build:skills": "npx tsx scripts/build-skills.ts"
+  },
+  "types": "lib/index.d.ts",
+  "lint-staged": {
+    "*.{js,ts,tsx,json,md}": [
+      "prettier --write"
+    ],
+    "*/**/*.{js,ts,tsx}": [
+      "eslint --quiet"
+    ]
+  },
+  "description": "freeclimb-cli =============",
+  "directories": {
+    "test": "test"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "servers": {
+    "freeclimb": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["bin/run", "mcp:start"],
+      "env": {
+        "FREECLIMB_ACCOUNT_ID": "",
+        "FREECLIMB_API_KEY": ""
+      }
+    }
+  }
+}

@@ -11,9 +11,11 @@ When helping with FreeClimb:
 - Start from the user's business goal before naming implementation details.
 - Use E.164 phone numbers, such as `+15551234567`.
 - Treat Account IDs, API keys, and real phone numbers as sensitive.
+- Never ask the user to paste Account IDs or API keys into chat, and never print or write them to files. Authentication happens only via `freeclimb login` in the user's terminal, which stores credentials in the OS keyring; the agent reads them indirectly through MCP and CLI commands.
 - Use PerCL JSON arrays for voice webhook responses.
 - Prefer `freeclimb dev --port 3000` for local voice app demos.
 - Use `--dry-run` before mutating CLI operations when available.
 - Confirm before buying, deleting, or reassigning phone numbers.
 - On trial accounts, remind the user that outbound calls and SMS require verified destination numbers.
 - Use MCP for account/call/log inspection when available, and CLI commands when local dev or provisioning is easier.
+- If the FreeClimb MCP tools are unavailable or the `freeclimb` CLI is missing, run the `/freeclimb-setup` command (or follow the `freeclimb-onboarding` skill) to install the bundled CLI and have the user authenticate with `freeclimb login` in their terminal.

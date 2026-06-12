@@ -1,0 +1,7 @@
+#!/usr/bin/env node
+
+import {execute} from '@oclif/core'
+import {fileURLToPath} from 'node:url'
+import {dirname} from 'node:path'
+
+execute({dir: dirname(fileURLToPath(import.meta.url))})

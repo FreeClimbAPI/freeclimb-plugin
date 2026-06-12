@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "command": "hooks/freeclimb-session-start.sh"
+      }
+    ],
+    "beforeMCPExecution": [
+      {
+        "command": "hooks/freeclimb-mcp-guard.sh"
+      }
+    ]
+  }
+}
