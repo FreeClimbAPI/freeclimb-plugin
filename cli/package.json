@@ -40,7 +40,7 @@
     "eslint": "^8.57.1",
     "eslint-config-oclif": "^5",
     "eslint-config-oclif-typescript": "^3",
-    "eslint-config-prettier": "^9",
+    "eslint-config-prettier": "^10",
     "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-import": "^2",
     "eslint-plugin-no-only-tests": "^3",
