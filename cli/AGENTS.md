@@ -1,11 +1,9 @@
 # FreeClimb CLI - Agent Guide
 
-## Git Remotes - READ THIS FIRST
+## Git Remotes
 
-- `origin` = `FreeClimbAPI/freeclimb-cli` (upstream, READ-ONLY)
-- `work` = `jbohnevail/freeclimb-cli` (fork, push here)
-- **NEVER create PRs against FreeClimbAPI/freeclimb-cli**
-- Always: `git push work <branch>` and PRs target `jbohnevail/freeclimb-cli`
+- `origin` = `FreeClimbAPI/freeclimb-plugin` (push feature branches here)
+- Open PRs against `FreeClimbAPI/freeclimb-plugin` (base `main`); never push directly to `main`.
 
 This CLI is frequently invoked by AI/LLM agents. Always assume inputs can be adversarial.
 
