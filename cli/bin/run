@@ -1,7 +1,65 @@
 #!/usr/bin/env node
 
-import {execute} from '@oclif/core'
+import {run, flush, handle} from '@oclif/core'
 import {fileURLToPath} from 'node:url'
 import {dirname} from 'node:path'
 
-execute({dir: dirname(fileURLToPath(import.meta.url))})
+const dir = dirname(fileURLToPath(import.meta.url))
+
+try {
+  await run(process.argv.slice(2), dir)
+  await flush()
+} catch (error) {
+  enrichParseError(error)
+  await handle(error)
+}
+
+// Append a concrete, copy-pasteable example to missing-argument and
+// missing-required-flag errors so agents get an actionable invocation.
+function enrichParseError(error) {
+  try {
+    if (!error || typeof error !== 'object' || typeof error.message !== 'string') return
+    const name = error.constructor?.name
+    if (name !== 'RequiredArgsError' && name !== 'FailedFlagValidationError') return
+
+    const context = error.parse?.input?.context
+    if (!context) return
+
+    const example = resolveExample(context)
+    if (!example) return
+
+    const hint = `\n\nExample:\n  ${example}`
+    const marker = '\nSee more help with --help'
+    error.message = error.message.includes(marker)
+      ? error.message.replace(marker, `${hint}${marker}`)
+      : error.message + hint
+  } catch {
+    // Never let enrichment break normal error reporting.
+  }
+}
+
+function resolveExample(context) {
+  const bin = context.config?.bin ?? 'freeclimb'
+  const ctor = context.constructor ?? {}
+
+  const examples = ctor.examples
+  if (Array.isArray(examples) && examples.length > 0) {
+    const first = examples[0]
+    const raw = typeof first === 'string' ? first : first?.command
+    if (raw) {
+      return raw
+        .replaceAll('<%= config.bin %>', bin)
+        .replace(/^\$\s*/, '')
+        .trim()
+    }
+  }
+
+  if (context.id) {
+    const placeholders = Object.entries(ctor.args ?? {})
+      .map(([key, arg]) => (arg?.required ? `<${key}>` : `[${key}]`))
+      .join(' ')
+    return `${bin} ${context.id}${placeholders ? ` ${placeholders}` : ''}`
+  }
+
+  return undefined
+}

@@ -91,7 +91,10 @@ export FREECLIMB_OUTPUT_FORMAT=json                  # Global JSON mode
 ```sh
 freeclimb sms:send +1FROM +1TO "Hello" --dry-run     # Preview without executing
 freeclimb applications:delete APP_ID --dry-run        # Validate before deleting
+freeclimb applications:delete APP_ID --yes            # Skip the interactive confirmation prompt
 ```
+
+Destructive commands (`*:delete`, `conference-participants:remove`) prompt for confirmation in an interactive terminal. Non-interactive/agent runs never prompt; pass `--yes` to make intent explicit.
 
 ### Schema Introspection
 

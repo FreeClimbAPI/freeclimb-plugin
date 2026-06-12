@@ -24,7 +24,7 @@ export class recordingsGet extends Command {
         next: Flags.boolean({ hidden: true }),
         json: Flags.boolean({
             description:
-                "Output as JSON. Auto-enabled when stdout is not a TTY or FREECLIMB_OUTPUT_FORMAT=json is set.",
+                "Output as a structured JSON envelope with request metadata. Also enabled globally via FREECLIMB_OUTPUT_FORMAT=json.",
             default: false,
         }),
         quiet: Flags.boolean({
