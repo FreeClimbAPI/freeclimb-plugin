@@ -61,6 +61,19 @@ For the live demo, build this flow:
 
 Use Express for the simplest Node.js demo app unless the current project already uses another web framework.
 
+## Verify Before Telling The User To Call
+
+After `freeclimb dev` is up and the app is running with `BASE_URL` set to the tunnel URL, prove the public path works end to end before inviting the user to call. Surface any failure now, not during the live call:
+
+```bash
+curl -s -X POST "<tunnelUrl>/voice" -H 'content-type: application/x-www-form-urlencoded' -d 'callId=test' -w '\n[HTTP %{http_code}]\n'
+curl -s -X POST "<tunnelUrl>/menu"  -H 'content-type: application/x-www-form-urlencoded' -d 'digits=1' -w '\n[HTTP %{http_code}]\n'
+curl -s -X POST "<tunnelUrl>/menu"  -H 'content-type: application/x-www-form-urlencoded' -d 'digits=2' -w '\n[HTTP %{http_code}]\n'
+curl -s -X POST "<tunnelUrl>/menu"  -H 'content-type: application/x-www-form-urlencoded' -d 'digits=9' -w '\n[HTTP %{http_code}]\n'
+```
+
+Confirm all return HTTP 200, the `/voice` response contains an absolute `actionUrl` on the tunnel domain (not `localhost`), and `/menu` routes `1`→sales, `2`→support, other→voicemail. Only after these pass should you tell the user the number is ready to call.
+
 ## Demo Script
 
 Use this prompt:

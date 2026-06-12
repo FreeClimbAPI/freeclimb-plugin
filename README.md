@@ -60,9 +60,7 @@ export FREECLIMB_OUTPUT_FORMAT=json
 - `commands/`: Demo command for building a phone workflow.
 - `rules/`: FreeClimb-specific agent rules.
 - `agents/`: FreeClimb builder subagent definition.
-- `demo/ivr-support-line/`: Local IVR webhook app.
 - `demo/slides/`: HTML presentation deck and screenshots.
-- `demo/RUNBOOK.md`: Live demo setup and rehearsal checklist.
 
 ## Demo Prompt
 

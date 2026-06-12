@@ -1,141 +1,128 @@
-import http from "node:http"
+const express = require("express");
 
-const port = Number(process.env.PORT || 3000)
-const baseUrl = process.env.BASE_URL || `http://localhost:${port}`
+const app = express();
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
 
-function percl(res, commands) {
-  res.writeHead(200, { "content-type": "application/json" })
-  res.end(JSON.stringify(commands))
+const PORT = process.env.PORT || 3000;
+
+function baseUrl(req) {
+  const configured = process.env.PUBLIC_BASE_URL;
+  if (configured) {
+    return configured.replace(/\/$/, "");
+  }
+  const proto = req.headers["x-forwarded-proto"] || req.protocol;
+  const host = req.headers["x-forwarded-host"] || req.get("host");
+  return `${proto}://${host}`;
 }
 
-function json(res, body) {
-  res.writeHead(200, { "content-type": "application/json" })
-  res.end(JSON.stringify(body))
+function url(req, path) {
+  return `${baseUrl(req)}${path}`;
 }
 
-function parseBody(req) {
-  return new Promise((resolve) => {
-    let raw = ""
-    req.on("data", (chunk) => {
-      raw += chunk
-    })
-    req.on("end", () => {
-      const contentType = req.headers["content-type"] || ""
-      if (contentType.includes("application/json")) {
-        try {
-          resolve(raw ? JSON.parse(raw) : {})
-        } catch {
-          resolve({})
-        }
-        return
-      }
-      const params = new URLSearchParams(raw)
-      resolve(Object.fromEntries(params.entries()))
-    })
-  })
-}
+app.post("/voice", (req, res) => {
+  res.json([
+    {
+      GetDigits: {
+        actionUrl: url(req, "/menu"),
+        prompts: [
+          {
+            Say: {
+              text: "Thanks for calling Acme. Press 1 for sales, press 2 for support, or press 3 for billing.",
+            },
+          },
+        ],
+        maxDigits: 1,
+        minDigits: 1,
+        initialTimeoutMs: 8000,
+        flushBuffer: true,
+      },
+    },
+  ]);
+});
 
-async function handle(req, res) {
-  const url = new URL(req.url || "/", baseUrl)
+app.post("/menu", (req, res) => {
+  const digits = (req.body && req.body.digits) || "";
 
-  if (req.method === "GET" && url.pathname === "/health") {
-    json(res, { ok: true, service: "freeclimb-ivr-support-line-demo" })
-    return
+  switch (digits) {
+    case "1":
+      return res.json([{ Redirect: { actionUrl: url(req, "/sales") } }]);
+    case "2":
+      return res.json([{ Redirect: { actionUrl: url(req, "/support") } }]);
+    case "3":
+      return res.json([{ Redirect: { actionUrl: url(req, "/billing") } }]);
+    default:
+      return res.json([{ Redirect: { actionUrl: url(req, "/voicemail") } }]);
   }
+});
 
-  if (req.method !== "POST") {
-    res.writeHead(404, { "content-type": "application/json" })
-    res.end(JSON.stringify({ error: "Not found" }))
-    return
-  }
+app.post("/sales", (req, res) => {
+  res.json([
+    {
+      Say: {
+        text: "You have reached sales. A team member will follow up with you shortly. Goodbye.",
+      },
+    },
+    { Hangup: {} },
+  ]);
+});
 
-  const body = await parseBody(req)
+app.post("/support", (req, res) => {
+  res.json([
+    {
+      Say: {
+        text: "You have reached support. A team member will follow up with you shortly. Goodbye.",
+      },
+    },
+    { Hangup: {} },
+  ]);
+});
 
-  if (url.pathname === "/voice") {
-    percl(res, [
-      {
-        GetDigits: {
-          actionUrl: `${baseUrl}/menu`,
-          prompts: [
-            {
-              Say: {
-                text: "Thanks for calling FreeClimb demo support. Press 1 for sales, 2 for support, or any other key to leave a voicemail."
-              }
-            }
-          ],
-          maxDigits: 1,
-          minDigits: 1,
-          initialTimeoutMs: 8000,
-          digitTimeoutMs: 5000,
-          flushBuffer: true
-        }
-      }
-    ])
-    return
-  }
+app.post("/billing", (req, res) => {
+  res.json([
+    {
+      Say: {
+        text: "You have reached billing. A team member will follow up with you shortly. Goodbye.",
+      },
+    },
+    { Hangup: {} },
+  ]);
+});
 
-  if (url.pathname === "/menu") {
-    if (body.digits === "1") {
-      percl(res, [{ Redirect: { actionUrl: `${baseUrl}/sales` } }])
-      return
-    }
-    if (body.digits === "2") {
-      percl(res, [{ Redirect: { actionUrl: `${baseUrl}/support` } }])
-      return
-    }
-    percl(res, [{ Redirect: { actionUrl: `${baseUrl}/voicemail` } }])
-    return
-  }
+app.post("/voicemail", (req, res) => {
+  res.json([
+    {
+      Say: {
+        text: "Please leave a message after the beep. Press the pound key when you are finished.",
+      },
+    },
+    {
+      RecordUtterance: {
+        actionUrl: url(req, "/voicemail-saved"),
+        silenceTimeoutMs: 5000,
+        maxLengthSec: 120,
+        finishOnKey: "#",
+        playBeep: true,
+      },
+    },
+  ]);
+});
 
-  if (url.pathname === "/sales") {
-    percl(res, [
-      { Say: { text: "Sales is unavailable right now, but we received your request. Thanks for calling." } },
-      { Hangup: {} }
-    ])
-    return
-  }
+app.post("/voicemail-saved", (req, res) => {
+  res.json([
+    {
+      Say: {
+        text: "Thank you. Your message has been saved. Goodbye.",
+      },
+    },
+    { Hangup: {} },
+  ]);
+});
 
-  if (url.pathname === "/support") {
-    percl(res, [
-      { Say: { text: "Support is unavailable right now, but your call has been logged. Thanks for calling." } },
-      { Hangup: {} }
-    ])
-    return
-  }
+app.get("/health", (req, res) => {
+  res.json({ status: "ok", service: "ivr-support-line" });
+});
 
-  if (url.pathname === "/voicemail") {
-    percl(res, [
-      { Say: { text: "Please leave a short message after the beep. Press pound when finished." } },
-      {
-        RecordUtterance: {
-          actionUrl: `${baseUrl}/voicemail-saved`,
-          silenceTimeoutMs: 5000,
-          maxLengthSec: 120,
-          finishOnKey: "#",
-          playBeep: true
-        }
-      }
-    ])
-    return
-  }
-
-  if (url.pathname === "/voicemail-saved") {
-    percl(res, [
-      { Say: { text: "Thanks. Your message has been recorded. Goodbye." } },
-      { Hangup: {} }
-    ])
-    return
-  }
-
-  res.writeHead(404, { "content-type": "application/json" })
-  res.end(JSON.stringify({ error: "Not found" }))
-}
-
-http.createServer((req, res) => {
-  handle(req, res).catch(() => {
-    res.writeHead(500, { "content-type": "application/json" })
-    res.end(JSON.stringify({ error: "Internal server error" }))
-  })
-}).listen(port, () => {
-  console.log(`FreeClimb IVR support line demo running on http://localhost:${port}`)
-})
+app.listen(PORT, () => {
+  console.log(`IVR support line listening on port ${PORT}`);
+});
