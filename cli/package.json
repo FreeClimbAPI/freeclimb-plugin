@@ -33,7 +33,7 @@
     "@oclif/test": "^4",
     "@types/chai": "^4",
     "@types/mocha": "^10",
-    "@types/node": "^18",
+    "@types/node": "^25",
     "@types/react": "^19.0.0",
     "@types/sinon": "^21.0.0",
     "@typescript-eslint/eslint-plugin": "^7",
