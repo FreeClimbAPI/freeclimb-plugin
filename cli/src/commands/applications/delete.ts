@@ -6,6 +6,8 @@ import { FreeClimbApi, FreeClimbResponse } from "../../freeclimb.js"
 import * as Errors from "../../errors.js"
 import { wrapJsonOutput } from "../../ui/format.js"
 import { getOutputFormat } from "../../agent-config.js"
+import { isTTY } from "../../ui/theme.js"
+import { prompts } from "../../prompts.js"
 import {
     extractQuietIds,
     filterFieldsDeep,
@@ -17,6 +19,7 @@ export class applicationsDelete extends Command {
     static description = ` Delete the specified application. If this application's ID is assigned to any Incoming phone number, that relationship will be cleared.`
     static examples = [
         "<%= config.bin %> applications:delete AP1234567890abcdef1234567890abcdef12345678",
+        "<%= config.bin %> applications:delete AP1234567890abcdef1234567890abcdef12345678 --yes",
         "<%= config.bin %> applications:delete AP1234567890abcdef1234567890abcdef12345678 --dry-run",
     ]
 
@@ -24,7 +27,7 @@ export class applicationsDelete extends Command {
         next: Flags.boolean({ hidden: true }),
         json: Flags.boolean({
             description:
-                "Output as JSON. Auto-enabled when stdout is not a TTY or FREECLIMB_OUTPUT_FORMAT=json is set.",
+                "Output as a structured JSON envelope with request metadata. Also enabled globally via FREECLIMB_OUTPUT_FORMAT=json.",
             default: false,
         }),
         quiet: Flags.boolean({
@@ -39,6 +42,12 @@ export class applicationsDelete extends Command {
         "dry-run": Flags.boolean({
             description:
                 "Validate the request without executing it. Shows what would be sent to the API.",
+            default: false,
+        }),
+        yes: Flags.boolean({
+            char: "y",
+            description:
+                "Skip the confirmation prompt shown in interactive terminals (non-interactive runs never prompt).",
             default: false,
         }),
         help: Flags.help({ char: "h" }),
@@ -62,13 +71,23 @@ export class applicationsDelete extends Command {
                 method: "DELETE",
                 endpoint: `Applications/${args.applicationId}`,
             }
-            if (outputFormat === "json") {
+            if (outputFormat === "json" || !isTTY()) {
                 out.out(JSON.stringify(dryRunOutput, null, 2))
             } else {
                 out.out(chalk.yellow("DRY RUN - No API call will be made"))
                 out.out(JSON.stringify(dryRunOutput, null, 2))
             }
             return
+        }
+        if (!flags.yes && isTTY()) {
+            const confirmed = await prompts.confirm(
+                `Delete application ${args.applicationId}? This cannot be undone.`,
+                false,
+            )
+            if (!confirmed) {
+                this.log("Aborted. No changes were made.")
+                return
+            }
         }
         const fcApi = new FreeClimbApi(`Applications/${args.applicationId}`, true, this)
         const formatOutput = (data: any) => {

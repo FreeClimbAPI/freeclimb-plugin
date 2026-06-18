@@ -6,6 +6,7 @@ import { FreeClimbApi, FreeClimbResponse } from "../../freeclimb.js"
 import * as Errors from "../../errors.js"
 import { wrapJsonOutput } from "../../ui/format.js"
 import { getOutputFormat } from "../../agent-config.js"
+import { isTTY } from "../../ui/theme.js"
 import {
     extractQuietIds,
     filterFieldsDeep,
@@ -34,7 +35,7 @@ export class incomingNumbersBuy extends Command {
         next: Flags.boolean({ hidden: true }),
         json: Flags.boolean({
             description:
-                "Output as JSON. Auto-enabled when stdout is not a TTY or FREECLIMB_OUTPUT_FORMAT=json is set.",
+                "Output as a structured JSON envelope with request metadata. Also enabled globally via FREECLIMB_OUTPUT_FORMAT=json.",
             default: false,
         }),
         quiet: Flags.boolean({
@@ -84,7 +85,7 @@ export class incomingNumbersBuy extends Command {
                     applicationId: flags.applicationId,
                 },
             }
-            if (outputFormat === "json") {
+            if (outputFormat === "json" || !isTTY()) {
                 out.out(JSON.stringify(dryRunOutput, null, 2))
             } else {
                 out.out(chalk.yellow("DRY RUN - No API call will be made"))

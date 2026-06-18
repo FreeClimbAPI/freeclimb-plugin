@@ -5,6 +5,7 @@ import { cred } from "../credentials.js"
 import { Environment } from "../environment.js"
 import { wrapJsonOutput } from "../ui/format.js"
 import { getOutputFormat } from "../agent-config.js"
+import { isTTY } from "../ui/theme.js"
 import { rejectControlChars, filterFieldsDeep, ValidationError } from "../validation.js"
 
 export class Api extends Command {
@@ -165,7 +166,7 @@ Full URLs are restricted to FreeClimb domains for credential safety.
                 params: Object.keys(params).length > 0 ? params : undefined,
                 data,
             }
-            if (outputFormat === "json" || outputFormat === "raw") {
+            if (outputFormat === "json" || outputFormat === "raw" || !isTTY()) {
                 this.log(JSON.stringify(dryRunOutput, null, 2))
             } else {
                 this.log(chalk.yellow("DRY RUN - No API call will be made"))

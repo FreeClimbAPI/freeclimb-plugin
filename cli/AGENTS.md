@@ -1,11 +1,9 @@
 # FreeClimb CLI - Agent Guide
 
-## Git Remotes - READ THIS FIRST
+## Git Remotes
 
-- `origin` = `FreeClimbAPI/freeclimb-cli` (upstream, READ-ONLY)
-- `work` = `jbohnevail/freeclimb-cli` (fork, push here)
-- **NEVER create PRs against FreeClimbAPI/freeclimb-cli**
-- Always: `git push work <branch>` and PRs target `jbohnevail/freeclimb-cli`
+- `origin` = `FreeClimbAPI/freeclimb-plugin` (push feature branches here)
+- Open PRs against `FreeClimbAPI/freeclimb-plugin` (base `main`); never push directly to `main`.
 
 This CLI is frequently invoked by AI/LLM agents. Always assume inputs can be adversarial.
 
@@ -1087,6 +1085,30 @@ If you change filter parameters between pagination requests, the cursor resets. 
 
 ### 7. Assuming `--fields` typos cause errors
 The `--fields` flag silently returns empty for misspelled field names. Verify field names with `freeclimb describe <command>`.
+
+### 8. Blindly retrying mutating commands
+Most commands are **not idempotent** (see "Retries & Idempotency" below). Retrying a failed `create`/`buy` can create duplicates; retrying a `delete` returns an error because the resource is already gone. Inspect state with a `:get`/`:list` before retrying.
+
+### 9. Expecting `delete` to prompt in scripts
+Destructive commands (`*:delete`, `conference-participants:remove`) prompt for confirmation **only in an interactive terminal**. In non-interactive/agent runs they execute immediately, so treat them as final. Pass `--yes` to make intent explicit, and prefer `--dry-run` first.
+
+## Retries & Idempotency
+
+The CLI mirrors the FreeClimb REST API, so retry safety depends on the HTTP method:
+
+| Operation | Safe to retry? | Notes |
+|-----------|----------------|-------|
+| `:get`, `:list`, `describe`, `status`, `diagnose` | Yes | Read-only, no side effects. |
+| `:update` (PUT) | Usually | Re-sends the same desired state; converges to the same result. |
+| `:create`, `incoming-numbers:buy` (POST) | No | A second run creates a second resource (or a second charge). Check with `:list` before retrying. |
+| `:delete`, `conference-participants:remove` (DELETE) | No | The first success removes the resource; a retry returns a not-found / already-deleted error rather than a no-op. |
+
+Guidelines for agents:
+
+- After a network error or timeout on a `create`/`buy`, **verify with `:list`/`:get` before retrying** to avoid duplicates.
+- A failed retry of a `delete` that returns "not found" usually means the original delete succeeded — treat it as done.
+- Use `--dry-run` to preview any mutation, and `--quiet` to capture the new resource ID for follow-up commands.
+- The CLI automatically retries transient failures (HTTP 429/500/502/503/504 and network errors) up to 3 times with exponential backoff — for every method, including POST/DELETE. Because POST is not idempotent, a retried `create`/`buy` after a dropped response can double-create; verify with `:list` if a transient error occurred. Tune with `FREECLIMB_MAX_RETRIES` (set `0` to disable).
 
 ## Diagnostic Workflow
 
