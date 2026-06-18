@@ -196,6 +196,27 @@ export const tools = {
         },
     },
 
+    buy_number: {
+        name: "buy_number",
+        description:
+            "BILLABLE & IRREVERSIBLE: purchase an available FreeClimb phone number (optionally assigning it to an application). Confirm with the user before calling. Search first with search_available_numbers.",
+        inputSchema: {
+            type: "object" as const,
+            properties: {
+                phoneNumber: {
+                    type: "string",
+                    description: "The exact available phone number to purchase, in E.164 format (e.g., +15551234567)",
+                },
+                alias: { type: "string", description: "Optional friendly name for the number" },
+                applicationId: {
+                    type: "string",
+                    description: "Optional application ID to assign the number to at purchase",
+                },
+            },
+            required: ["phoneNumber"],
+        },
+    },
+
     // Application management
     list_applications: {
         name: "list_applications",
@@ -217,6 +238,63 @@ export const tools = {
                     type: "string",
                     description: "The application ID to look up",
                 },
+            },
+            required: ["applicationId"],
+        },
+    },
+
+    create_application: {
+        name: "create_application",
+        description:
+            "Create a FreeClimb application (the webhook configuration that routes inbound calls/SMS to your server). Set voiceUrl/smsUrl to the URLs that return PerCL.",
+        inputSchema: {
+            type: "object" as const,
+            properties: {
+                alias: { type: "string", description: "Friendly name for the application" },
+                voiceUrl: {
+                    type: "string",
+                    description: "Absolute HTTPS URL FreeClimb POSTs to on inbound calls (returns PerCL)",
+                },
+                voiceFallbackUrl: {
+                    type: "string",
+                    description: "Absolute HTTPS URL used if voiceUrl fails",
+                },
+                callConnectUrl: {
+                    type: "string",
+                    description: "Absolute HTTPS URL FreeClimb POSTs to when an outbound call connects",
+                },
+                statusCallbackUrl: {
+                    type: "string",
+                    description: "Absolute HTTPS URL for fire-and-forget call status callbacks",
+                },
+                smsUrl: {
+                    type: "string",
+                    description: "Absolute HTTPS URL FreeClimb POSTs to on inbound SMS",
+                },
+                smsFallbackUrl: {
+                    type: "string",
+                    description: "Absolute HTTPS URL used if smsUrl fails",
+                },
+            },
+            required: [],
+        },
+    },
+
+    update_application: {
+        name: "update_application",
+        description:
+            "Update an existing FreeClimb application's webhook URLs or alias. Use this to repoint voiceUrl/smsUrl after a tunnel restart or deploy. Only provided fields are changed.",
+        inputSchema: {
+            type: "object" as const,
+            properties: {
+                applicationId: { type: "string", description: "The application ID to update" },
+                alias: { type: "string", description: "Friendly name for the application" },
+                voiceUrl: { type: "string", description: "Absolute HTTPS URL for inbound calls (returns PerCL)" },
+                voiceFallbackUrl: { type: "string", description: "Absolute HTTPS URL used if voiceUrl fails" },
+                callConnectUrl: { type: "string", description: "Absolute HTTPS URL for outbound call connect" },
+                statusCallbackUrl: { type: "string", description: "Absolute HTTPS URL for call status callbacks" },
+                smsUrl: { type: "string", description: "Absolute HTTPS URL for inbound SMS" },
+                smsFallbackUrl: { type: "string", description: "Absolute HTTPS URL used if smsUrl fails" },
             },
             required: ["applicationId"],
         },
@@ -384,7 +462,17 @@ export const tools = {
                 pattern: {
                     type: "string",
                     description: "The call flow pattern to generate",
-                    enum: ["greeting", "menu", "voicemail", "transfer", "queue", "record"],
+                    enum: [
+                        "greeting",
+                        "menu",
+                        "voicemail",
+                        "transfer",
+                        "queue",
+                        "record",
+                        "play",
+                        "speech",
+                        "conference",
+                    ],
                 },
                 text: {
                     type: "string",
@@ -399,10 +487,27 @@ export const tools = {
                 options: {
                     type: "object",
                     description:
-                        "Pattern-specific options: { destination, callingNumber, queueId, waitUrl, maxDigits, finishOnKey, maxLengthSec }",
+                        "Pattern-specific options: { destination, callingNumber, queueId, waitUrl, maxDigits, finishOnKey, maxLengthSec, file, conferenceId, grammarFile }",
                 },
             },
             required: ["pattern"],
+        },
+    },
+
+    validate_percl: {
+        name: "validate_percl",
+        description:
+            "Validate a PerCL command array (the JSON your webhook returns) without making an API call. Checks structure, known commands, and that callback URLs are absolute HTTPS (not localhost). Use before deploying a webhook or making a test call.",
+        inputSchema: {
+            type: "object" as const,
+            properties: {
+                percl: {
+                    type: "array",
+                    description: "The PerCL command array to validate (e.g., [{ \"Say\": { \"text\": \"Hi\" } }])",
+                    items: { type: "object" },
+                },
+            },
+            required: ["percl"],
         },
     },
 }

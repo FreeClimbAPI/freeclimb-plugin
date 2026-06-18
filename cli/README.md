@@ -172,7 +172,7 @@ MCP server configs are auto-discovered by Claude Code (`.mcp.json`), Cursor (`.c
 
 ## Contributing
 
-See [CLAUDE.md](CLAUDE.md) for architecture details and development conventions.
+See [AGENTS.md](AGENTS.md) for architecture details and development conventions.
 
 ## Feedback & Issues
 

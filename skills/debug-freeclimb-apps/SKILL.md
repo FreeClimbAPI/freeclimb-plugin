@@ -9,11 +9,7 @@ Use this skill when a FreeClimb call, SMS, webhook, MCP tool, or local demo does
 
 ## First Checks
 
-1. Confirm the CLI is authenticated:
-
-```bash
-freeclimb diagnose
-```
+1. Confirm the account is connected. With the MCP tools, call `get_account` (it fails if unauthenticated). With the CLI installed, run `freeclimb diagnose`. If neither works, run `/freeclimb-setup` to build the MCP server and connect via the browser login.
 
 2. Confirm the app server is running:
 
@@ -39,7 +35,8 @@ Inbound calls to an owned FreeClimb number are usually the most reliable trial-a
 - Caller hears nothing: check server logs and confirm routes return valid JSON arrays.
 - Menu input fails: check `GetDigits.actionUrl` and Express URL-encoded body parsing.
 - Outbound SMS/call fails: verify destination number on trial account.
-- MCP tool fails: run the equivalent `freeclimb` CLI command to isolate credentials vs MCP.
+- PerCL step dies after the first prompt: an `actionUrl` is relative or points at `localhost`. Run `validate_percl` and rebuild URLs from the public base.
+- MCP tool fails on auth: re-run the browser login (`node mcp/lib/bin.js login`); if the CLI is installed, the equivalent `freeclimb` command isolates credentials vs MCP.
 
 ## Useful Commands
 

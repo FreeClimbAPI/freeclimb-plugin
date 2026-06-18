@@ -1,6 +1,11 @@
 # 3. Keyring-only credential handling
 
-Status: Accepted
+Status: Accepted (updated by ADR 0004)
+
+> The keyring-only posture stands. [ADR 0004](0004-internal-workspace-and-standalone-mcp.md)
+> adds a self-initiated local browser (loopback) login (`node mcp/lib/bin.js login`)
+> that writes the same keyring entry, alongside `freeclimb login`. The agent-facing
+> `mcp:config` output no longer emits a credential `env` block.
 
 ## Context
 

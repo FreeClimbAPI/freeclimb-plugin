@@ -2,14 +2,22 @@
   "name": "freeclimb-plugin",
   "version": "0.2.0",
   "private": true,
-  "description": "FreeClimb Cursor plugin and bundled CLI monorepo.",
+  "description": "FreeClimb Cursor plugin, shared core, CLI, and standalone MCP monorepo.",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/FreeClimbAPI/freeclimb-plugin.git"
   },
+  "workspaces": [
+    "core",
+    "cli",
+    "mcp"
+  ],
   "scripts": {
-    "setup": "cd cli && npm install && npm run prepack",
+    "build": "npm run build --workspace @freeclimb/core && npm run build --workspace @freeclimb/mcp && npm run build --workspace freeclimb-cli",
+    "setup": "npm install && npm run build",
+    "test": "npm test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
     "validate": "node scripts/validate-plugin.mjs"
   }
 }

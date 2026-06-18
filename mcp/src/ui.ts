@@ -16,7 +16,14 @@ export const UI_TOOLS: ReadonlySet<ToolName> = new Set<ToolName>([
     "list_sms",
     "list_calls",
     "list_numbers",
+    "list_applications",
+    "list_conferences",
+    "list_queues",
+    "list_logs",
+    "search_available_numbers",
     "get_account",
+    "get_call",
+    "get_application",
 ])
 
 export interface TableColumn {
@@ -128,6 +135,108 @@ export function buildTablePayload(toolName: ToolName, data: unknown): TablePaylo
             }
         }
 
+        case "search_available_numbers": {
+            const rows = asArray(root.availablePhoneNumbers).map((n) => ({
+                phoneNumber: toText(n.phoneNumber),
+                region: toText(n.region),
+                country: toText(n.country),
+                capabilities: [n.voiceEnabled ? "Voice" : null, n.smsEnabled ? "SMS" : null]
+                    .filter(Boolean)
+                    .join(" · "),
+            }))
+            return {
+                eyebrow: "FreeClimb · Numbers",
+                title: "Available Numbers",
+                columns: [
+                    { key: "phoneNumber", header: "Number" },
+                    { key: "region", header: "Region" },
+                    { key: "country", header: "Country" },
+                    { key: "capabilities", header: "Capabilities" },
+                ],
+                rows,
+            }
+        }
+
+        case "list_applications": {
+            const rows = asArray(root.applications).map((a) => ({
+                alias: toText(a.alias),
+                applicationId: toText(a.applicationId),
+                voiceUrl: toText(a.voiceUrl),
+                smsUrl: toText(a.smsUrl),
+            }))
+            return {
+                eyebrow: "FreeClimb · Applications",
+                title: "Applications",
+                columns: [
+                    { key: "alias", header: "Alias" },
+                    { key: "applicationId", header: "ID" },
+                    { key: "voiceUrl", header: "Voice URL" },
+                    { key: "smsUrl", header: "SMS URL" },
+                ],
+                rows,
+            }
+        }
+
+        case "list_conferences": {
+            const rows = asArray(root.conferences).map((c) => ({
+                alias: toText(c.alias),
+                conferenceId: toText(c.conferenceId),
+                status: toText(c.status),
+                date: formatDate(c.dateCreated),
+            }))
+            return {
+                eyebrow: "FreeClimb · Voice",
+                title: "Conferences",
+                statusKey: "status",
+                columns: [
+                    { key: "alias", header: "Alias" },
+                    { key: "conferenceId", header: "ID" },
+                    { key: "status", header: "Status" },
+                    { key: "date", header: "Created" },
+                ],
+                rows,
+            }
+        }
+
+        case "list_queues": {
+            const rows = asArray(root.queues).map((q) => ({
+                alias: toText(q.alias),
+                queueId: toText(q.queueId),
+                maxSize: toText(q.maxSize),
+                currentSize: toText(q.currentSize ?? q.size),
+            }))
+            return {
+                eyebrow: "FreeClimb · Voice",
+                title: "Call Queues",
+                columns: [
+                    { key: "alias", header: "Alias" },
+                    { key: "queueId", header: "ID" },
+                    { key: "currentSize", header: "Waiting" },
+                    { key: "maxSize", header: "Max" },
+                ],
+                rows,
+            }
+        }
+
+        case "list_logs": {
+            const rows = asArray(root.logs).map((l) => ({
+                level: toText(l.level),
+                message: toText(l.message),
+                date: formatDate(l.timestamp ?? l.dateCreated),
+            }))
+            return {
+                eyebrow: "FreeClimb · Logs",
+                title: "Account Logs",
+                statusKey: "level",
+                columns: [
+                    { key: "level", header: "Level" },
+                    { key: "message", header: "Message" },
+                    { key: "date", header: "Time" },
+                ],
+                rows,
+            }
+        }
+
         default: {
             return undefined
         }
@@ -167,15 +276,64 @@ export function buildAccountPayload(data: unknown): CardPayload {
     }
 }
 
+function callStatusKind(status: string): CardField["kind"] {
+    const s = status.toLowerCase()
+    if (["completed", "inprogress"].includes(s)) return "good"
+    if (["failed", "busy", "noanswer", "canceled"].includes(s)) return "warn"
+    return "neutral"
+}
+
+export function buildCallPayload(data: unknown): CardPayload {
+    const c = (data ?? {}) as Record<string, unknown>
+    const status = toText(c.status)
+    const fields: CardField[] = [
+        { label: "Call ID", value: toText(c.callId), kind: "mono" },
+        { label: "From", value: toText(c.from), kind: "mono" },
+        { label: "To", value: toText(c.to), kind: "mono" },
+        { label: "Status", value: status, kind: callStatusKind(status) },
+        { label: "Direction", value: toText(c.direction) },
+        { label: "Duration", value: c.duration != null ? `${toText(c.duration)}s` : "" },
+        { label: "Started", value: formatDate(c.startTime ?? c.dateCreated) },
+    ]
+    return {
+        eyebrow: "FreeClimb · Call",
+        title: "Call Detail",
+        fields: fields.filter((f) => f.value),
+    }
+}
+
+export function buildApplicationCardPayload(data: unknown): CardPayload {
+    const a = (data ?? {}) as Record<string, unknown>
+    const fields: CardField[] = [
+        { label: "Alias", value: toText(a.alias) },
+        { label: "Application ID", value: toText(a.applicationId), kind: "mono" },
+        { label: "Voice URL", value: toText(a.voiceUrl), kind: "mono" },
+        { label: "SMS URL", value: toText(a.smsUrl), kind: "mono" },
+        { label: "Status Callback", value: toText(a.statusCallbackUrl), kind: "mono" },
+    ]
+    return {
+        eyebrow: "FreeClimb · Application",
+        title: toText(a.alias) || "Application Detail",
+        fields: fields.filter((f) => f.value),
+    }
+}
+
 export function buildUiPayload(
     toolName: ToolName,
     data: unknown,
 ): { table: TablePayload } | { account: CardPayload } | undefined {
-    if (toolName === "get_account") {
-        return { account: buildAccountPayload(data) }
+    switch (toolName) {
+        case "get_account":
+            return { account: buildAccountPayload(data) }
+        case "get_call":
+            return { account: buildCallPayload(data) }
+        case "get_application":
+            return { account: buildApplicationCardPayload(data) }
+        default: {
+            const table = buildTablePayload(toolName, data)
+            return table ? { table } : undefined
+        }
     }
-    const table = buildTablePayload(toolName, data)
-    return table ? { table } : undefined
 }
 
 export const TABLE_HTML = `<!DOCTYPE html>

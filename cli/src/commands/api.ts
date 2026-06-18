@@ -5,7 +5,7 @@ import { cred } from "../credentials.js"
 import { Environment } from "../environment.js"
 import { wrapJsonOutput } from "../ui/format.js"
 import { getOutputFormat } from "../agent-config.js"
-import { rejectControlChars, filterFieldsDeep } from "../validation.js"
+import { rejectControlChars, filterFieldsDeep, ValidationError } from "../validation.js"
 
 export class Api extends Command {
     static description = `Make authenticated API requests to FreeClimb.
@@ -99,6 +99,21 @@ Full URLs are restricted to FreeClimb domains for credential safety.
         }
         if (!endpoint.startsWith("/") && !endpoint.startsWith("http")) {
             endpoint = `/${endpoint}`
+        }
+
+        const pathForTraversalCheck = endpoint.startsWith("http")
+            ? (() => {
+                  try {
+                      return new URL(endpoint).pathname
+                  } catch {
+                      return endpoint
+                  }
+              })()
+            : endpoint
+        if (pathForTraversalCheck.split(/[/\\]/).includes("..")) {
+            throw new ValidationError(
+                "endpoint contains a path traversal sequence ('..'). Provide a direct API path.",
+            )
         }
 
         // Parse params and data before auth check so --dry-run works without credentials

@@ -11,6 +11,8 @@ PerCL is a JSON array of command objects returned by a webhook server. FreeClimb
 
 Every `actionUrl` must be an absolute, publicly reachable URL (FreeClimb does not accept relative paths or `localhost`). Build `actionUrl`s from a public base such as the `freeclimb dev` tunnel URL, not a local address.
 
+Generate starter PerCL with the `generate_percl` MCP tool (patterns: greeting, menu, voicemail, transfer, queue, record, play, speech, conference) and validate any PerCL array with the `validate_percl` MCP tool before deploying or making a test call. `validate_percl` flags unknown commands and non-absolute/localhost callback URLs.
+
 ## Common Commands
 
 ### Say

@@ -15,143 +15,58 @@ import {
     ListPromptsRequestSchema,
     GetPromptRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js"
-import { readFileSync, existsSync, readdirSync, writeFileSync } from "node:fs"
+import { readFileSync, existsSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 import { dirname, join } from "node:path"
 
-import { tmpdir } from "node:os"
-import { createApiAxios } from "../http.js"
 import {
+    createApiAxios,
     validateResourceId,
     validatePhoneNumber,
     rejectControlChars,
     validateUrl,
     ValidationError,
-} from "../validation.js"
-import { parseDashboardSpec, PRESET_NAMES } from "../dashboard/types.js"
-import type { PresetName } from "../dashboard/types.js"
+    parseDashboardSpec,
+    PRESET_NAMES,
+    loadPreset,
+    generatePercl,
+    validatePercl,
+    type PerclPattern,
+    type PresetName,
+} from "@freeclimb/core"
 import { tools, ToolName } from "./tools.js"
 import { UI_TABLE_URI, UI_TABLE_MIME, UI_TOOLS, TABLE_HTML, buildUiPayload } from "./ui.js"
 
-// Lazy-loaded to avoid pulling React/Ink into MCP server startup
-async function getDashboardPromptLazy(): Promise<string> {
-    const { getDashboardPrompt } = await import("../dashboard/catalog.js")
-    return getDashboardPrompt()
-}
-
-async function loadPresetLazy(name: PresetName): Promise<unknown> {
-    const { loadPreset } = await import("../dashboard/presets/index.js")
-    return loadPreset(name)
-}
-
 const currentDir = dirname(fileURLToPath(import.meta.url))
-const pkgPath = join(currentDir, "../../package.json")
-const { version: CLI_VERSION } = JSON.parse(readFileSync(pkgPath, "utf-8"))
-const SKILLS_DIR = join(currentDir, "../../skills")
+const pkgPath = join(currentDir, "../package.json")
+const { version: MCP_VERSION } = JSON.parse(readFileSync(pkgPath, "utf-8"))
 
-// Generate PerCL JSON for common call flow patterns
-function generatePerclPattern(
-    pattern: string,
-    text?: string,
-    actionUrl?: string,
-    options?: Record<string, unknown>,
-): unknown[] {
-    switch (pattern) {
-        case "greeting": {
-            return [{ Say: { text: text || "Thank you for calling. Goodbye." } }, { Hangup: {} }]
-        }
-
-        case "menu": {
-            return [
-                {
-                    GetDigits: {
-                        actionUrl: actionUrl || "https://example.com/menu-handler",
-                        prompts: [
-                            {
-                                Say: {
-                                    text:
-                                        text ||
-                                        "Press 1 for sales. Press 2 for support. Press 0 for an operator.",
-                                },
-                            },
-                        ],
-                        maxDigits: (options?.maxDigits as number) || 1,
-                        minDigits: 1,
-                        initialTimeoutMs: 8000,
-                        flushBuffer: true,
-                    },
-                },
-            ]
-        }
-
-        case "voicemail": {
-            return [
-                {
-                    Say: {
-                        text:
-                            text ||
-                            "Please leave a message after the beep. Press pound when finished.",
-                    },
-                },
-                {
-                    RecordUtterance: {
-                        actionUrl: actionUrl || "https://example.com/voicemail-saved",
-                        silenceTimeoutMs: 5000,
-                        maxLengthSec: (options?.maxLengthSec as number) || 120,
-                        finishOnKey: (options?.finishOnKey as string) || "#",
-                        playBeep: true,
-                    },
-                },
-            ]
-        }
-
-        case "transfer": {
-            return [
-                { Say: { text: text || "Transferring your call. Please hold." } },
-                {
-                    OutDial: {
-                        destination: (options?.destination as string) || "+15551234567",
-                        callingNumber: (options?.callingNumber as string) || "+15559876543",
-                        actionUrl: actionUrl || "https://example.com/transfer-status",
-                        callConnectUrl:
-                            (options?.callConnectUrl as string) || "https://example.com/connected",
-                        timeout: 30,
-                    },
-                },
-            ]
-        }
-
-        case "queue": {
-            return [
-                { Say: { text: text || "Please hold while we connect you with an agent." } },
-                {
-                    Enqueue: {
-                        queueId: (options?.queueId as string) || "QU...",
-                        waitUrl: (options?.waitUrl as string) || "https://example.com/hold-music",
-                        actionUrl: actionUrl || "https://example.com/dequeued",
-                    },
-                },
-            ]
-        }
-
-        case "record": {
-            return [
-                {
-                    Say: {
-                        text:
-                            text || "This call may be recorded for quality and training purposes.",
-                    },
-                },
-                { StartRecordCall: {} },
-            ]
-        }
-
-        default: {
-            throw new Error(
-                `Unknown pattern: ${pattern}. Supported: greeting, menu, voicemail, transfer, queue, record`,
-            )
-        }
+// Resolve the plugin skills directory from the synced repo (no publishing in v1).
+function resolveSkillsDir(): string {
+    const candidates = [
+        process.env.FREECLIMB_MCP_SKILLS_DIR,
+        join(currentDir, "../../cli/skills"),
+        join(currentDir, "../../skills"),
+    ].filter((c): c is string => Boolean(c))
+    for (const candidate of candidates) {
+        if (existsSync(join(candidate, "manifest.json"))) return candidate
     }
+    return candidates[candidates.length - 1] ?? join(currentDir, "../../skills")
+}
+
+const SKILLS_DIR = resolveSkillsDir()
+
+// Framework-neutral dashboard guidance (the in-IDE MCP Apps UI replaces the
+// ink/terminal catalog; the standalone MCP must not pull React/Ink).
+function getDashboardPrompt(): string {
+    return [
+        "You are generating a FreeClimb monitoring view rendered in-IDE via the MCP Apps UI.",
+        "Available structured views: table (list results) and account card.",
+        "Pick a focus: calls, queues, sms, or health, then call the matching list tool",
+        "(list_calls, list_queues, list_sms, get_account / list_logs) so results render as",
+        "FreeClimb-themed cards and tables. Use render_dashboard with a json-render spec only",
+        "when you need a composed multi-panel layout; otherwise prefer the list tools directly.",
+    ].join(" ")
 }
 
 // Discover skill files from skills/ directory
@@ -183,6 +98,28 @@ function discoverSkillResources(): Array<{
     }
 
     return resources
+}
+
+const APPLICATION_URL_FIELDS = [
+    "voiceUrl",
+    "voiceFallbackUrl",
+    "callConnectUrl",
+    "statusCallbackUrl",
+    "smsUrl",
+    "smsFallbackUrl",
+] as const
+
+// Validate any provided webhook URLs and shape the Applications request body.
+// Only defined fields are included; undefined keys are dropped by JSON serialization.
+function buildApplicationBody(args: Record<string, unknown>): Record<string, unknown> {
+    const body: Record<string, unknown> = {}
+    if (args.alias !== undefined) body.alias = args.alias
+    for (const field of APPLICATION_URL_FIELDS) {
+        const value = args[field] as string | undefined
+        validateUrl(value, field)
+        if (value !== undefined) body[field] = value
+    }
+    return body
 }
 
 // Tool handler
@@ -289,6 +226,37 @@ async function handleToolCall(name: ToolName, args: Record<string, unknown>): Pr
             return (await client.get(`/Applications/${args.applicationId}`)).data
         }
 
+        case "create_application": {
+            const body = buildApplicationBody(args)
+            rejectControlChars(args.alias as string | undefined, "alias")
+            return (await client.post("/Applications", body)).data
+        }
+
+        case "update_application": {
+            validateResourceId(args.applicationId as string | undefined, "applicationId")
+            rejectControlChars(args.alias as string | undefined, "alias")
+            const body = buildApplicationBody(args)
+            return (await client.post(`/Applications/${args.applicationId}`, body)).data
+        }
+
+        case "buy_number": {
+            validatePhoneNumber(args.phoneNumber as string | undefined, "phoneNumber")
+            if (!args.phoneNumber) {
+                throw new ValidationError("phoneNumber is required to buy a number")
+            }
+            rejectControlChars(args.alias as string | undefined, "alias")
+            if (args.applicationId) {
+                validateResourceId(args.applicationId as string, "applicationId")
+            }
+            return (
+                await client.post("/IncomingPhoneNumbers", {
+                    phoneNumber: args.phoneNumber,
+                    alias: args.alias,
+                    applicationId: args.applicationId,
+                })
+            ).data
+        }
+
         // Account information
         case "get_account": {
             return (await client.get("")).data
@@ -357,8 +325,7 @@ async function handleToolCall(name: ToolName, args: Record<string, unknown>): Pr
 
         // Dashboard generation (local, no API call)
         case "generate_dashboard_prompt": {
-            const prompt = await getDashboardPromptLazy()
-            let result = prompt
+            let result = getDashboardPrompt()
             if (args.preset) {
                 const presetName = args.preset as string
                 if (!PRESET_NAMES.includes(presetName as PresetName)) {
@@ -366,27 +333,24 @@ async function handleToolCall(name: ToolName, args: Record<string, unknown>): Pr
                         `Unknown preset: ${presetName}. Available: ${PRESET_NAMES.join(", ")}`,
                     )
                 }
-                const presetSpec = await loadPresetLazy(presetName as PresetName)
+                const presetSpec = loadPreset(presetName as PresetName)
                 result += `\n\n---\n\nHere is the "${presetName}" preset spec as a starting point:\n\n\`\`\`json\n${JSON.stringify(presetSpec, null, 2)}\n\`\`\``
             }
             return result
         }
 
         case "render_dashboard": {
+            // F8: render in-IDE via structured content; no temp file, no shell-out to the CLI.
             const validatedSpec = parseDashboardSpec(args.spec)
-            const specJson = JSON.stringify(validatedSpec, null, 2)
-            const tmpPath = join(tmpdir(), `freeclimb-dashboard-${Date.now()}.json`)
-            writeFileSync(tmpPath, specJson, "utf-8")
-            const refresh =
-                typeof args.refresh === "number"
-                    ? Math.max(10, Math.min(3600, args.refresh))
-                    : undefined
-            const refreshFlag = refresh ? ` --refresh ${refresh}` : ""
             return {
-                message: "Dashboard spec saved. Run this command to render it:",
-                command: `freeclimb dashboard --spec "${tmpPath}"${refreshFlag}`,
-                specPath: tmpPath,
+                message: "Dashboard spec validated and ready to render in-IDE.",
+                spec: validatedSpec,
             }
+        }
+
+        // PerCL validation (local, no API call)
+        case "validate_percl": {
+            return validatePercl(args.percl)
         }
 
         // PerCL generation (local, no API call)
@@ -394,8 +358,8 @@ async function handleToolCall(name: ToolName, args: Record<string, unknown>): Pr
             rejectControlChars(args.pattern as string | undefined, "pattern")
             rejectControlChars(args.text as string | undefined, "text")
             validateUrl(args.actionUrl as string | undefined, "actionUrl")
-            return generatePerclPattern(
-                args.pattern as string,
+            return generatePercl(
+                args.pattern as PerclPattern,
                 args.text as string | undefined,
                 args.actionUrl as string | undefined,
                 args.options as Record<string, unknown> | undefined,
@@ -412,7 +376,7 @@ export async function startMcpServer(): Promise<void> {
     const server = new Server(
         {
             name: "freeclimb",
-            version: CLI_VERSION,
+            version: MCP_VERSION,
         },
         {
             capabilities: {
@@ -703,7 +667,7 @@ export async function startMcpServer(): Promise<void> {
             }
             case "dashboard": {
                 const focus = request.params.arguments?.focus || "general"
-                const prompt = await getDashboardPromptLazy()
+                const prompt = getDashboardPrompt()
                 return {
                     description: "Generate a FreeClimb monitoring dashboard",
                     messages: [
@@ -728,17 +692,18 @@ export async function startMcpServer(): Promise<void> {
     await server.connect(transport)
 }
 
-// Generate MCP config for claude_desktop_config.json
+// Generate MCP config for an MCP client (e.g. Cursor's .mcp.json).
+// v1 launches the locally-built standalone server over stdio from the synced
+// plugin repo — no global CLI install and no npm registry fetch. The path is
+// plugin-relative (a plugin-spawned MCP server runs with cwd = plugin root).
+// Credentials live in the OS keyring (run `node mcp/lib/bin.js login`), so no
+// env block is emitted.
 export function generateMcpConfig(): string {
     const config = {
         mcpServers: {
             freeclimb: {
-                command: "freeclimb",
-                args: ["mcp", "start"],
-                env: {
-                    FREECLIMB_ACCOUNT_ID: "<YOUR_ACCOUNT_ID>",
-                    FREECLIMB_API_KEY: "<YOUR_API_KEY>",
-                },
+                command: "node",
+                args: ["mcp/lib/bin.js"],
             },
         },
     }
