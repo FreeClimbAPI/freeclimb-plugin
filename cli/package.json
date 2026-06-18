@@ -23,7 +23,7 @@
     "@oclif/plugin-help": "^6",
     "axios": "^1",
     "chalk": "^4",
-    "dotenv": "^16",
+    "dotenv": "^17",
     "ink": "^6.0.0",
     "react": "^19.0.0",
     "tslib": "^2",
