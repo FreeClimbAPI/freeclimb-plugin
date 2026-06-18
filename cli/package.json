@@ -54,7 +54,7 @@
     "nyc": "^17",
     "oclif": "^4",
     "prettier": "^3",
-    "sinon": "^21.0.3",
+    "sinon": "^22.0.0",
     "tsx": "^4",
     "typescript": "^5"
   },
