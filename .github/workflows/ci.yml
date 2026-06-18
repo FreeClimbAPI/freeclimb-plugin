@@ -19,12 +19,24 @@ jobs:
       - name: Validate plugin manifest and components
         run: node scripts/validate-plugin.mjs
 
-  cli-test:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Build workspace (core -> mcp -> cli)
+        run: npm run build
+      - name: Verify MCP entry point built
+        run: test -f mcp/lib/bin.js
+
+  test:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
-    defaults:
-      run:
-        working-directory: cli
     strategy:
       fail-fast: false
       matrix:
@@ -35,13 +47,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-      - run: npm install
+          cache: npm
+      - run: npm ci
+      - name: Build workspace
+        run: npm run build
       - name: Lint (non-blocking — pre-existing issues)
         run: npm run lint
         continue-on-error: true
-      - name: Test (non-blocking — some tests timeout in CI)
+      - name: Test (non-blocking — some tests need a keychain/TTY in CI)
         run: npm test
         timeout-minutes: 8
         continue-on-error: true
-      - name: Build
-        run: npx tsc -b

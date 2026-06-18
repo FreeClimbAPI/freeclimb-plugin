@@ -1,0 +1,48 @@
+{
+  "name": "@freeclimb/core",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Framework-neutral FreeClimb core: HTTP client, credentials, validation, errors, PerCL, and dashboard specs shared by the FreeClimb CLI and MCP server. Internal workspace package \u2014 not published to npm.",
+  "type": "module",
+  "license": "MIT",
+  "author": "dev@freeclimb.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FreeClimbAPI/freeclimb-plugin.git",
+    "directory": "core"
+  },
+  "homepage": "https://github.com/FreeClimbAPI/freeclimb-plugin/tree/main/core",
+  "bugs": {
+    "url": "https://github.com/FreeClimbAPI/freeclimb-plugin/issues"
+  },
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    }
+  },
+  "files": [
+    "/lib"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "build": "rm -f tsconfig.tsbuildinfo && tsc -b",
+    "clean": "rm -rf lib tsconfig.tsbuildinfo"
+  },
+  "dependencies": {
+    "@napi-rs/keyring": "^1",
+    "axios": "^1",
+    "chalk": "^4",
+    "dotenv": "^16",
+    "tslib": "^2",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^18",
+    "typescript": "^5"
+  }
+}

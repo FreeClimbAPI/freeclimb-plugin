@@ -1,0 +1,41 @@
+{
+  "name": "@freeclimb/mcp",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Standalone FreeClimb MCP server (stdio) over @freeclimb/core. Internal workspace package \u2014 not published to npm in v1; runs from the synced plugin repo.",
+  "type": "module",
+  "license": "MIT",
+  "author": "dev@freeclimb.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FreeClimbAPI/freeclimb-plugin.git",
+    "directory": "mcp"
+  },
+  "homepage": "https://github.com/FreeClimbAPI/freeclimb-plugin/tree/main/mcp",
+  "bugs": {
+    "url": "https://github.com/FreeClimbAPI/freeclimb-plugin/issues"
+  },
+  "main": "lib/server.js",
+  "types": "lib/server.d.ts",
+  "bin": {
+    "freeclimb-mcp": "./lib/bin.js"
+  },
+  "files": [
+    "/lib"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "build": "rm -f tsconfig.tsbuildinfo && tsc -b",
+    "clean": "rm -rf lib tsconfig.tsbuildinfo"
+  },
+  "dependencies": {
+    "@freeclimb/core": "^0.2.0",
+    "@modelcontextprotocol/sdk": "^1.27.1"
+  },
+  "devDependencies": {
+    "@types/node": "^18",
+    "typescript": "^5"
+  }
+}

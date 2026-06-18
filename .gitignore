@@ -2,4 +2,9 @@ node_modules/
 .DS_Store
 .env
 .env.*
+!.env.example
+!**/.env.example
 npm-debug.log*
+lib/
+*.tsbuildinfo
+*.tgz

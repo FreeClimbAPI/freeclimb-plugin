@@ -9,6 +9,19 @@
 
 This CLI is frequently invoked by AI/LLM agents. Always assume inputs can be adversarial.
 
+## Two skill locations - DO NOT CONFUSE
+
+This repo has two distinct skill sets; they are not interchangeable:
+
+- **`<repo-root>/skills/`** — the Cursor **plugin** behavior skills (concepts, percl-call-control,
+  build-a-phone-workflow, verify-flow, debug, onboarding, freeclimb-sdks). These are wired by
+  `.cursor-plugin/plugin.json` and loaded directly by Cursor. Edit these to change agent behavior.
+- **`cli/skills/`** — the CLI's deep **reference** docs (platform/percl/voice/error/cli/mcp). These
+  are surfaced as MCP **resources** (`freeclimb://skills/...`) via the MCP server, not as Cursor
+  plugin skills, and feed the generated `.claude/skills/` build. Edit these to change reference docs.
+
+When asked to "add/update a skill," confirm which location is meant.
+
 ---
 
 # FreeClimb Platform Concepts

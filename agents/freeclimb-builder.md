@@ -17,10 +17,13 @@ You turn business requests into working FreeClimb communications workflows.
    - `freeclimb-concepts`
    - `percl-call-control`
    - `build-a-phone-workflow`
+   - `verify-flow`
    - `debug-freeclimb-apps`
 4. Build the smallest working local app first.
 5. Use `freeclimb dev` for local tunnel and Application setup.
-6. Use MCP or CLI to inspect account state, calls, logs, and numbers.
+6. Use the FreeClimb MCP tools to inspect account state, calls, logs, and numbers (CLI is the optional power-user path).
+7. Before inviting a live call/SMS, validate every route's PerCL with `validate_percl` and simulate the path (`verify-flow` / `/freeclimb-test-flow`).
+8. For read-only inspection/debugging, defer to the `freeclimb-operator` agent.
 
 ## Default Demo
 

@@ -1,91 +1,77 @@
 ---
 name: freeclimb-onboarding
-description: First-run setup for the FreeClimb plugin - install the bundled CLI and authenticate in the terminal so the MCP server works. Use when FreeClimb MCP tools are unavailable or the user runs /freeclimb-setup.
+description: First-run setup for the FreeClimb plugin - build the standalone MCP server once and connect the account via the local browser login flow. Use when FreeClimb MCP tools are unavailable or the user runs /freeclimb-setup.
 ---
 
 # FreeClimb First-Run Setup
 
-Goal: get the `freeclimb` CLI installed on the user's machine and authenticated, so the plugin's MCP server (configured as `command: "freeclimb"`) starts and the agent can navigate FreeClimb without ever handling raw credentials.
+Goal: get the standalone FreeClimb MCP server built and the account connected, so the plugin's MCP tools work. The MCP server is the default surface; installing the CLI is an optional power-user step.
 
-Never ask the user to paste an Account ID or API Key into chat. Authentication happens only in the user's own terminal via `freeclimb login`.
+Never ask the user to paste an Account ID or API Key into chat. Authentication happens in a local browser page that writes credentials to the OS keyring.
 
-## Step 1 - Check existing setup
+## Step 1 - Locate the plugin directory
+
+The plugin ships as an npm workspace. Find its root (the directory that contains `mcp/`, `core/`, `cli/`, and `.mcp.json`):
 
 ```bash
-command -v freeclimb && freeclimb diagnose
+ls -d ~/.cursor/plugins/local/freeclimb ~/.cursor/plugins/*/freeclimb 2>/dev/null | head -1
 ```
 
-- If `freeclimb` is on PATH and `freeclimb diagnose` reports it is authenticated, setup is already complete. Write the marker (Step 5) and stop.
-- Otherwise continue.
+Use the first directory whose `.cursor-plugin/plugin.json` has `"name": "freeclimb"`. Call this `<plugin-root>`.
 
-## Step 2 - Locate the bundled CLI
+## Step 2 - Build the MCP server once (terminal, user-approved)
 
-The CLI source ships inside this plugin at `<plugin-root>/cli`. Determine `<plugin-root>` from the absolute path of this skill file: the plugin root is two directories above this file (`.../<plugin-root>/skills/freeclimb-onboarding/SKILL.md`).
-
-If that path is not obvious, find it:
+From `<plugin-root>`:
 
 ```bash
-ls -d ~/.cursor/plugins/*/freeclimb/cli ~/.cursor/plugins/**/freeclimb/cli ~/.cursor/plugins/local/freeclimb/cli 2>/dev/null | head -1
+npm run setup
 ```
 
-Use the first existing `cli/` directory whose `package.json` has `"name": "freeclimb-cli"`.
+This runs `npm install` and builds `core/`, `mcp/`, and `cli/`. It produces `<plugin-root>/mcp/lib/bin.js`, which `.mcp.json` launches via `node mcp/lib/bin.js`. It needs Node >= 20 and a working build toolchain (native modules compile during install).
 
-## Step 3 - Build and install (terminal, user-approved)
-
-From the located `cli/` directory:
+Verify the build:
 
 ```bash
-cd <plugin-root>/cli
-npm install
-npm i -g .
+node mcp/lib/bin.js --help
 ```
 
-- `npm install` pulls dependencies, including native modules. It needs Node >= 20 and a working build toolchain.
-- `npm i -g .` builds the package (via its prepack step) and links `freeclimb` onto PATH.
-- If global install fails with EACCES or permission errors, set a user-writable npm prefix, ensure it is on PATH, then retry:
+## Step 3 - Connect the account (local browser flow)
+
+From `<plugin-root>`:
 
 ```bash
-mkdir -p "$HOME/.npm-global" && npm config set prefix "$HOME/.npm-global"
-# add "$HOME/.npm-global/bin" to PATH in the user's shell profile, then reopen the shell
-npm i -g .
+node mcp/lib/bin.js login
 ```
 
-Verify:
+This opens a local page on `127.0.0.1` that deep-links the FreeClimb Dashboard → API Credentials. The user pastes their Account ID and API Key into that local page. The credentials are written to the OS keyring and a setup marker is recorded. Nothing is sent to chat.
+
+Do not run a non-interactive login with credentials supplied in chat. Do not echo, store, or write the Account ID or API Key anywhere.
+
+## Step 4 - Reload
+
+Tell the user to reload Cursor (Developer: Reload Window) so the FreeClimb MCP server starts.
+
+## Step 5 - Recommend safe execution settings
+
+Because FreeClimb MCP tools can spend money and take irreversible actions, advise the user to harden Cursor's agent execution settings under **Cursor Settings → Agents → Approvals & Execution**:
+
+- Run Mode: `Allowlist` (not `Run Everything (Unsandboxed)`).
+- Browser Protection: enabled.
+- MCP Tools Protection: enabled.
+
+These complement the plugin's built-in confirm/allowlist guard so billable or destructive tool calls surface for review instead of running unattended. See the "Recommended Cursor settings" section of the plugin README for details.
+
+## Optional - Install the CLI (power users)
+
+Users who want the `freeclimb` CLI on PATH can also run, from `<plugin-root>`:
 
 ```bash
-freeclimb --version
-```
-
-## Step 4 - Authenticate (user types credentials in their own terminal)
-
-Ask the user to run this in their terminal and enter their Account ID and API Key when prompted:
-
-```bash
+npm i -g ./cli
 freeclimb login
 ```
 
-Do not run a non-interactive login with credentials supplied in chat. Do not echo, store, or write the Account ID or API Key anywhere. The CLI stores them in the OS keyring.
-
-Verify:
-
-```bash
-freeclimb diagnose
-```
-
-## Step 5 - Mark complete and reload
-
-Write a success marker so the plugin stops nudging for setup:
-
-```bash
-mkdir -p "$HOME/.cursor" && touch "$HOME/.cursor/.freeclimb-setup-complete"
-```
-
-Then tell the user to reload Cursor (Developer: Reload Window) so the FreeClimb MCP server starts with `freeclimb` now on PATH.
+`freeclimb login` writes the same keyring, so either path authenticates the other.
 
 ## Re-running
 
-This setup is safe to run again. Re-run it after the plugin updates so the globally linked CLI is rebuilt from the latest bundled source.
-
-## Notes
-
-- This installs from the bundled `cli/` source, so no npm publish is required. If `freeclimb-cli` is later published to npm, this step can be replaced with `npm i -g freeclimb-cli`.
+This setup is safe to run again. Re-run `npm run setup` after the plugin updates so the MCP server is rebuilt from the latest synced source. Updates flow through the Cursor plugin sync setting; there is no npm publish in v1.

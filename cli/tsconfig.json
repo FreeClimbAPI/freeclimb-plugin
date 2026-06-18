@@ -15,5 +15,6 @@
     "skipLibCheck": true,
     "jsx": "react-jsx"
   },
+  "references": [{ "path": "../core" }, { "path": "../mcp" }],
   "include": ["src/**/*", "src/**/*.json"]
 }

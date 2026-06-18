@@ -10,6 +10,8 @@
     "url": "https://github.com/FreeClimbAPI/freeclimb-plugin/issues"
   },
   "dependencies": {
+    "@freeclimb/core": "^0.2.0",
+    "@freeclimb/mcp": "^0.2.0",
     "@inquirer/prompts": "^8.3.2",
     "@json-render/core": "^0.15.0",
     "@json-render/ink": "^0.15.0",
@@ -62,7 +64,6 @@
   "files": [
     "/bin",
     "/lib",
-    "/npm-shrinkwrap.json",
     "/oclif.manifest.json",
     "/skills"
   ],
@@ -141,6 +142,7 @@
     "url": "git+https://github.com/FreeClimbAPI/freeclimb-plugin.git"
   },
   "scripts": {
+    "build": "rm -f tsconfig.tsbuildinfo && tsc -b",
     "postpack": "rm -f oclif.manifest.json",
     "lint": "eslint . --ext .js,.ts,.tsx --config .eslintrc.json",
     "lint-write": "eslint . --fix --ext .js,.ts,.tsx --config .eslintrc.json && prettier --write **.{js,ts,tsx,json,md}",

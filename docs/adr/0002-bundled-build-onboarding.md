@@ -1,6 +1,12 @@
 # 2. Bundled-build onboarding for the CLI
 
-Status: Accepted
+Status: Superseded by ADR 0004
+
+> The bundled-build global install described here is replaced by the internal
+> core/cli/mcp workspace and repo-synced standalone MCP in
+> [ADR 0004](0004-internal-workspace-and-standalone-mcp.md). The MCP now launches
+> via `node mcp/lib/bin.js` from the synced repo with no global CLI build. This
+> document is retained for historical context.
 
 ## Context
 

@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "freeclimb": {
-      "command": "freeclimb",
-      "args": ["mcp:start"],
+      "command": "node",
+      "args": ["mcp/lib/bin.js"],
       "_meta": {
         "ideToolTitles": {
           "get_account": "Get FreeClimb Account",
@@ -11,6 +11,10 @@
           "search_available_numbers": "Search Available FreeClimb Numbers",
           "list_applications": "List FreeClimb Applications",
           "get_application": "Get FreeClimb Application",
+          "create_application": "Create FreeClimb Application",
+          "update_application": "Update FreeClimb Application",
+          "buy_number": "Buy FreeClimb Number",
+          "validate_percl": "Validate PerCL",
           "make_call": "Make FreeClimb Call",
           "list_calls": "List FreeClimb Calls",
           "get_call": "Get FreeClimb Call",

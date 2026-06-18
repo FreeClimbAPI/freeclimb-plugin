@@ -61,6 +61,26 @@ For the live demo, build this flow:
 
 Use Express for the simplest Node.js demo app unless the current project already uses another web framework.
 
+## SMS Workflows
+
+For SMS apps, the Application's `smsUrl` receives inbound messages (FreeClimb POSTs `from`, `to`, `text`). Respond with PerCL using the `Sms` command, sending from a FreeClimb SMS-enabled number.
+
+Always honor opt-out and help, since messaging carries compliance obligations:
+
+- `STOP` / `UNSUBSCRIBE` / `CANCEL` / `END` / `QUIT`: stop messaging that number and confirm once.
+- `HELP` / `INFO`: reply with what the service is and how to opt out.
+- Do not send unsolicited, repeated, or surprise messages. Only message numbers that initiated contact or explicitly opted in.
+
+```text
+/sms-inbound: read `text`; if STOP-like -> confirm opt-out; if HELP -> send help; else handle normally.
+```
+
+On trial accounts, outbound SMS only reaches verified destination numbers.
+
+## Validate Before Going Live
+
+Before inviting a live call/SMS, validate each route's PerCL with the `validate_percl` MCP tool (or follow the `verify-flow` skill / `/freeclimb-test-flow` command). Fix every error and treat any localhost/relative `actionUrl` warning as a blocker.
+
 ## Verify Before Telling The User To Call
 
 After `freeclimb dev` is up and the app is running with `BASE_URL` set to the tunnel URL, prove the public path works end to end before inviting the user to call. Surface any failure now, not during the live call:
