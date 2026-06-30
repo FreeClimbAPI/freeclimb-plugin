@@ -51,19 +51,21 @@ Requirements: Node.js >= 20 and a working build toolchain (native modules are co
 - Credentials live only in the OS keyring, set by the browser login flow (`node mcp/lib/bin.js login`) or by `freeclimb login` if you install the CLI.
 - The MCP server and CLI read the keyring automatically. For CI only, `FREECLIMB_ACCOUNT_ID` / `FREECLIMB_API_KEY` env vars are supported, but never commit them or paste them into chat.
 
-## Recommended Cursor settings (safe defaults)
+## Read-only MCP, CLI for actions
 
-FreeClimb MCP tools can spend money and take irreversible actions (place calls, send SMS, buy numbers). The plugin ships its own confirm + destination-allowlist guard, but for defense in depth we strongly recommend new users harden Cursor's agent execution settings under **Cursor Settings → Agents → Approvals & Execution**:
+The FreeClimb MCP tools are **read-only**: they inspect the account (calls, SMS, numbers, applications, logs) and generate/validate PerCL locally, but they cannot spend money or change the account. Every billable or irreversible action (place calls, send SMS, buy numbers, update calls/applications) is performed through the **FreeClimb CLI**, which the agent runs as a terminal command with `--dry-run` and input validation.
+
+This consolidates all account-changing operations onto a single surface that Cursor's command-execution approvals govern. We strongly recommend hardening these settings under **Cursor Settings → Agents → Approvals & Execution**:
 
 | Setting | Recommended | Why |
 | --- | --- | --- |
-| **Run Mode** | `Allowlist` (not `Run Everything (Unsandboxed)`) | Commands and MCP tools require approval/allowlisting instead of running unattended. |
+| **Run Mode** | `Allowlist` (not `Run Everything (Unsandboxed)`) | The agent's `freeclimb` action commands require approval/allowlisting instead of running unattended — this is the primary control for billable actions. |
 | **Browser Protection** | Enabled | Prevents the agent from automatically running browser tools. |
-| **MCP Tools Protection** | Enabled | Surfaces every FreeClimb MCP tool call (including billable/destructive ones) for review before it runs. |
+| **MCP Tools Protection** | Enabled | Surfaces FreeClimb MCP tool calls for review (defense in depth; these are read-only). |
 
 ![Cursor Approvals & Execution settings](assets/image-8788a919-7fc8-471f-951d-f85884f888c0.png)
 
-These host-level controls complement the plugin's own `beforeMCPExecution` guard, which always asks before `make_call` / `send_sms` / `update_call` / `buy_number` (and `release_number` / `delete_application`). You can additionally set `FREECLIMB_ALLOWED_DESTINATIONS` (comma-separated E.164 numbers) to hard-block outbound calls/SMS to any number not on the allowlist. Together they keep you in control of how much autonomy the agent has on your FreeClimb account.
+Because the MCP surface can no longer mutate the account, prompt-injection that reaches the agent cannot place calls or send SMS through MCP; it would have to issue a CLI command, which the approval/allowlist Run Mode gates. Always `--dry-run` and confirm intent before running an action command.
 
 ## Included Components
 
@@ -72,9 +74,9 @@ These host-level controls complement the plugin's own `beforeMCPExecution` guard
 - A `/freeclimb-setup` command for first-run build and browser authentication.
 - A `/build-freeclimb-phone-workflow` command for the demo flow.
 - A `/freeclimb-test-flow` command to validate PerCL and simulate the webhook path before a live call.
-- A rule for safe FreeClimb agent behavior, MCP-first guidance, and credential handling.
-- A `freeclimb-builder` agent (mutating) and a read-only `freeclimb-operator` agent for safe inspection.
-- Hooks that nudge first-run setup and confirm before billable/irreversible MCP actions.
+- A rule for safe FreeClimb agent behavior, read-only MCP guidance, and credential handling.
+- A `freeclimb-builder` agent (reads via MCP, acts via the CLI) and a read-only `freeclimb-operator` agent for safe inspection.
+- A hook that nudges first-run setup.
 - Starter templates under `templates/` (Node/Express and Python/Flask) using the official FreeClimb SDKs.
 
 ## Repository Layout
@@ -87,8 +89,8 @@ These host-level controls complement the plugin's own `beforeMCPExecution` guard
 - `skills/`: Agent guidance for FreeClimb concepts, PerCL, workflow building, verification, debugging, onboarding, and SDKs.
 - `commands/`: `/freeclimb-setup`, `/build-freeclimb-phone-workflow`, and `/freeclimb-test-flow`.
 - `rules/`: FreeClimb-specific agent rules.
-- `agents/`: `freeclimb-builder` (mutating) and `freeclimb-operator` (read-only) subagents.
-- `hooks/`: Session setup nudge and a destructive-action MCP guard.
+- `agents/`: `freeclimb-builder` (reads via MCP, acts via CLI) and `freeclimb-operator` (read-only) subagents.
+- `hooks/`: Session setup nudge.
 - `templates/`: Node/Express and Python/Flask starter apps using the official SDKs.
 - `demo/slides/`: HTML presentation deck and assets.
 

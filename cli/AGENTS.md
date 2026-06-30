@@ -1476,11 +1476,13 @@ freeclimb api /Messages --method POST \
 
 # FreeClimb MCP Tools Reference
 
-The FreeClimb CLI includes a built-in MCP (Model Context Protocol) server that exposes 19 tools for AI agents. Start it with:
+The FreeClimb CLI includes a built-in MCP (Model Context Protocol) server that exposes a set of **read-only** tools for AI agents. Start it with:
 
 ```bash
 freeclimb mcp:start
 ```
+
+> **Read-only by design.** The MCP surface only inspects the account and builds/validates PerCL locally. Billable or account-changing actions (placing calls, sending SMS, buying numbers, updating calls/applications) are performed through the FreeClimb CLI, not via MCP tools. The CLI equivalents are noted below.
 
 ## Setup
 
@@ -1503,19 +1505,22 @@ Configure any MCP-compatible client (Claude Desktop, Cursor, Copilot, or custom 
 
 Or generate the config: `freeclimb mcp:config`
 
-## Tools
+## Actions are CLI-only
+
+These operations are **not** MCP tools. Run them through the FreeClimb CLI (use `--dry-run` first):
+
+| Action | CLI command |
+|--------|-------------|
+| Make an outbound call | `freeclimb calls:make <from> <to> <applicationId>` |
+| Hang up / cancel a call | `freeclimb calls:update <callId> --status completed` |
+| Send an SMS | `freeclimb sms:send <from> <to> "<text>"` |
+| Buy a phone number | `freeclimb incoming-numbers:buy --phoneNumber <e164> [--applicationId <id>]` |
+| Create an application | `freeclimb applications:create --alias "<name>" --voiceUrl <url>` |
+| Update an application | `freeclimb applications:update <applicationId> --voiceUrl <url>` |
+
+## Tools (read-only)
 
 ### Call Management
-
-#### make_call
-Make an outbound phone call.
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `to` | string | yes | Destination number (E.164) |
-| `from` | string | yes | FreeClimb number (E.164) |
-| `applicationId` | string | yes | Application to handle the call |
-| `timeout` | number | no | Ring timeout in seconds (default: 30) |
 
 #### list_calls
 List recent calls with optional filters.
@@ -1533,24 +1538,7 @@ Get details for a specific call.
 |-----------|------|----------|-------------|
 | `callId` | string | yes | The call ID |
 
-#### update_call
-Update an active call (hang up or cancel).
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `callId` | string | yes | The call ID |
-| `status` | string | yes | `completed` (hang up) or `canceled` |
-
 ### SMS Management
-
-#### send_sms
-Send an SMS message.
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `to` | string | yes | Destination number (E.164) |
-| `from` | string | yes | FreeClimb number (E.164, SMS-enabled) |
-| `text` | string | yes | Message text (max 160 chars for single SMS) |
 
 #### list_sms
 List recent SMS messages.
@@ -1686,9 +1674,8 @@ Pre-built prompt templates:
 
 | Name | Description | Arguments |
 |------|-------------|-----------|
-| `send-sms` | Guide through sending SMS | `to` (required), `message` (required) |
-| `make-call` | Guide through making a call | `to` (required), `applicationId` (required) |
 | `diagnose` | Run CLI diagnostics | None |
+| `dashboard` | Generate a monitoring dashboard | `focus` (optional) |
 
 
 ---

@@ -74,13 +74,16 @@ DESCRIPTION
   to interact with FreeClimb directly. The server runs in stdio mode and
   communicates via JSON-RPC.
 
-  Available tools exposed to AI agents:
-  - make_call: Make outbound phone calls
-  - send_sms: Send SMS messages
-  - list_calls, list_sms: View call/SMS history
-  - list_numbers: View owned phone numbers
-  - list_applications: View applications
-  - get_account: View account info
+  The MCP surface is read-only. Billable or account-changing actions (placing
+  calls, sending SMS, buying numbers, updating calls/applications) are performed
+  through the FreeClimb CLI, not via MCP tools.
+
+  Read-only tools exposed to AI agents:
+  - list_calls, get_call, list_sms, get_sms: View call/SMS history
+  - list_numbers, get_number, search_available_numbers: Inspect phone numbers
+  - list_applications, get_application: View applications
+  - get_account, list_logs, filter_logs: View account info and logs
+  - generate_percl, validate_percl: Build and check PerCL locally
   - And more...
 
   To configure Claude Desktop to use this server:
