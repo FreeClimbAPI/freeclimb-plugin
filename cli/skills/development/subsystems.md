@@ -97,18 +97,19 @@ JSON-RPC over stdio implementing the Model Context Protocol.
 
 **`server.ts`**: Main server loop - reads JSON-RPC from stdin, dispatches to tool handlers, writes responses to stdout.
 
-**`tools.ts`**: Tool definitions and handlers. Each tool maps to a CLI command:
+**`tools.ts`**: Tool definitions and handlers. The MCP surface is **read-only**; each tool maps to a read-only CLI command. Mutating actions are intentionally not exposed as tools and live only on the CLI.
 
-| Tool | CLI Equivalent |
+| Tool (read-only) | CLI Equivalent |
 |------|---------------|
-| `make_call` | `calls:make` |
 | `list_calls` | `calls:list` |
-| `send_sms` | `sms:send` |
+| `get_call` | `calls:get` |
 | `list_applications` | `applications:list` |
 | `get_application` | `applications:get` |
 | `search_available_numbers` | `available-numbers:list` |
 | `get_account` | `accounts:get` |
 | ... | ... |
+
+Actions are CLI-only (no MCP tool): `calls:make`, `sms:send`, `calls:update`, `incoming-numbers:buy`, `applications:create`, `applications:update`.
 
 ## Generation System (`generation/`)
 

@@ -9,14 +9,15 @@ globs: "**/*"
 When helping with FreeClimb:
 
 - Start from the user's business goal before naming implementation details.
-- Prefer the FreeClimb MCP tools as the default surface (account/call/SMS/log inspection, PerCL generation/validation, provisioning). The CLI is the optional power-user path for local dev and scripting.
+- Use the FreeClimb MCP tools for read-only inspection (account/call/SMS/log/number/application inspection) and local PerCL generation/validation. The MCP surface is read-only and cannot change the account.
+- Perform every billable or account-changing action through the FreeClimb CLI (`freeclimb calls:make`, `sms:send`, `applications:create`/`update`, `incoming-numbers:buy`, etc.). The CLI is the only surface that mutates the account.
 - Use E.164 phone numbers, such as `+15551234567`.
 - Treat Account IDs, API keys, and real phone numbers as sensitive.
 - Never ask the user to paste Account IDs or API keys into chat, and never print or write them to files. Authentication happens only through the local browser login flow (`node mcp/lib/bin.js login`) or `freeclimb login` if the CLI is installed; both store credentials in the OS keyring, which the agent reads indirectly through MCP and CLI commands.
 - Use PerCL JSON arrays for voice and SMS webhook responses, and validate them with the `validate_percl` tool before deploying or making a test call.
 - Always make every PerCL `actionUrl` (and webhook URL) an absolute, publicly reachable HTTPS URL. Never use relative paths or `localhost`; FreeClimb cannot reach them and the call flow dies silently.
 - Use `--dry-run` before mutating CLI operations when available.
-- Confirm with the user before any billable or irreversible action: `make_call`, `send_sms`, `update_call`, `buy_number`, and deleting or reassigning numbers/applications. The destructive-action hook enforces a confirmation, but confirm intent in conversation too.
+- Confirm with the user before any billable or irreversible CLI action: `calls:make`, `sms:send`, `calls:update`, `incoming-numbers:buy`, and deleting or reassigning numbers/applications. Run `--dry-run` first and confirm intent in conversation before executing.
 - For SMS workflows, honor opt-out: support STOP/UNSUBSCRIBE (stop messaging) and HELP, and do not send unsolicited or repeated messages.
 - On trial accounts, remind the user that outbound calls and SMS require verified destination numbers.
 - If the FreeClimb MCP tools are unavailable, run the `/freeclimb-setup` command (or follow the `freeclimb-onboarding` skill) to build the MCP server once and connect the account via the browser login flow.

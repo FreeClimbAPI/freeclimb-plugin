@@ -100,48 +100,16 @@ function discoverSkillResources(): Array<{
     return resources
 }
 
-const APPLICATION_URL_FIELDS = [
-    "voiceUrl",
-    "voiceFallbackUrl",
-    "callConnectUrl",
-    "statusCallbackUrl",
-    "smsUrl",
-    "smsFallbackUrl",
-] as const
-
-// Validate any provided webhook URLs and shape the Applications request body.
-// Only defined fields are included; undefined keys are dropped by JSON serialization.
-function buildApplicationBody(args: Record<string, unknown>): Record<string, unknown> {
-    const body: Record<string, unknown> = {}
-    if (args.alias !== undefined) body.alias = args.alias
-    for (const field of APPLICATION_URL_FIELDS) {
-        const value = args[field] as string | undefined
-        validateUrl(value, field)
-        if (value !== undefined) body[field] = value
-    }
-    return body
-}
-
 // Tool handler
+//
+// This MCP surface is read-only. Every API call below is a GET or a read-only
+// query; mutating/billable operations are intentionally not exposed here and
+// are handled by the FreeClimb CLI instead.
 async function handleToolCall(name: ToolName, args: Record<string, unknown>): Promise<unknown> {
     const client = await createApiAxios()
 
     switch (name) {
         // Call management
-        case "make_call": {
-            validatePhoneNumber(args.to as string | undefined, "to")
-            validatePhoneNumber(args.from as string | undefined, "from")
-            validateResourceId(args.applicationId as string | undefined, "applicationId")
-            return (
-                await client.post("/Calls", {
-                    to: args.to,
-                    from: args.from,
-                    applicationId: args.applicationId,
-                    timeout: args.timeout || 30,
-                })
-            ).data
-        }
-
         case "list_calls": {
             validatePhoneNumber(args.to as string | undefined, "to")
             validatePhoneNumber(args.from as string | undefined, "from")
@@ -162,19 +130,6 @@ async function handleToolCall(name: ToolName, args: Record<string, unknown>): Pr
         }
 
         // SMS management
-        case "send_sms": {
-            validatePhoneNumber(args.to as string | undefined, "to")
-            validatePhoneNumber(args.from as string | undefined, "from")
-            rejectControlChars(args.text as string | undefined, "text")
-            return (
-                await client.post("/Messages", {
-                    to: args.to,
-                    from: args.from,
-                    text: args.text,
-                })
-            ).data
-        }
-
         case "list_sms": {
             validatePhoneNumber(args.to as string | undefined, "to")
             validatePhoneNumber(args.from as string | undefined, "from")
@@ -224,37 +179,6 @@ async function handleToolCall(name: ToolName, args: Record<string, unknown>): Pr
         case "get_application": {
             validateResourceId(args.applicationId as string | undefined, "applicationId")
             return (await client.get(`/Applications/${args.applicationId}`)).data
-        }
-
-        case "create_application": {
-            const body = buildApplicationBody(args)
-            rejectControlChars(args.alias as string | undefined, "alias")
-            return (await client.post("/Applications", body)).data
-        }
-
-        case "update_application": {
-            validateResourceId(args.applicationId as string | undefined, "applicationId")
-            rejectControlChars(args.alias as string | undefined, "alias")
-            const body = buildApplicationBody(args)
-            return (await client.post(`/Applications/${args.applicationId}`, body)).data
-        }
-
-        case "buy_number": {
-            validatePhoneNumber(args.phoneNumber as string | undefined, "phoneNumber")
-            if (!args.phoneNumber) {
-                throw new ValidationError("phoneNumber is required to buy a number")
-            }
-            rejectControlChars(args.alias as string | undefined, "alias")
-            if (args.applicationId) {
-                validateResourceId(args.applicationId as string, "applicationId")
-            }
-            return (
-                await client.post("/IncomingPhoneNumbers", {
-                    phoneNumber: args.phoneNumber,
-                    alias: args.alias,
-                    applicationId: args.applicationId,
-                })
-            ).data
         }
 
         // Account information
@@ -311,16 +235,6 @@ async function handleToolCall(name: ToolName, args: Record<string, unknown>): Pr
         // Queues
         case "list_queues": {
             return (await client.get("/Queues")).data
-        }
-
-        // Call update
-        case "update_call": {
-            validateResourceId(args.callId as string | undefined, "callId")
-            return (
-                await client.put(`/Calls/${args.callId}`, {
-                    status: args.status,
-                })
-            ).data
         }
 
         // Dashboard generation (local, no API call)
@@ -581,26 +495,6 @@ export async function startMcpServer(): Promise<void> {
     server.setRequestHandler(ListPromptsRequestSchema, async () => ({
         prompts: [
             {
-                name: "send-sms",
-                description: "Guide through sending an SMS message via FreeClimb",
-                arguments: [
-                    { name: "to", description: "Destination phone number", required: true },
-                    { name: "message", description: "Message text to send", required: true },
-                ],
-            },
-            {
-                name: "make-call",
-                description: "Guide through making a phone call via FreeClimb",
-                arguments: [
-                    { name: "to", description: "Destination phone number", required: true },
-                    {
-                        name: "applicationId",
-                        description: "Application to handle the call",
-                        required: true,
-                    },
-                ],
-            },
-            {
                 name: "diagnose",
                 description:
                     "Run FreeClimb CLI diagnostics to check connectivity and authentication",
@@ -623,34 +517,6 @@ export async function startMcpServer(): Promise<void> {
     // Get prompts
     server.setRequestHandler(GetPromptRequestSchema, async (request) => {
         switch (request.params.name) {
-            case "send-sms": {
-                return {
-                    description: "Send an SMS message via FreeClimb",
-                    messages: [
-                        {
-                            role: "user" as const,
-                            content: {
-                                type: "text" as const,
-                                text: `Send an SMS to ${request.params.arguments?.to || "<number>"} with the message: "${request.params.arguments?.message || "<message>"}". First, use the list_numbers tool to find an available FreeClimb number to send from, then use send_sms.`,
-                            },
-                        },
-                    ],
-                }
-            }
-            case "make-call": {
-                return {
-                    description: "Make a phone call via FreeClimb",
-                    messages: [
-                        {
-                            role: "user" as const,
-                            content: {
-                                type: "text" as const,
-                                text: `Make a phone call to ${request.params.arguments?.to || "<number>"} using application ${request.params.arguments?.applicationId || "<appId>"}. First, use list_numbers to find an available FreeClimb number, then use make_call.`,
-                            },
-                        },
-                    ],
-                }
-            }
             case "diagnose": {
                 return {
                     description: "Run FreeClimb CLI diagnostics",

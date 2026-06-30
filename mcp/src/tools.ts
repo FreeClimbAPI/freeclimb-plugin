@@ -7,35 +7,12 @@
 /* eslint-disable camelcase */
 
 // Tool definitions
+//
+// This MCP surface is read-only by design. All billable/irreversible actions
+// (placing calls, sending SMS, buying numbers, updating calls/applications) are
+// performed through the FreeClimb CLI, not via MCP tools.
 export const tools = {
     // Call management
-    make_call: {
-        name: "make_call",
-        description: "Make an outbound phone call from a FreeClimb number to a destination number",
-        inputSchema: {
-            type: "object" as const,
-            properties: {
-                to: {
-                    type: "string",
-                    description: "Destination phone number in E.164 format (e.g., +15551234567)",
-                },
-                from: {
-                    type: "string",
-                    description: "FreeClimb phone number to call from in E.164 format",
-                },
-                applicationId: {
-                    type: "string",
-                    description: "Application ID to handle the call",
-                },
-                timeout: {
-                    type: "number",
-                    description: "Call timeout in seconds (optional, default 30)",
-                },
-            },
-            required: ["to", "from", "applicationId"],
-        },
-    },
-
     list_calls: {
         name: "list_calls",
         description: "List recent phone calls for the account",
@@ -86,29 +63,6 @@ export const tools = {
     },
 
     // SMS management
-    send_sms: {
-        name: "send_sms",
-        description: "Send an SMS message from a FreeClimb number",
-        inputSchema: {
-            type: "object" as const,
-            properties: {
-                to: {
-                    type: "string",
-                    description: "Destination phone number in E.164 format",
-                },
-                from: {
-                    type: "string",
-                    description: "FreeClimb phone number to send from in E.164 format",
-                },
-                text: {
-                    type: "string",
-                    description: "The SMS message text (max 160 characters for single SMS)",
-                },
-            },
-            required: ["to", "from", "text"],
-        },
-    },
-
     list_sms: {
         name: "list_sms",
         description: "List recent SMS messages for the account",
@@ -196,27 +150,6 @@ export const tools = {
         },
     },
 
-    buy_number: {
-        name: "buy_number",
-        description:
-            "BILLABLE & IRREVERSIBLE: purchase an available FreeClimb phone number (optionally assigning it to an application). Confirm with the user before calling. Search first with search_available_numbers.",
-        inputSchema: {
-            type: "object" as const,
-            properties: {
-                phoneNumber: {
-                    type: "string",
-                    description: "The exact available phone number to purchase, in E.164 format (e.g., +15551234567)",
-                },
-                alias: { type: "string", description: "Optional friendly name for the number" },
-                applicationId: {
-                    type: "string",
-                    description: "Optional application ID to assign the number to at purchase",
-                },
-            },
-            required: ["phoneNumber"],
-        },
-    },
-
     // Application management
     list_applications: {
         name: "list_applications",
@@ -238,63 +171,6 @@ export const tools = {
                     type: "string",
                     description: "The application ID to look up",
                 },
-            },
-            required: ["applicationId"],
-        },
-    },
-
-    create_application: {
-        name: "create_application",
-        description:
-            "Create a FreeClimb application (the webhook configuration that routes inbound calls/SMS to your server). Set voiceUrl/smsUrl to the URLs that return PerCL.",
-        inputSchema: {
-            type: "object" as const,
-            properties: {
-                alias: { type: "string", description: "Friendly name for the application" },
-                voiceUrl: {
-                    type: "string",
-                    description: "Absolute HTTPS URL FreeClimb POSTs to on inbound calls (returns PerCL)",
-                },
-                voiceFallbackUrl: {
-                    type: "string",
-                    description: "Absolute HTTPS URL used if voiceUrl fails",
-                },
-                callConnectUrl: {
-                    type: "string",
-                    description: "Absolute HTTPS URL FreeClimb POSTs to when an outbound call connects",
-                },
-                statusCallbackUrl: {
-                    type: "string",
-                    description: "Absolute HTTPS URL for fire-and-forget call status callbacks",
-                },
-                smsUrl: {
-                    type: "string",
-                    description: "Absolute HTTPS URL FreeClimb POSTs to on inbound SMS",
-                },
-                smsFallbackUrl: {
-                    type: "string",
-                    description: "Absolute HTTPS URL used if smsUrl fails",
-                },
-            },
-            required: [],
-        },
-    },
-
-    update_application: {
-        name: "update_application",
-        description:
-            "Update an existing FreeClimb application's webhook URLs or alias. Use this to repoint voiceUrl/smsUrl after a tunnel restart or deploy. Only provided fields are changed.",
-        inputSchema: {
-            type: "object" as const,
-            properties: {
-                applicationId: { type: "string", description: "The application ID to update" },
-                alias: { type: "string", description: "Friendly name for the application" },
-                voiceUrl: { type: "string", description: "Absolute HTTPS URL for inbound calls (returns PerCL)" },
-                voiceFallbackUrl: { type: "string", description: "Absolute HTTPS URL used if voiceUrl fails" },
-                callConnectUrl: { type: "string", description: "Absolute HTTPS URL for outbound call connect" },
-                statusCallbackUrl: { type: "string", description: "Absolute HTTPS URL for call status callbacks" },
-                smsUrl: { type: "string", description: "Absolute HTTPS URL for inbound SMS" },
-                smsFallbackUrl: { type: "string", description: "Absolute HTTPS URL used if smsUrl fails" },
             },
             required: ["applicationId"],
         },
@@ -387,28 +263,6 @@ export const tools = {
             type: "object" as const,
             properties: {},
             required: [],
-        },
-    },
-
-    // Call update (hang up or redirect active calls)
-    update_call: {
-        name: "update_call",
-        description:
-            "Update an active call — hang up or redirect to a new URL. Use to end calls or change call flow mid-call.",
-        inputSchema: {
-            type: "object" as const,
-            properties: {
-                callId: {
-                    type: "string",
-                    description: "The call ID to update",
-                },
-                status: {
-                    type: "string",
-                    description: "Set to 'completed' to hang up the call",
-                    enum: ["completed", "canceled"],
-                },
-            },
-            required: ["callId", "status"],
         },
     },
 
