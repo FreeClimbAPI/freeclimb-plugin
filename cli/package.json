@@ -13,7 +13,7 @@
     "@freeclimb/core": "^0.2.0",
     "@freeclimb/mcp": "^0.2.0",
     "@inquirer/prompts": "^8.3.2",
-    "@json-render/core": "^0.15.0",
+    "@json-render/core": "^0.19.0",
     "@json-render/ink": "^0.15.0",
     "@modelcontextprotocol/sdk": "^1.27.1",
     "@napi-rs/keyring": "^1",
