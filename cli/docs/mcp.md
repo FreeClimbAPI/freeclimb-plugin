@@ -15,9 +15,9 @@ Configuration file locations:
 After adding the configuration, restart Claude Desktop to enable
 the FreeClimb integration.
 
-Environment variables:
-  Set FREECLIMB_ACCOUNT_ID and FREECLIMB_API_KEY in your environment
-  for the MCP server to authenticate with FreeClimb.
+Authentication:
+  Run node mcp/lib/bin.js login from the plugin directory to store credentials
+  in the OS keyring. Do not put FreeClimb credentials in MCP config files.
 
 * [`freeclimb mcp:config`](#freeclimb-mcpconfig)
 * [`freeclimb mcp:start`](#freeclimb-mcpstart)
@@ -49,9 +49,9 @@ DESCRIPTION
   After adding the configuration, restart Claude Desktop to enable
   the FreeClimb integration.
 
-  Environment variables:
-  Set FREECLIMB_ACCOUNT_ID and FREECLIMB_API_KEY in your environment
-  for the MCP server to authenticate with FreeClimb.
+  Authentication:
+  Run node mcp/lib/bin.js login from the plugin directory to store credentials
+  in the OS keyring. Do not put FreeClimb credentials in MCP config files.
 ```
 
 _See code: [src/commands/mcp/config.ts](https://github.com/FreeClimbAPI/freeclimb-plugin/blob/v0.6.0/src/commands/mcp/config.ts)_

@@ -33,7 +33,9 @@ freeclimb calls:list --fields callId,status,from,to --json
 freeclimb login
 ```
 
-### Environment Variables (headless / agent use)
+### Environment Variables (headless / CI CLI use)
+
+Use environment variables only for headless CLI automation. Do not put these in MCP config files.
 
 ```sh
 export FREECLIMB_ACCOUNT_ID=your_account_id
@@ -114,7 +116,7 @@ freeclimb api /Messages --method POST -d '{"to":"+15551234567","from":"+15559876
 
 ### MCP Integration
 
-For AI agents that prefer structured JSON-RPC:
+The plugin-managed MCP server is read-only and normally launches via `node mcp/lib/bin.js` from the synced plugin repository. For local CLI development you can also start it through oclif:
 
 ```sh
 freeclimb mcp:start      # Start MCP server (stdio)
@@ -171,7 +173,7 @@ npm run prepack           # Build for distribution
 
 ### AI Agent Integration
 
-MCP server configs are auto-discovered by Claude Code (`.mcp.json`), Cursor (`.cursor/mcp.json`), and VS Code Copilot (`.vscode/mcp.json`). After `npm run setup`, set `FREECLIMB_ACCOUNT_ID` and `FREECLIMB_API_KEY` in the config files or your environment. See [AGENTS.md](AGENTS.md) for details.
+MCP server configs are auto-discovered by Claude Code (`.mcp.json`), Cursor (`.cursor/mcp.json`), and VS Code Copilot (`.vscode/mcp.json`). After `npm run setup`, run `node mcp/lib/bin.js login` from the plugin root to store credentials in the OS keyring. Do not put FreeClimb credentials in MCP config files. See [AGENTS.md](AGENTS.md) for details.
 
 ## Contributing
 

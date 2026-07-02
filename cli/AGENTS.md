@@ -1140,10 +1140,11 @@ freeclimb incoming-numbers:list --fields phoneNumber,applicationId --json
 ## Setup
 
 ```bash
-export FREECLIMB_ACCOUNT_ID=<account_id>
-export FREECLIMB_API_KEY=<api_key>
+freeclimb login
 export FREECLIMB_OUTPUT_FORMAT=json
 ```
+
+Use `FREECLIMB_ACCOUNT_ID` / `FREECLIMB_API_KEY` only for CI or other headless CLI runs. Do not put credentials in MCP config files.
 
 ## Gotchas
 
@@ -1236,12 +1237,14 @@ freeclimb status
 
 ## MCP Integration
 
-For structured JSON-RPC invocation (eliminates shell escaping):
+The plugin-managed MCP server is read-only and normally launches via `node mcp/lib/bin.js` from the synced plugin repository. For local CLI development:
 
 ```bash
 freeclimb mcp:start
 freeclimb mcp:config  # Print MCP client config
 ```
+
+Run `node mcp/lib/bin.js login` from the plugin root to store MCP credentials in the OS keyring. Do not put FreeClimb credentials in MCP config files.
 
 ## Pagination
 
@@ -1476,34 +1479,30 @@ freeclimb api /Messages --method POST \
 
 # FreeClimb MCP Tools Reference
 
-The FreeClimb CLI includes a built-in MCP (Model Context Protocol) server that exposes a set of **read-only** tools for AI agents. Start it with:
+The FreeClimb plugin includes a standalone MCP (Model Context Protocol) server that exposes a set of **read-only** tools for AI agents. Cursor launches it from the synced plugin repository:
 
-```bash
-freeclimb mcp:start
+```json
+{
+  "mcpServers": {
+    "freeclimb": {
+      "command": "node",
+      "args": ["mcp/lib/bin.js"]
+    }
+  }
+}
 ```
 
 > **Read-only by design.** The MCP surface only inspects the account and builds/validates PerCL locally. Billable or account-changing actions (placing calls, sending SMS, buying numbers, updating calls/applications) are performed through the FreeClimb CLI, not via MCP tools. The CLI equivalents are noted below.
 
 ## Setup
 
-Configure any MCP-compatible client (Claude Desktop, Cursor, Copilot, or custom agents) with:
+Build once with `npm run setup`, then connect credentials with:
 
-```json
-{
-  "mcpServers": {
-    "freeclimb": {
-      "command": "freeclimb",
-      "args": ["mcp", "start"],
-      "env": {
-        "FREECLIMB_ACCOUNT_ID": "<YOUR_ACCOUNT_ID>",
-        "FREECLIMB_API_KEY": "<YOUR_API_KEY>"
-      }
-    }
-  }
-}
+```bash
+node mcp/lib/bin.js login
 ```
 
-Or generate the config: `freeclimb mcp:config`
+Credentials are stored in the OS keyring. Do not put Account IDs or API Keys in MCP client config.
 
 ## Actions are CLI-only
 

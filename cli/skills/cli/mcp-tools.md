@@ -1,33 +1,29 @@
 # FreeClimb MCP Tools Reference
 
-The FreeClimb CLI includes a built-in MCP (Model Context Protocol) server that exposes a set of **read-only** tools for AI agents. Start it with:
+The FreeClimb plugin includes a standalone MCP (Model Context Protocol) server that exposes a set of **read-only** tools for AI agents. Cursor launches it from the synced plugin repository:
 
-```bash
-freeclimb mcp:start
+```json
+{
+  "mcpServers": {
+    "freeclimb": {
+      "command": "node",
+      "args": ["mcp/lib/bin.js"]
+    }
+  }
+}
 ```
 
 > **Read-only by design.** The MCP surface only inspects the account and builds/validates PerCL locally. Billable or account-changing actions (placing calls, sending SMS, buying numbers, updating calls/applications) are performed through the FreeClimb CLI, not via MCP tools. The CLI equivalents are noted below.
 
 ## Setup
 
-Configure any MCP-compatible client (Claude Desktop, Cursor, Copilot, or custom agents) with:
+Build once with `npm run setup`, then connect credentials with:
 
-```json
-{
-  "mcpServers": {
-    "freeclimb": {
-      "command": "freeclimb",
-      "args": ["mcp", "start"],
-      "env": {
-        "FREECLIMB_ACCOUNT_ID": "<YOUR_ACCOUNT_ID>",
-        "FREECLIMB_API_KEY": "<YOUR_API_KEY>"
-      }
-    }
-  }
-}
+```bash
+node mcp/lib/bin.js login
 ```
 
-Or generate the config: `freeclimb mcp:config`
+Credentials are stored in the OS keyring. Do not put Account IDs or API Keys in MCP client config.
 
 ## Actions are CLI-only
 

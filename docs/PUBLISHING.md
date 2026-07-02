@@ -1,10 +1,10 @@
 # Publishing the CLI (optional / future)
 
-Today the plugin installs the CLI from bundled source via `/freeclimb-setup` (see [ADR 0002](adr/0002-bundled-build-onboarding.md)). Publishing the CLI to npm is optional and removes the self-location and build-toolchain risks of the bundled-build approach.
+Today the plugin runs the MCP server from the synced private workspace via `node mcp/lib/bin.js` (see [ADR 0004](adr/0004-internal-workspace-and-standalone-mcp.md) and [ADR 0005](adr/0005-read-only-mcp-cli-for-actions.md)). Publishing the CLI to npm is optional future work for the power-user CLI surface.
 
 ## Goal
 
-Publish the `cli/` package so onboarding can use a global install instead of building from source.
+Publish the `cli/` package so power users can install the CLI without building the workspace locally.
 
 ## Prerequisites
 
@@ -33,14 +33,12 @@ Publish the `cli/` package so onboarding can use a global install instead of bui
    ```bash
    npm i -g freeclimb-cli
    freeclimb login
-   freeclimb mcp:start
+   freeclimb status
    ```
 
-## Flip the plugin wiring
+## Plugin wiring
 
-Once published, update the onboarding to prefer the published package while keeping build+link as a fallback:
+Keep plugin MCP wiring on `node mcp/lib/bin.js` unless the MCP package is also published and signed:
 
-- `skills/freeclimb-onboarding/SKILL.md`: prefer `npm i -g freeclimb-cli` (or the scoped name) over building from `cli/`.
-- If a scoped name is used, update `.mcp.json` only if the binary name changes (the `bin` stays `freeclimb`, so `command: "freeclimb"` is unaffected).
-
-The `.mcp.json` `command: "freeclimb"` already works with a global install, so no change is needed there when keeping the `freeclimb` bin name.
+- `skills/freeclimb-onboarding/SKILL.md`: mention the published CLI as optional for power users.
+- `.mcp.json`: keep `command: "node"` and `args: ["mcp/lib/bin.js"]` for the plugin-managed read-only MCP server.

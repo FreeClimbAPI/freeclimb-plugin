@@ -17,9 +17,9 @@ Configuration file locations:
 After adding the configuration, restart Claude Desktop to enable
 the FreeClimb integration.
 
-Environment variables:
-  Set FREECLIMB_ACCOUNT_ID and FREECLIMB_API_KEY in your environment
-  for the MCP server to authenticate with FreeClimb.
+Authentication:
+  Run node mcp/lib/bin.js login from the plugin directory to store credentials
+  in the OS keyring. Do not put FreeClimb credentials in MCP config files.
 `
 
     static flags = {
@@ -48,9 +48,7 @@ Environment variables:
         this.log(chalk.yellow("Instructions:"))
         this.log(chalk.dim("1. Copy the JSON above"))
         this.log(chalk.dim("2. Add to your claude_desktop_config.json (merge with existing mcpServers)"))
-        this.log(chalk.dim("3. Set environment variables:"))
-        this.log(chalk.cyan("   export FREECLIMB_ACCOUNT_ID=your_account_id"))
-        this.log(chalk.cyan("   export FREECLIMB_API_KEY=your_api_key"))
+        this.log(chalk.dim("3. Run node mcp/lib/bin.js login from the plugin directory"))
         this.log(chalk.dim("4. Restart Claude Desktop"))
         this.log("")
         this.log(chalk.dim("Config file locations:"))

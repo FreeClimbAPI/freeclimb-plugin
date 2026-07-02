@@ -8,19 +8,19 @@ The Cursor plugin defined by `.cursor-plugin/plugin.json`. Ships skills, rules, 
 
 ## CLI
 
-The FreeClimb command-line tool whose source lives in `cli/`. Provides FreeClimb provisioning, local dev tunneling, diagnostics, authentication, and the MCP server. This monorepo is its canonical home.
+The optional FreeClimb command-line tool whose source lives in `cli/`. Provides FreeClimb provisioning, local dev tunneling, diagnostics, authentication, and all billable/account-changing actions. This monorepo is its canonical home.
 
 ## MCP server
 
-The Model Context Protocol server started by `freeclimb mcp:start`. Exposes FreeClimb operations to the agent as tools. It is how the agent navigates the platform without ever handling raw credentials.
+The standalone read-only Model Context Protocol server launched by the plugin with `node mcp/lib/bin.js`. Exposes FreeClimb inspection tools and local PerCL/dashboard helpers to the agent without putting raw credentials in chat or MCP config.
 
 ## Onboarding / Setup
 
-The one-time, per-machine flow that installs and authenticates the CLI so the MCP server works. Driven by the `/freeclimb-setup` command and `freeclimb-onboarding` skill.
+The one-time, per-machine flow that builds the private workspaces and authenticates the MCP server. Driven by the `/freeclimb-setup` command and `freeclimb-onboarding` skill.
 
 ## Keyring
 
-The operating system credential store where the CLI keeps the Account ID and API Key after `freeclimb login`. The single source of truth for credentials; never duplicated into chat, files, or MCP config.
+The operating system credential store where the MCP browser login and optional CLI login keep the Account ID and API Key. The agent-facing source of truth for credentials; never duplicated into chat or MCP config.
 
 ## Account
 

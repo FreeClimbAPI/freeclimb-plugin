@@ -63,7 +63,7 @@ Start the MCP server for testing AI agent integration:
 node bin/run mcp:start
 ```
 
-Runs the JSON-RPC MCP server over stdio. Requires valid FreeClimb credentials (env vars or keychain).
+Runs the JSON-RPC MCP server over stdio. Use `node mcp/lib/bin.js login` from the plugin root to store credentials in the OS keyring.
 
 ## Code Generation
 

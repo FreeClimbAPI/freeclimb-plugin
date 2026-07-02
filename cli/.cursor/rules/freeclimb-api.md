@@ -3,10 +3,11 @@
 ## Setup
 
 ```bash
-export FREECLIMB_ACCOUNT_ID=<account_id>
-export FREECLIMB_API_KEY=<api_key>
+freeclimb login
 export FREECLIMB_OUTPUT_FORMAT=json
 ```
+
+Use `FREECLIMB_ACCOUNT_ID` / `FREECLIMB_API_KEY` only for CI or other headless CLI runs. Do not put credentials in MCP config files.
 
 ## Safety Rules
 
@@ -93,12 +94,14 @@ freeclimb status
 
 ## MCP Integration
 
-For structured JSON-RPC invocation (eliminates shell escaping):
+The plugin-managed MCP server is read-only and normally launches via `node mcp/lib/bin.js` from the synced plugin repository. For local CLI development:
 
 ```bash
 freeclimb mcp:start
 freeclimb mcp:config  # Print MCP client config
 ```
+
+Run `node mcp/lib/bin.js login` from the plugin root to store MCP credentials in the OS keyring. Do not put FreeClimb credentials in MCP config files.
 
 ## Pagination
 
