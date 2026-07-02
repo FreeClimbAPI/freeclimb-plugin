@@ -1,2 +1,2 @@
-export { PRESET_NAMES, parseDashboardSpec, isSourceBinding } from "@freeclimb/core"
-export type { SourceBinding, DashboardSpec, PresetName } from "@freeclimb/core"
+export { PRESET_NAMES, isSourceBinding, parseDashboardSpec } from "@freeclimb/core"
+export type { DashboardSpec, PresetName, SourceBinding } from "@freeclimb/core"

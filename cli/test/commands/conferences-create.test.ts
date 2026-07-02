@@ -83,7 +83,7 @@ describe("conferences:create Data Test", function () {
         nock("https://www.freeclimb.com")
             .post(`/apiserver/Accounts/${await cred.accountId}/Conferences`, {})
             .query({})
-            .reply(200, undefined)
+            .reply(200)
         const { error } = await runCommand(["conferences:create"])
         expect(error?.oclif?.exit).to.equal(3)
     })

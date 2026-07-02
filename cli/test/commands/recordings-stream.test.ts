@@ -108,7 +108,7 @@ describe("recordings:stream Data Test", function () {
                 `/apiserver/Accounts/${await cred.accountId}/Recordings/${recordingId}/Stream`
             )
             .query({})
-            .reply(200, undefined)
+            .reply(200)
         const { error } = await runCommand([
             "recordings:stream",
             "userInput-recordingId",

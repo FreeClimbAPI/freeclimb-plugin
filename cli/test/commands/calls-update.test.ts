@@ -72,8 +72,8 @@ describe("calls:update Data Test", function () {
             ])
             expect(stdout).to.contain(nockServerResponse)
         } finally {
-            if (orig !== undefined) process.env.FREECLIMB_CLI_BASE_URL = orig
-            else delete process.env.FREECLIMB_CLI_BASE_URL
+            if (orig === undefined) {delete process.env.FREECLIMB_CLI_BASE_URL}
+            else {process.env.FREECLIMB_CLI_BASE_URL = orig}
         }
     })
 
@@ -114,7 +114,7 @@ describe("calls:update Data Test", function () {
                 status: "userInput-status",
             })
             .query({})
-            .reply(200, undefined)
+            .reply(200)
         const { error } = await runCommand([
             "calls:update",
             "userInput-callId",
@@ -147,8 +147,8 @@ describe("calls:update Data Test", function () {
                 ])
                 expect(error?.oclif?.exit).to.equal(3)
             } finally {
-                if (orig !== undefined) process.env.FREECLIMB_CALLS_UPDATE_NEXT = orig
-                else delete process.env.FREECLIMB_CALLS_UPDATE_NEXT
+                if (orig === undefined) {delete process.env.FREECLIMB_CALLS_UPDATE_NEXT}
+                else {process.env.FREECLIMB_CALLS_UPDATE_NEXT = orig}
             }
         })
     })

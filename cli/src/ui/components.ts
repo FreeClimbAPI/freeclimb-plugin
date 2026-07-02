@@ -46,8 +46,10 @@ export function borderedBox(content: string | string[], title?: string, width?: 
             : ` ${title}`
         const titleVisualLen = stripAnsi(titleDisplay).length
         const titlePad = Math.max(0, innerWidth - titleVisualLen)
-        lines.push(`${chars.vertical}${titleDisplay}${" ".repeat(titlePad)}${chars.vertical}`)
-        lines.push(`${chars.teeRight}${chars.horizontal.repeat(innerWidth)}${chars.teeLeft}`)
+        lines.push(
+            `${chars.vertical}${titleDisplay}${" ".repeat(titlePad)}${chars.vertical}`,
+            `${chars.teeRight}${chars.horizontal.repeat(innerWidth)}${chars.teeLeft}`,
+        )
     }
 
     // Content lines

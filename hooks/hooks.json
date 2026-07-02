@@ -5,6 +5,12 @@
       {
         "command": "hooks/freeclimb-session-start.sh"
       }
+    ],
+    "beforeShellExecution": [
+      {
+        "command": "hooks/freeclimb-cli-guard.mjs",
+        "matcher": "freeclimb\\s"
+      }
     ]
   }
 }

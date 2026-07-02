@@ -1,11 +1,18 @@
 import { expect } from "chai"
 import nock from "nock"
 import sinon from "sinon"
-import { prompts } from "../lib/prompts.js"
 import { runCommand } from "@oclif/test"
+import { prompts } from "../lib/prompts.js"
 
 describe("Test for login command", function () {
+    const originalIsTTY = process.stdout.isTTY
+
+    beforeEach(() => {
+        process.stdout.isTTY = true
+    })
+
     afterEach(() => {
+        process.stdout.isTTY = originalIsTTY
         sinon.restore()
         nock.cleanAll()
     })

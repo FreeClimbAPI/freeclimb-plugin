@@ -126,7 +126,7 @@ describe("sms:send Data Test", function () {
                 text: "userInput-text",
             })
             .query({})
-            .reply(200, undefined)
+            .reply(200)
         const { error } = await runCommand([
             "sms:send",
             "userInput-from",

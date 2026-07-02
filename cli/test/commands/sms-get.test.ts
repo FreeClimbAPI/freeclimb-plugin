@@ -108,7 +108,7 @@ describe("sms:get Data Test", function () {
                 `/apiserver/Accounts/${await cred.accountId}/Messages/${messageId}`
             )
             .query({})
-            .reply(200, undefined)
+            .reply(200)
         const { error } = await runCommand([
             "sms:get",
             "userInput-messageId",

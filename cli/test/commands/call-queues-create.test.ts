@@ -52,8 +52,8 @@ describe("call-queues:create Data Test", function () {
             const { stdout } = await runCommand(["call-queues:create"])
             expect(stdout).to.contain(nockServerResponse)
         } finally {
-            if (orig !== undefined) process.env.FREECLIMB_CLI_BASE_URL = orig
-            else delete process.env.FREECLIMB_CLI_BASE_URL
+            if (orig === undefined) {delete process.env.FREECLIMB_CLI_BASE_URL}
+            else {process.env.FREECLIMB_CLI_BASE_URL = orig}
         }
     })
 
@@ -81,7 +81,7 @@ describe("call-queues:create Data Test", function () {
         nock("https://www.freeclimb.com")
             .post(`/apiserver/Accounts/${await cred.accountId}/Queues`, {})
             .query({})
-            .reply(200, undefined)
+            .reply(200)
         const { error } = await runCommand(["call-queues:create"])
         expect(error?.oclif?.exit).to.equal(3)
     })
@@ -175,8 +175,8 @@ describe("call-queues:create Data Test", function () {
                 const { error } = await runCommand(["call-queues:create", "--next"])
                 expect(error?.oclif?.exit).to.equal(3)
             } finally {
-                if (orig !== undefined) process.env.FREECLIMB_CALL_QUEUES_CREATE_NEXT = orig
-                else delete process.env.FREECLIMB_CALL_QUEUES_CREATE_NEXT
+                if (orig === undefined) {delete process.env.FREECLIMB_CALL_QUEUES_CREATE_NEXT}
+                else {process.env.FREECLIMB_CALL_QUEUES_CREATE_NEXT = orig}
             }
         })
     })

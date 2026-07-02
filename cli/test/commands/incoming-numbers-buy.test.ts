@@ -106,7 +106,7 @@ describe("incoming-numbers:buy Data Test", function () {
                 phoneNumber: "userInput-phoneNumber",
             })
             .query({})
-            .reply(200, undefined)
+            .reply(200)
         const { error } = await runCommand([
             "incoming-numbers:buy",
             "userInput-phoneNumber",

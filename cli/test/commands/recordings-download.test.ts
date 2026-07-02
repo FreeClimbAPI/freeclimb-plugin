@@ -108,7 +108,7 @@ describe("recordings:download Data Test", function () {
                 `/apiserver/Accounts/${await cred.accountId}/Recordings/${recordingId}/Download`
             )
             .query({})
-            .reply(200, undefined)
+            .reply(200)
         const { error } = await runCommand([
             "recordings:download",
             "userInput-recordingId",

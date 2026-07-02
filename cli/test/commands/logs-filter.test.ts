@@ -98,7 +98,7 @@ describe("logs:filter Data Test", function () {
                 pql: "userInput-pql",
             })
             .query({})
-            .reply(200, undefined)
+            .reply(200)
         const { error } = await runCommand(["logs:filter", "userInput-pql"])
         expect(error?.oclif?.exit).to.equal(3)
     })
@@ -307,7 +307,7 @@ describe("logs:filter Data Test", function () {
                 nock("https://www.freeclimb.com")
                     .get(`/apiserver/Accounts/${await cred.accountId}/Logs`)
                     .query({ cursor: "6c6f67733a66696c746572" })
-                    .reply(200, undefined)
+                    .reply(200)
                 const { error } = await runCommand([
                     "logs:filter",
                     "userInput-pql",

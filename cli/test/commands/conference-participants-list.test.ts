@@ -108,7 +108,7 @@ describe("conference-participants:list Data Test", function () {
                 `/apiserver/Accounts/${await cred.accountId}/Conferences/${conferenceId}/Participants`
             )
             .query({})
-            .reply(200, undefined)
+            .reply(200)
         const { error } = await runCommand([
             "conference-participants:list",
             "userInput-conferenceId",
@@ -278,7 +278,7 @@ describe("conference-participants:list Data Test", function () {
                     .query({
                         cursor: "636f6e666572656e63652d7061727469636970616e74733a6c697374",
                     })
-                    .reply(200, undefined)
+                    .reply(200)
                 const { error } = await runCommand([
                     "conference-participants:list",
                     "userInput-conferenceId",

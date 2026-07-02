@@ -79,7 +79,7 @@ describe("sms:list Data Test", function () {
         nock("https://www.freeclimb.com")
             .get(`/apiserver/Accounts/${await cred.accountId}/Messages`)
             .query({})
-            .reply(200, undefined)
+            .reply(200)
         const { error } = await runCommand(["sms:list"])
         expect(error?.oclif?.exit).to.equal(3)
     })
@@ -263,7 +263,7 @@ describe("sms:list Data Test", function () {
                 nock("https://www.freeclimb.com")
                     .get(`/apiserver/Accounts/${await cred.accountId}/Messages`)
                     .query({ cursor: "736d733a6c697374" })
-                    .reply(200, undefined)
+                    .reply(200)
                 const { error } = await runCommand(["sms:list", "--next"])
                 expect(error?.oclif?.exit).to.equal(3)
             } finally {

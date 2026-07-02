@@ -79,7 +79,7 @@ describe("recordings:list Data Test", function () {
         nock("https://www.freeclimb.com")
             .get(`/apiserver/Accounts/${await cred.accountId}/Recordings`)
             .query({})
-            .reply(200, undefined)
+            .reply(200)
         const { error } = await runCommand(["recordings:list"])
         expect(error?.oclif?.exit).to.equal(3)
     })
@@ -239,7 +239,7 @@ describe("recordings:list Data Test", function () {
                 nock("https://www.freeclimb.com")
                     .get(`/apiserver/Accounts/${await cred.accountId}/Recordings`)
                     .query({ cursor: "7265636f7264696e67733a6c697374" })
-                    .reply(200, undefined)
+                    .reply(200)
                 const { error } = await runCommand([
                     "recordings:list",
                     "--next",

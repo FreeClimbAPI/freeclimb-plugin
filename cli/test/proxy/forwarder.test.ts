@@ -28,7 +28,9 @@ describe("forwardRequest", () => {
     it("should forward body and capture 200 response", async () => {
         await startServer((req, res) => {
             let body = ""
-            req.on("data", (c) => (body += c))
+            req.on("data", (c) => {
+                body += c
+            })
             req.on("end", () => {
                 res.writeHead(200, { "Content-Type": "application/json" })
                 res.end(JSON.stringify({ received: JSON.parse(body) }))

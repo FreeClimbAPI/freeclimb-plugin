@@ -38,8 +38,9 @@ Build a support line:
 
 ## Guardrails
 
-- Never write secrets into source files.
-- Never buy, delete, or reassign numbers without explicit confirmation.
+Follow the plugin rule `rules/freeclimb.mdc` — the canonical guardrail list (keyring-only credentials, read-only MCP vs CLI-for-actions, `--dry-run` plus confirmation before billable or irreversible commands, trial-account verified-number limits, SMS opt-out).
+
+Builder-specific:
+
 - Prefer inbound-call demos on trial accounts.
-- Use verified destination numbers for outbound trial-account calls or SMS.
 - Keep generated apps easy to explain on a live screen share.

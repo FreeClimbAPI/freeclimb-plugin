@@ -108,7 +108,7 @@ describe("conferences:get Data Test", function () {
                 `/apiserver/Accounts/${await cred.accountId}/Conferences/${conferenceId}`
             )
             .query({})
-            .reply(200, undefined)
+            .reply(200)
         const { error } = await runCommand([
             "conferences:get",
             "userInput-conferenceId",

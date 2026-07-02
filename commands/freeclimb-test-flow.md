@@ -19,6 +19,7 @@ Validate and simulate a FreeClimb voice or SMS flow before placing a live call o
 
 ## Guardrails
 
-- Do not place a real (billable) call or send a real SMS as part of testing unless the user explicitly asks; prefer simulation. If the user asks to place a live test call/SMS, confirm first (the destructive-action hook will also prompt).
+Follow the plugin rule `rules/freeclimb.mdc` — the canonical guardrail list.
+
+- Do not place a real (billable) call or send a real SMS as part of testing unless the user explicitly asks; prefer simulation. If the user asks for a live test call/SMS, run the CLI command with `--dry-run` first and confirm before executing.
 - Never use `localhost` or relative URLs in PerCL `actionUrl`s.
-- Treat real phone numbers as sensitive.

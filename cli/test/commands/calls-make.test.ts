@@ -79,8 +79,8 @@ describe("calls:make Data Test", function () {
             ])
             expect(stdout).to.contain(nockServerResponse)
         } finally {
-            if (orig !== undefined) process.env.FREECLIMB_CLI_BASE_URL = orig
-            else delete process.env.FREECLIMB_CLI_BASE_URL
+            if (orig === undefined) {delete process.env.FREECLIMB_CLI_BASE_URL}
+            else {process.env.FREECLIMB_CLI_BASE_URL = orig}
         }
     })
 
@@ -127,7 +127,7 @@ describe("calls:make Data Test", function () {
                 applicationId: "userInput-applicationId",
             })
             .query({})
-            .reply(200, undefined)
+            .reply(200)
         const { error } = await runCommand([
             "calls:make",
             "userInput-from",
@@ -385,8 +385,8 @@ describe("calls:make Data Test", function () {
                 ])
                 expect(error?.oclif?.exit).to.equal(3)
             } finally {
-                if (orig !== undefined) process.env.FREECLIMB_CALLS_MAKE_NEXT = orig
-                else delete process.env.FREECLIMB_CALLS_MAKE_NEXT
+                if (orig === undefined) {delete process.env.FREECLIMB_CALLS_MAKE_NEXT}
+                else {process.env.FREECLIMB_CALLS_MAKE_NEXT = orig}
             }
         })
     })

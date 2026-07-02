@@ -119,7 +119,7 @@ describe("conference-participants:update Data Test", function () {
                 {}
             )
             .query({})
-            .reply(200, undefined)
+            .reply(200)
         const { error } = await runCommand([
             "conference-participants:update",
             "userInput-conferenceId",

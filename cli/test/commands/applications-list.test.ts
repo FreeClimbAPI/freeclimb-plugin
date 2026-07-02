@@ -48,8 +48,8 @@ describe("applications:list Data Test", function () {
             const { stdout } = await runCommand(["applications:list", "--json"])
             expect(stdout).to.contain('"message": "Response from server"')
         } finally {
-            if (orig !== undefined) process.env.FREECLIMB_CLI_BASE_URL = orig
-            else delete process.env.FREECLIMB_CLI_BASE_URL
+            if (orig === undefined) {delete process.env.FREECLIMB_CLI_BASE_URL}
+            else {process.env.FREECLIMB_CLI_BASE_URL = orig}
         }
     })
 
@@ -77,7 +77,7 @@ describe("applications:list Data Test", function () {
         nock("https://www.freeclimb.com")
             .get(`/apiserver/Accounts/${await cred.accountId}/Applications`)
             .query({})
-            .reply(200, undefined)
+            .reply(200)
         const { error } = await runCommand(["applications:list"])
         expect(error?.oclif?.exit).to.equal(3)
     })
@@ -148,8 +148,8 @@ describe("applications:list Data Test", function () {
                 const { stdout } = await runCommand(["applications:list", "--next", "--json"])
                 expect(stdout).to.contain('"page": 1')
             } finally {
-                if (orig !== undefined) process.env.FREECLIMB_APPLICATIONS_LIST_NEXT = orig
-                else delete process.env.FREECLIMB_APPLICATIONS_LIST_NEXT
+                if (orig === undefined) {delete process.env.FREECLIMB_APPLICATIONS_LIST_NEXT}
+                else {process.env.FREECLIMB_APPLICATIONS_LIST_NEXT = orig}
             }
         })
 
@@ -164,8 +164,8 @@ describe("applications:list Data Test", function () {
                 const { stdout } = await runCommand(["applications:list", "--next", "--json"])
                 expect(stdout).to.contain('"page": 1')
             } finally {
-                if (orig !== undefined) process.env.FREECLIMB_APPLICATIONS_LIST_NEXT = orig
-                else delete process.env.FREECLIMB_APPLICATIONS_LIST_NEXT
+                if (orig === undefined) {delete process.env.FREECLIMB_APPLICATIONS_LIST_NEXT}
+                else {process.env.FREECLIMB_APPLICATIONS_LIST_NEXT = orig}
             }
         })
 
@@ -173,15 +173,15 @@ describe("applications:list Data Test", function () {
             nock("https://www.freeclimb.com")
                 .get(`/apiserver/Accounts/${await cred.accountId}/Applications`)
                 .query({ cursor: "6170706c69636174696f6e733a6c697374" })
-                .reply(200, undefined)
+                .reply(200)
             const orig = process.env.FREECLIMB_APPLICATIONS_LIST_NEXT
             process.env.FREECLIMB_APPLICATIONS_LIST_NEXT = "6170706c69636174696f6e733a6c697374"
             try {
                 const { error } = await runCommand(["applications:list", "--next"])
                 expect(error?.oclif?.exit).to.equal(3)
             } finally {
-                if (orig !== undefined) process.env.FREECLIMB_APPLICATIONS_LIST_NEXT = orig
-                else delete process.env.FREECLIMB_APPLICATIONS_LIST_NEXT
+                if (orig === undefined) {delete process.env.FREECLIMB_APPLICATIONS_LIST_NEXT}
+                else {process.env.FREECLIMB_APPLICATIONS_LIST_NEXT = orig}
             }
         })
     })

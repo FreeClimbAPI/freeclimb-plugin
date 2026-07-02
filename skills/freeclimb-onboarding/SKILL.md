@@ -53,13 +53,13 @@ Tell the user to reload Cursor (Developer: Reload Window) so the FreeClimb MCP s
 
 ## Step 5 - Recommend safe execution settings
 
-Because FreeClimb MCP tools can spend money and take irreversible actions, advise the user to harden Cursor's agent execution settings under **Cursor Settings → Agents → Approvals & Execution**:
+The FreeClimb MCP tools are read-only, but billable and irreversible actions run through the FreeClimb CLI as terminal commands. Advise the user to harden Cursor's agent execution settings under **Cursor Settings → Agents → Approvals & Execution**:
 
-- Run Mode: `Allowlist` (not `Run Everything (Unsandboxed)`).
+- Run Mode: `Allowlist` (not `Run Everything (Unsandboxed)`) — this is the primary control for billable CLI actions.
 - Browser Protection: enabled.
-- MCP Tools Protection: enabled.
+- MCP Tools Protection: enabled (defense in depth; the FreeClimb tools are read-only).
 
-These complement the plugin's built-in confirm/allowlist guard so billable or destructive tool calls surface for review instead of running unattended. See the "Recommended Cursor settings" section of the plugin README for details.
+The plugin also ships a `beforeShellExecution` hook that surfaces billable FreeClimb CLI commands for approval when they lack `--dry-run`. See the "Read-only MCP, CLI for actions" section of the plugin README for details.
 
 ## Optional - Install the CLI (power users)
 

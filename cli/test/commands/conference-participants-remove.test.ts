@@ -114,7 +114,7 @@ describe("conference-participants:remove Data Test", function () {
                 `/apiserver/Accounts/${await cred.accountId}/Conferences/${conferenceId}/Participants/${callId}`
             )
             .query({})
-            .reply(200, undefined)
+            .reply(200)
         const { error } = await runCommand([
             "conference-participants:remove",
             "userInput-conferenceId",

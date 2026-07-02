@@ -54,8 +54,8 @@ describe("calls:list-call-logs Data Test", function () {
             const { stdout } = await runCommand(["calls:list-call-logs", "userInput-callId"])
             expect(stdout).to.contain(nockServerResponse)
         } finally {
-            if (orig !== undefined) process.env.FREECLIMB_CLI_BASE_URL = orig
-            else delete process.env.FREECLIMB_CLI_BASE_URL
+            if (orig === undefined) {delete process.env.FREECLIMB_CLI_BASE_URL}
+            else {process.env.FREECLIMB_CLI_BASE_URL = orig}
         }
     })
 
@@ -87,7 +87,7 @@ describe("calls:list-call-logs Data Test", function () {
         nock("https://www.freeclimb.com")
             .get(`/apiserver/Accounts/${await cred.accountId}/Calls/${callId}/Logs`)
             .query({})
-            .reply(200, undefined)
+            .reply(200)
         const { error } = await runCommand(["calls:list-call-logs", "userInput-callId"])
         expect(error?.oclif?.exit).to.equal(3)
     })
@@ -142,9 +142,9 @@ describe("calls:list-call-logs Data Test", function () {
                 ])
                 expect(error?.oclif?.exit).to.equal(3)
             } finally {
-                if (orig !== undefined)
-                    process.env.FREECLIMB_CALLS_LIST_CALL_LOGS_NEXT = orig
-                else delete process.env.FREECLIMB_CALLS_LIST_CALL_LOGS_NEXT
+                if (orig === undefined)
+                    {delete process.env.FREECLIMB_CALLS_LIST_CALL_LOGS_NEXT}
+                else {process.env.FREECLIMB_CALLS_LIST_CALL_LOGS_NEXT = orig}
             }
         })
 
@@ -164,9 +164,9 @@ describe("calls:list-call-logs Data Test", function () {
                 ])
                 expect(stdout).to.contain(nockServerResponseNext)
             } finally {
-                if (orig !== undefined)
-                    process.env.FREECLIMB_CALLS_LIST_CALL_LOGS_NEXT = orig
-                else delete process.env.FREECLIMB_CALLS_LIST_CALL_LOGS_NEXT
+                if (orig === undefined)
+                    {delete process.env.FREECLIMB_CALLS_LIST_CALL_LOGS_NEXT}
+                else {process.env.FREECLIMB_CALLS_LIST_CALL_LOGS_NEXT = orig}
             }
         })
 
@@ -186,9 +186,9 @@ describe("calls:list-call-logs Data Test", function () {
                 ])
                 expect(stdout).to.contain(nockServerResponseNext2)
             } finally {
-                if (orig !== undefined)
-                    process.env.FREECLIMB_CALLS_LIST_CALL_LOGS_NEXT = orig
-                else delete process.env.FREECLIMB_CALLS_LIST_CALL_LOGS_NEXT
+                if (orig === undefined)
+                    {delete process.env.FREECLIMB_CALLS_LIST_CALL_LOGS_NEXT}
+                else {process.env.FREECLIMB_CALLS_LIST_CALL_LOGS_NEXT = orig}
             }
         })
 
@@ -196,7 +196,7 @@ describe("calls:list-call-logs Data Test", function () {
             nock("https://www.freeclimb.com")
                 .get(`/apiserver/Accounts/${await cred.accountId}/Calls/${callId}/Logs`)
                 .query({ cursor: "63616c6c733a6c6973742d63616c6c2d6c6f6773" })
-                .reply(200, undefined)
+                .reply(200)
             const orig = process.env.FREECLIMB_CALLS_LIST_CALL_LOGS_NEXT
             process.env.FREECLIMB_CALLS_LIST_CALL_LOGS_NEXT =
                 "63616c6c733a6c6973742d63616c6c2d6c6f6773"
@@ -208,9 +208,9 @@ describe("calls:list-call-logs Data Test", function () {
                 ])
                 expect(error?.oclif?.exit).to.equal(3)
             } finally {
-                if (orig !== undefined)
-                    process.env.FREECLIMB_CALLS_LIST_CALL_LOGS_NEXT = orig
-                else delete process.env.FREECLIMB_CALLS_LIST_CALL_LOGS_NEXT
+                if (orig === undefined)
+                    {delete process.env.FREECLIMB_CALLS_LIST_CALL_LOGS_NEXT}
+                else {process.env.FREECLIMB_CALLS_LIST_CALL_LOGS_NEXT = orig}
             }
         })
     })

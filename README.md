@@ -65,7 +65,7 @@ This consolidates all account-changing operations onto a single surface that Cur
 
 ![Cursor Approvals & Execution settings](assets/image-8788a919-7fc8-471f-951d-f85884f888c0.png)
 
-Because the MCP surface can no longer mutate the account, prompt-injection that reaches the agent cannot place calls or send SMS through MCP; it would have to issue a CLI command, which the approval/allowlist Run Mode gates. Always `--dry-run` and confirm intent before running an action command.
+Because the MCP surface can no longer mutate the account, prompt-injection that reaches the agent cannot place calls or send SMS through MCP; it would have to issue a CLI command, which the approval/allowlist Run Mode gates. In addition, the plugin's `beforeShellExecution` hook downgrades billable FreeClimb CLI commands without `--dry-run` from auto-run to an explicit approval prompt. Always `--dry-run` and confirm intent before running an action command.
 
 ## Included Components
 
@@ -74,9 +74,9 @@ Because the MCP surface can no longer mutate the account, prompt-injection that 
 - A `/freeclimb-setup` command for first-run build and browser authentication.
 - A `/build-freeclimb-phone-workflow` command for the demo flow.
 - A `/freeclimb-test-flow` command to validate PerCL and simulate the webhook path before a live call.
-- A rule for safe FreeClimb agent behavior, read-only MCP guidance, and credential handling.
+- An always-applied rule (`rules/freeclimb.mdc`) that is the canonical guardrail source: credential handling, read-only MCP vs CLI-for-actions, dry-run/confirmation, and trial-account limits. Agents and commands reference it instead of restating it.
 - A `freeclimb-builder` agent (reads via MCP, acts via the CLI) and a read-only `freeclimb-operator` agent for safe inspection.
-- A hook that nudges first-run setup.
+- Two hooks: a first-run setup nudge (`sessionStart`) and a `beforeShellExecution` guard that requires approval for billable FreeClimb CLI commands issued without `--dry-run`.
 - Starter templates under `templates/` (Node/Express and Python/Flask) using the official FreeClimb SDKs.
 
 ## Repository Layout
@@ -90,7 +90,7 @@ Because the MCP surface can no longer mutate the account, prompt-injection that 
 - `commands/`: `/freeclimb-setup`, `/build-freeclimb-phone-workflow`, and `/freeclimb-test-flow`.
 - `rules/`: FreeClimb-specific agent rules.
 - `agents/`: `freeclimb-builder` (reads via MCP, acts via CLI) and `freeclimb-operator` (read-only) subagents.
-- `hooks/`: Session setup nudge.
+- `hooks/`: Session setup nudge and the billable-CLI dry-run guard.
 - `templates/`: Node/Express and Python/Flask starter apps using the official SDKs.
 - `demo/slides/`: HTML presentation deck and assets.
 
@@ -109,8 +109,8 @@ The repo is an npm workspace with `core/`, `mcp/`, and `cli/`. From the repo roo
 ```bash
 npm run setup    # install all workspaces + build core, mcp, cli
 npm run build    # rebuild all packages (core -> mcp -> cli)
-npm test         # run the CLI test suite
-npm run validate # validate the Cursor plugin manifest/components
+npm test         # run the core, mcp, and cli test suites
+npm run validate # validate the plugin manifest/frontmatter and scan for secrets
 ```
 
 To work on the CLI directly:

@@ -108,7 +108,7 @@ describe("queue-members:list Data Test", function () {
                 `/apiserver/Accounts/${await cred.accountId}/Queues/${queueId}/Members`
             )
             .query({})
-            .reply(200, undefined)
+            .reply(200)
         const { error } = await runCommand([
             "queue-members:list",
             "userInput-queueId",
@@ -213,7 +213,7 @@ describe("queue-members:list Data Test", function () {
                         `/apiserver/Accounts/${await cred.accountId}/Queues/${queueId}/Members`
                     )
                     .query({ cursor: "71756575652d6d656d626572733a6c697374" })
-                    .reply(200, undefined)
+                    .reply(200)
                 const { error } = await runCommand([
                     "queue-members:list",
                     "userInput-queueId",

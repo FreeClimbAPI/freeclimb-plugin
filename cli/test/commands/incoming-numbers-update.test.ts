@@ -113,7 +113,7 @@ describe("incoming-numbers:update Data Test", function () {
                 {}
             )
             .query({})
-            .reply(200, undefined)
+            .reply(200)
         const { error } = await runCommand([
             "incoming-numbers:update",
             "userInput-phoneNumberId",

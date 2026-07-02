@@ -116,8 +116,8 @@ describe("number-manager", () => {
             try {
                 await restoreNumber("PN_abc", "AP_old")
                 expect.fail("Should have thrown")
-            } catch (err: unknown) {
-                expect(err).to.be.an("error")
+            } catch (error: unknown) {
+                expect(error).to.be.an("error")
             }
         })
     })

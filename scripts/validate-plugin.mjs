@@ -1,9 +1,42 @@
-import { readFileSync, existsSync, statSync } from "node:fs";
+import { readFileSync, existsSync, statSync, readdirSync } from "node:fs";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const errors = [];
+
+function readFrontmatter(rel) {
+  const content = readFileSync(join(root, rel), "utf8");
+  const match = content.match(/^---\n([\s\S]*?)\n---/);
+  if (!match) {
+    errors.push(`Missing YAML frontmatter: ${rel}`);
+    return null;
+  }
+  const fields = {};
+  for (const line of match[1].split("\n")) {
+    const kv = line.match(/^([A-Za-z_-]+):\s*(.*)$/);
+    if (kv) fields[kv[1]] = kv[2].trim();
+  }
+  return fields;
+}
+
+function requireFrontmatterKeys(rel, keys) {
+  const fields = readFrontmatter(rel);
+  if (!fields) return;
+  for (const key of keys) {
+    if (!fields[key]) {
+      errors.push(`Frontmatter in ${rel} is missing required key: ${key}`);
+    }
+  }
+}
+
+function listFiles(relDir, suffix) {
+  const dir = join(root, relDir);
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir)
+    .filter((f) => f.endsWith(suffix))
+    .map((f) => join(relDir, f));
+}
 
 function readJson(rel) {
   const path = join(root, rel);
@@ -72,6 +105,32 @@ if (hooks) {
       }
     }
   }
+}
+
+const skillsDir = join(root, "skills");
+if (existsSync(skillsDir)) {
+  for (const skill of readdirSync(skillsDir)) {
+    const skillFile = join("skills", skill, "SKILL.md");
+    if (!existsSync(join(root, skillFile))) {
+      if (statSync(join(skillsDir, skill)).isDirectory()) {
+        errors.push(`Skill directory has no SKILL.md: skills/${skill}`);
+      }
+      continue;
+    }
+    requireFrontmatterKeys(skillFile, ["name", "description"]);
+  }
+}
+
+for (const rule of listFiles("rules", ".mdc")) {
+  requireFrontmatterKeys(rule, ["description", "alwaysApply"]);
+}
+
+for (const agent of listFiles("agents", ".md")) {
+  requireFrontmatterKeys(agent, ["name", "description", "model", "readonly"]);
+}
+
+for (const command of listFiles("commands", ".md")) {
+  requireFrontmatterKeys(command, ["name", "description"]);
 }
 
 if (errors.length > 0) {

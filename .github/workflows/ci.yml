@@ -18,6 +18,8 @@ jobs:
           node-version: 20
       - name: Validate plugin manifest and components
         run: node scripts/validate-plugin.mjs
+      - name: Scan for credential-shaped secrets
+        run: node scripts/scan-secrets.mjs
 
   build:
     runs-on: ubuntu-latest
@@ -51,10 +53,8 @@ jobs:
       - run: npm ci
       - name: Build workspace
         run: npm run build
-      - name: Lint (non-blocking — pre-existing issues)
+      - name: Lint
         run: npm run lint
-        continue-on-error: true
-      - name: Test (non-blocking — some tests need a keychain/TTY in CI)
+      - name: Test
         run: npm test
         timeout-minutes: 8
-        continue-on-error: true

@@ -79,7 +79,7 @@ describe("logs:list Data Test", function () {
         nock("https://www.freeclimb.com")
             .get(`/apiserver/Accounts/${await cred.accountId}/Logs`)
             .query({})
-            .reply(200, undefined)
+            .reply(200)
         const { error } = await runCommand(["logs:list"])
         expect(error?.oclif?.exit).to.equal(3)
     })
@@ -253,7 +253,7 @@ describe("logs:list Data Test", function () {
                 nock("https://www.freeclimb.com")
                     .get(`/apiserver/Accounts/${await cred.accountId}/Logs`)
                     .query({ cursor: "6c6f67733a6c697374" })
-                    .reply(200, undefined)
+                    .reply(200)
                 const { error } = await runCommand(["logs:list", "--next"])
                 expect(error?.oclif?.exit).to.equal(3)
             } finally {

@@ -59,6 +59,7 @@
     "padding-line-between-statements": "off",
     "object-shorthand": "off",
     "prefer-arrow-callback": "off",
+    "unicorn/prefer-event-target": "off",
     "unicorn/no-typeof-undefined": "off",
     "unicorn/numeric-separators-style": "off",
     "unicorn/better-regex": "off",

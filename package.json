@@ -1,6 +1,6 @@
 {
   "name": "freeclimb-plugin",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "description": "FreeClimb Cursor plugin, shared core, CLI, and standalone MCP monorepo.",
   "license": "MIT",
@@ -18,6 +18,6 @@
     "setup": "npm install && npm run build",
     "test": "npm test --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
-    "validate": "node scripts/validate-plugin.mjs"
+    "validate": "node scripts/validate-plugin.mjs && node scripts/scan-secrets.mjs"
   }
 }

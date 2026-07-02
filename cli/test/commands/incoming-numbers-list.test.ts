@@ -79,7 +79,7 @@ describe("incoming-numbers:list Data Test", function () {
         nock("https://www.freeclimb.com")
             .get(`/apiserver/Accounts/${await cred.accountId}/IncomingPhoneNumbers`)
             .query({})
-            .reply(200, undefined)
+            .reply(200)
         const { error } = await runCommand(["incoming-numbers:list"])
         expect(error?.oclif?.exit).to.equal(3)
     })
@@ -334,7 +334,7 @@ describe("incoming-numbers:list Data Test", function () {
                 nock("https://www.freeclimb.com")
                     .get(`/apiserver/Accounts/${await cred.accountId}/IncomingPhoneNumbers`)
                     .query({ cursor: "696e636f6d696e672d6e756d626572733a6c697374" })
-                    .reply(200, undefined)
+                    .reply(200)
                 const { error } = await runCommand([
                     "incoming-numbers:list",
                     "--next",

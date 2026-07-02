@@ -52,8 +52,8 @@ describe("applications:create Data Test", function () {
             const { stdout } = await runCommand(["applications:create"])
             expect(stdout).to.contain(nockServerResponse)
         } finally {
-            if (orig !== undefined) process.env.FREECLIMB_CLI_BASE_URL = orig
-            else delete process.env.FREECLIMB_CLI_BASE_URL
+            if (orig === undefined) {delete process.env.FREECLIMB_CLI_BASE_URL}
+            else {process.env.FREECLIMB_CLI_BASE_URL = orig}
         }
     })
 
@@ -81,7 +81,7 @@ describe("applications:create Data Test", function () {
         nock("https://www.freeclimb.com")
             .post(`/apiserver/Accounts/${await cred.accountId}/Applications`, {})
             .query({})
-            .reply(200, undefined)
+            .reply(200)
         const { error } = await runCommand(["applications:create"])
         expect(error?.oclif?.exit).to.equal(3)
     })
@@ -247,8 +247,8 @@ describe("applications:create Data Test", function () {
                 const { error } = await runCommand(["applications:create", "--next"])
                 expect(error?.oclif?.exit).to.equal(3)
             } finally {
-                if (orig !== undefined) process.env.FREECLIMB_APPLICATIONS_CREATE_NEXT = orig
-                else delete process.env.FREECLIMB_APPLICATIONS_CREATE_NEXT
+                if (orig === undefined) {delete process.env.FREECLIMB_APPLICATIONS_CREATE_NEXT}
+                else {process.env.FREECLIMB_APPLICATIONS_CREATE_NEXT = orig}
             }
         })
     })

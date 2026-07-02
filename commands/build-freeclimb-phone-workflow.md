@@ -29,7 +29,6 @@ Create a simple FreeClimb support line for a small business. When someone calls,
 
 ## Guardrails
 
-- Never request, display, paste, echo, or write Account IDs, API keys, or auth tokens in chat or in files. Credentials live only in the FreeClimb CLI keyring, set by the user via `freeclimb login` in their own terminal.
+Follow the plugin rule `rules/freeclimb.mdc` — the canonical guardrail list (keyring-only credentials via the browser login flow or `freeclimb login`, confirmation before buying/deleting/reassigning numbers, trial-account verified-number limits).
+
 - Treat real phone numbers as sensitive; avoid printing them unless the user provides them for the task at hand.
-- Do not buy, delete, or reassign numbers without explicit user confirmation.
-- On trial accounts, remind the user that outbound calls and SMS require verified destination numbers.

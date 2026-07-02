@@ -144,12 +144,7 @@ Use --json for machine-readable output.
             accountInfo.push(`  ${"Balance".padEnd(14)}  ${balanceValue}`)
         }
 
-        lines.push(...accountInfo)
-        lines.push("")
-
-        // Resources section separator
-        lines.push(sectionSeparator("Resources", width))
-        lines.push("")
+        lines.push(...accountInfo, "", sectionSeparator("Resources", width), "")
 
         const resourceInfo = keyValue(
             [

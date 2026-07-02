@@ -114,7 +114,7 @@ describe("queue-members:dequeue Data Test", function () {
                 `/apiserver/Accounts/${await cred.accountId}/Queues/${queueId}/Members/${callId}`
             )
             .query({})
-            .reply(200, undefined)
+            .reply(200)
         const { error } = await runCommand([
             "queue-members:dequeue",
             "userInput-queueId",

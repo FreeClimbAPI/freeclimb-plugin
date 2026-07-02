@@ -52,8 +52,8 @@ describe("accounts:manage Data Test", function () {
             const { stdout } = await runCommand(["accounts:manage"])
             expect(stdout).to.contain(nockServerResponse)
         } finally {
-            if (orig !== undefined) process.env.FREECLIMB_CLI_BASE_URL = orig
-            else delete process.env.FREECLIMB_CLI_BASE_URL
+            if (orig === undefined) {delete process.env.FREECLIMB_CLI_BASE_URL}
+            else {process.env.FREECLIMB_CLI_BASE_URL = orig}
         }
     })
 
@@ -81,7 +81,7 @@ describe("accounts:manage Data Test", function () {
         nock("https://www.freeclimb.com")
             .post(`/apiserver/Accounts/${await cred.accountId}`, {})
             .query({})
-            .reply(200, undefined)
+            .reply(200)
         const { error } = await runCommand(["accounts:manage"])
         expect(error?.oclif?.exit).to.equal(3)
     })
@@ -149,8 +149,8 @@ describe("accounts:manage Data Test", function () {
                 const { error } = await runCommand(["accounts:manage", "--next"])
                 expect(error?.oclif?.exit).to.equal(3)
             } finally {
-                if (orig !== undefined) process.env.FREECLIMB_ACCOUNTS_MANAGE_NEXT = orig
-                else delete process.env.FREECLIMB_ACCOUNTS_MANAGE_NEXT
+                if (orig === undefined) {delete process.env.FREECLIMB_ACCOUNTS_MANAGE_NEXT}
+                else {process.env.FREECLIMB_ACCOUNTS_MANAGE_NEXT = orig}
             }
         })
     })

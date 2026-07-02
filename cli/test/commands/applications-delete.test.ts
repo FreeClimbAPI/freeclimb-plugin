@@ -54,8 +54,8 @@ describe("applications:delete Data Test", function () {
             const { stdout } = await runCommand(["applications:delete", "userInput-applicationId"])
             expect(stdout).to.contain(nockServerResponse)
         } finally {
-            if (orig !== undefined) process.env.FREECLIMB_CLI_BASE_URL = orig
-            else delete process.env.FREECLIMB_CLI_BASE_URL
+            if (orig === undefined) {delete process.env.FREECLIMB_CLI_BASE_URL}
+            else {process.env.FREECLIMB_CLI_BASE_URL = orig}
         }
     })
 
@@ -87,7 +87,7 @@ describe("applications:delete Data Test", function () {
         nock("https://www.freeclimb.com")
             .delete(`/apiserver/Accounts/${await cred.accountId}/Applications/${applicationId}`)
             .query({})
-            .reply(200, undefined)
+            .reply(200)
         const { error } = await runCommand(["applications:delete", "userInput-applicationId"])
         expect(error?.oclif?.exit).to.equal(3)
     })
@@ -113,8 +113,8 @@ describe("applications:delete Data Test", function () {
                 ])
                 expect(error?.oclif?.exit).to.equal(3)
             } finally {
-                if (orig !== undefined) process.env.FREECLIMB_APPLICATIONS_DELETE_NEXT = orig
-                else delete process.env.FREECLIMB_APPLICATIONS_DELETE_NEXT
+                if (orig === undefined) {delete process.env.FREECLIMB_APPLICATIONS_DELETE_NEXT}
+                else {process.env.FREECLIMB_APPLICATIONS_DELETE_NEXT = orig}
             }
         })
     })

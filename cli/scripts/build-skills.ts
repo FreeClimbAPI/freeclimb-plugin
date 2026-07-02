@@ -17,21 +17,21 @@ const SKILLS_DIR = join(ROOT, "skills")
 const CLAUDE_SKILLS_DIR = join(ROOT, ".claude", "skills")
 
 interface SkillEntry {
-    id: string
-    name: string
+    dependencies: string[]
     description: string
+    id: string
+    layer: number
+    name: string
     path: string
+    references?: string[]
     tags: string[]
     triggers: string[]
-    layer: number
-    dependencies: string[]
-    references?: string[]
 }
 
 interface Manifest {
-    version: string
     description: string
     skills: SkillEntry[]
+    version: string
 }
 
 function readManifest(): Manifest {
@@ -146,29 +146,20 @@ function buildClaudeSkills(manifest: Manifest): void {
 function buildAgentsMd(manifest: Manifest): void {
     const sections: string[] = []
 
-    sections.push("# FreeClimb CLI - Agent Guide\n")
-    sections.push("## Git Remotes - READ THIS FIRST\n")
-    sections.push("- `origin` = `FreeClimbAPI/freeclimb-cli` (upstream, READ-ONLY)")
-    sections.push("- `work` = `jbohnevail/freeclimb-cli` (fork, push here)")
-    sections.push("- **NEVER create PRs against FreeClimbAPI/freeclimb-cli**")
-    sections.push("- Always: `git push work <branch>` and PRs target `jbohnevail/freeclimb-cli`\n")
-    sections.push("This CLI is frequently invoked by AI/LLM agents. Always assume inputs can be adversarial.\n")
-    sections.push("---\n")
+    sections.push("# FreeClimb CLI - Agent Guide\n", "## Git Remotes - READ THIS FIRST\n", "- `origin` = `FreeClimbAPI/freeclimb-cli` (upstream, READ-ONLY)", "- `work` = `jbohnevail/freeclimb-cli` (fork, push here)", "- **NEVER create PRs against FreeClimbAPI/freeclimb-cli**", "- Always: `git push work <branch>` and PRs target `jbohnevail/freeclimb-cli`\n", "This CLI is frequently invoked by AI/LLM agents. Always assume inputs can be adversarial.\n", "---\n")
 
     // Layer 1: Platform skills
     const layer1 = manifest.skills.filter((s) => s.layer === 1)
     for (const skill of layer1) {
         const content = readSkillContent(skill.path)
-        sections.push(content)
-        sections.push("\n---\n")
+        sections.push(content, "\n---\n")
     }
 
     // Layer 2: CLI skills
     const layer2 = manifest.skills.filter((s) => s.layer === 2)
     for (const skill of layer2) {
         const content = readSkillContent(skill.path)
-        sections.push(content)
-        sections.push("\n---\n")
+        sections.push(content, "\n---\n")
     }
 
     writeFileSync(join(ROOT, "AGENTS.md"), sections.join("\n"))
@@ -187,8 +178,7 @@ function buildContextMd(manifest: Manifest): void {
     const concepts = manifest.skills.find((s) => s.id === "freeclimb-platform-concepts")
     if (concepts) {
         const content = readSkillContent(concepts.path)
-        sections.push(content)
-        sections.push("\n---\n")
+        sections.push(content, "\n---\n")
     }
 
     // Include CLI usage (Layer 2, first skill only)

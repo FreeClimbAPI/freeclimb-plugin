@@ -10,12 +10,15 @@ export type TunnelProvider = "ngrok" | "cloudflared"
 
 export function createTunnel(provider: TunnelProvider): Tunnel {
     switch (provider) {
-        case "ngrok":
+        case "ngrok": {
             return new NgrokAdapter()
-        case "cloudflared":
+        }
+        case "cloudflared": {
             return new CloudflaredAdapter()
-        default:
+        }
+        default: {
             throw new Error(`Unknown tunnel provider: ${provider}`)
+        }
     }
 }
 

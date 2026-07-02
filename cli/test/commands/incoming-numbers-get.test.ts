@@ -108,7 +108,7 @@ describe("incoming-numbers:get Data Test", function () {
                 `/apiserver/Accounts/${await cred.accountId}/IncomingPhoneNumbers/${phoneNumberId}`
             )
             .query({})
-            .reply(200, undefined)
+            .reply(200)
         const { error } = await runCommand([
             "incoming-numbers:get",
             "userInput-phoneNumberId",

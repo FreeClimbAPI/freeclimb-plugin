@@ -107,7 +107,9 @@ describe("WebhookProxyServer", () => {
         targetServer.close(() => {
             targetServer = http.createServer((req, res) => {
                 let body = ""
-                req.on("data", (c: Buffer) => (body += c.toString()))
+                req.on("data", (c: Buffer) => {
+                    body += c.toString()
+                })
                 req.on("end", () => {
                     res.writeHead(200, { "Content-Type": "text/plain" })
                     res.end(`received: ${body}`)

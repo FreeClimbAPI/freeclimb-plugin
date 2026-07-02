@@ -255,8 +255,7 @@ This is the fastest way to go from zero to handling live calls/SMS locally.
             if (assignedPhoneNumber) {
                 summaryLines.push(` Number:  ${chalk.bold(assignedPhoneNumber)}`)
             }
-            summaryLines.push(` Target:  http://localhost:${flags.port}`)
-            summaryLines.push("")
+            summaryLines.push(` Target:  http://localhost:${flags.port}`, "")
             if (assignedPhoneNumber) {
                 summaryLines.push(` Call ${chalk.bold(assignedPhoneNumber)} to test your app`)
             }

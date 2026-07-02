@@ -79,7 +79,7 @@ describe("conferences:list Data Test", function () {
         nock("https://www.freeclimb.com")
             .get(`/apiserver/Accounts/${await cred.accountId}/Conferences`)
             .query({})
-            .reply(200, undefined)
+            .reply(200)
         const { error } = await runCommand(["conferences:list"])
         expect(error?.oclif?.exit).to.equal(3)
     })
@@ -258,7 +258,7 @@ describe("conferences:list Data Test", function () {
                 nock("https://www.freeclimb.com")
                     .get(`/apiserver/Accounts/${await cred.accountId}/Conferences`)
                     .query({ cursor: "636f6e666572656e6365733a6c697374" })
-                    .reply(200, undefined)
+                    .reply(200)
                 const { error } = await runCommand([
                     "conferences:list",
                     "--next",

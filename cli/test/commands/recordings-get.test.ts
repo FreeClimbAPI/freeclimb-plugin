@@ -108,7 +108,7 @@ describe("recordings:get Data Test", function () {
                 `/apiserver/Accounts/${await cred.accountId}/Recordings/${recordingId}`
             )
             .query({})
-            .reply(200, undefined)
+            .reply(200)
         const { error } = await runCommand([
             "recordings:get",
             "userInput-recordingId",

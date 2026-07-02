@@ -108,7 +108,7 @@ describe("queue-members:get-head Data Test", function () {
                 `/apiserver/Accounts/${await cred.accountId}/Queues/${queueId}/Members/Front`
             )
             .query({})
-            .reply(200, undefined)
+            .reply(200)
         const { error } = await runCommand([
             "queue-members:get-head",
             "userInput-queueId",

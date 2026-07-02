@@ -75,8 +75,9 @@ Boundaries crossed:
 - CLI mutating commands support `--dry-run` and shared input validation.
 - Root `.mcp.json` launches `node mcp/lib/bin.js` and contains no credential `env` block.
 - MCP browser login binds `127.0.0.1`, uses a one-time state token, caps request bodies, times out, shuts down after capture, and writes credentials only to the OS keyring.
-- `scripts/validate-plugin.mjs` validates plugin component paths, root MCP config, and hook executability.
-- `hooks/hooks.json` declares only `sessionStart`; the prior `beforeMCPExecution` guard was removed with the mutating MCP tools.
+- `scripts/validate-plugin.mjs` validates plugin component paths, component frontmatter, root MCP config, and hook executability.
+- `scripts/scan-secrets.mjs` fails CI if credential-shaped values (Account-ID/API-key patterns) appear in tracked files.
+- `hooks/hooks.json` declares `sessionStart` (setup nudge) and a `beforeShellExecution` guard that requires approval for billable/irreversible FreeClimb CLI commands issued without `--dry-run`. The prior `beforeMCPExecution` guard was removed with the mutating MCP tools.
 - Shared validation rejects control characters, path traversal in resource IDs, malformed phone numbers, and malformed URLs.
 - The dev proxy has a 1 MB body cap and strips hop-by-hop headers.
 - `render_dashboard` validates and renders in-IDE via MCP Apps UI instead of writing temp files or returning shell commands.
@@ -127,11 +128,11 @@ Recommendation: continue to treat raw API use as advanced/power-user behavior, r
 
 ### F6 (Low) - Plugin-provided shell hooks execute automatically
 
-Only `hooks/freeclimb-session-start.sh` runs automatically now. The `beforeMCPExecution` destructive guard was removed because the MCP surface has no mutating tools.
+Two hooks run automatically: `hooks/freeclimb-session-start.sh` (a read-only setup nudge) and `hooks/freeclimb-cli-guard.mjs` (a `beforeShellExecution` guard that inspects the proposed command string and downgrades billable FreeClimb CLI commands without `--dry-run` from auto-run to ask). Neither reads credentials, makes network calls, or mutates state; the guard fails open to Cursor's own command approval flow.
 
 Impact: plugin hooks remain part of the host execution trust surface.
 
-Recommendation: keep the remaining hook minimal and side-effect-light.
+Recommendation: keep hooks minimal, side-effect-light, and read-only over their inputs.
 
 ### F7 (Low / Medium) - PII flows into model context and transcripts
 
@@ -160,7 +161,7 @@ Mitigations: loopback-only bind, one-time state token, short TTL, request body c
 - F3: partially mitigated by committed lockfile, private workspaces, and no runtime MCP registry fetch.
 - F4: partially mitigated for MCP; CLI/CI compatibility paths remain.
 - F5: path traversal and host controls exist; raw API remains an advanced CLI path.
-- F6: reduced to a single `sessionStart` hook.
+- F6: two minimal hooks — a `sessionStart` nudge and a read-only `beforeShellExecution` dry-run guard.
 - F7: accepted model-context privacy risk with minimization guidance.
 - F8: resolved by in-IDE MCP Apps UI rendering.
 - F9: implemented with loopback auth hardening.
