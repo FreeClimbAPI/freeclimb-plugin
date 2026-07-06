@@ -1,4 +1,4 @@
-import { apiRequest } from "./http.js"
+import { apiRequest, publicRequest } from "./http.js"
 import { rejectControlChars, validatePhoneNumber, validateResourceId } from "./validation.js"
 
 export interface FreeClimbPage<T = Record<string, unknown>> {
@@ -113,9 +113,10 @@ export async function getIncomingNumber(phoneNumberId: string): Promise<Record<s
 export async function searchAvailableNumbers(
     params: AvailableNumberSearchParams = {},
 ): Promise<FreeClimbPage> {
-    const { data } = await apiRequest<FreeClimbPage>({
+    const { data } = await publicRequest<FreeClimbPage>({
         method: "GET",
         path: "/AvailablePhoneNumbers",
+        auth: true,
         params: {
             areaCode: params.areaCode,
             country: params.country || DEFAULT_AVAILABLE_NUMBER_COUNTRY,

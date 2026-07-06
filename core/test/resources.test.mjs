@@ -197,16 +197,13 @@ describe("resources", () => {
         await assert.rejects(() => getIncomingNumber("PN1?evil=1"), ValidationError)
     })
 
-    it("searchAvailableNumbers defaults country to US and passes through other params", async () => {
+    it("searchAvailableNumbers hits the API root and defaults country to US", async () => {
         await setUpServer((_req, res) => jsonReply(res, 200, { availablePhoneNumbers: [] }))
 
         await searchAvailableNumbers({ areaCode: "415", smsEnabled: true })
 
         const req = server.requests[0]
-        assert.equal(
-            req.path,
-            "/Accounts/AC_RESOURCES_TEST_ACCOUNT_ID/AvailablePhoneNumbers",
-        )
+        assert.equal(req.path, "/AvailablePhoneNumbers")
         assert.equal(req.query.areaCode, "415")
         assert.equal(req.query.country, "US")
         assert.equal(req.query.smsEnabled, "true")
