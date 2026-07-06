@@ -18,6 +18,7 @@ import {
     validateUrl,
     ValidationError,
     parseDashboardSpec,
+    validateSourceBindings,
     PRESET_NAMES,
     loadPreset,
     generatePercl,
@@ -133,6 +134,7 @@ export const handlers: { [K in ToolName]: ToolHandler } = {
 
     render_dashboard: async (args) => {
         const validatedSpec = parseDashboardSpec(args.spec)
+        validateSourceBindings(validatedSpec)
         return {
             message: "Dashboard spec validated and ready to render in-IDE.",
             spec: validatedSpec,

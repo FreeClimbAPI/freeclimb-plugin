@@ -1,3 +1,7 @@
+import { readResources } from "@freeclimb/core"
+
+const DASHBOARD_SOURCE_NAMES = Object.keys(readResources)
+
 export function getDashboardPrompt(): string {
     return [
         "You are generating a FreeClimb monitoring view rendered in-IDE via the MCP Apps UI.",
@@ -76,7 +80,7 @@ export function getPrompt(name: string, args?: Record<string, string>): PromptRe
                         role: "user" as const,
                         content: {
                             type: "text" as const,
-                            text: `${prompt}\n\nGenerate a terminal dashboard spec focused on: ${focus}. Use the FreeClimb data sources (calls, sms, queues, conferences, account, logs, numbers, applications) with $source bindings in the state. After generating the spec, use the render_dashboard tool to save and render it.`,
+                            text: `${prompt}\n\nGenerate a terminal dashboard spec focused on: ${focus}. Use the FreeClimb data sources (${DASHBOARD_SOURCE_NAMES.join(", ")}) with $source bindings in the state. After generating the spec, use the render_dashboard tool to save and render it.`,
                         },
                     },
                 ],

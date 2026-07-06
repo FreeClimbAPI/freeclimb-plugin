@@ -20,7 +20,7 @@ The one-time, per-machine flow that builds the private workspaces and authentica
 
 ## REST resources
 
-The `core/src/resources.ts` module in `@freeclimb/core` that owns every FreeClimb REST path, query/body param shape, and response envelope: typed per-resource read functions (`getAccount`, `listCalls`, `getCall`, `listMessages`, `listIncomingNumbers`, `searchAvailableNumbers`, `listApplications`, `listLogs`, `filterLogs`, `listRecordings`, `listConferences`, `listQueues`, and their `get*`/`list*` siblings) plus a derived string-keyed `readResources` registry keyed by dashboard source name (`calls`, `sms`, `numbers`, ...). The MCP server, CLI dashboard, `status` command, and dev tooling all read through this seam instead of hand-building paths.
+The `core/src/resources.ts` module in `@freeclimb/core` that owns every FreeClimb REST path, query/body param shape, and response envelope: typed per-resource read functions (`getAccount`, `listCalls`, `getCall`, `listMessages`, `listIncomingNumbers`, `searchAvailableNumbers`, `listApplications`, `listLogs`, `filterLogs`, `listRecordings`, `listConferences`, `listQueues`, and their `get*`/`list*` siblings) plus a derived string-keyed `readResources` registry keyed by dashboard source name (`calls`, `sms`, `numbers`, ...). The MCP server, CLI dashboard, `status` command, and dev tooling all read through this seam instead of hand-building paths. `core/src/dashboard/data.ts`, beside the dashboard presets, owns `$source` binding extraction/validation against that registry and the polling `DashboardDataManager`; the CLI Ink renderer and the MCP `render_dashboard`/`generate_dashboard_prompt` tools are both thin adapters over this one implementation.
 
 ## Keyring
 
