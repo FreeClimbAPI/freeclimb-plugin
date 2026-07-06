@@ -1,0 +1,18 @@
+---
+description: SMS compliance guardrails - opt-out honoring, consent, quiet hours, 10DLC. Applied when composing or sending SMS.
+alwaysApply: false
+---
+
+# SMS Compliance Guardrails
+
+When composing, reviewing, or sending SMS through FreeClimb:
+
+- Honor STOP, UNSUBSCRIBE, CANCEL, END, and QUIT immediately (case-insensitive); send exactly one confirmation reply, then never message that number again unless it re-opts in.
+- Always answer HELP/INFO with what the service is and how to opt out, regardless of opt-out state.
+- Never send unsolicited or repeated messages. Only message numbers that initiated contact or explicitly opted in.
+- Identify the sending brand in promotional messages.
+- Respect quiet hours for promotional sends (roughly 8am-9pm recipient local time); exact windows can vary by jurisdiction.
+- Use E.164 phone numbers for every `to`/`from`.
+- On trial accounts, verify the destination number is verified in the dashboard before sending.
+- Before wiring any bulk or repeated-send workflow, get explicit user confirmation of the consent basis (transactional vs promotional) — do not assume consent.
+- See the `sms-compliance` skill for the full checklist and implementation pattern.

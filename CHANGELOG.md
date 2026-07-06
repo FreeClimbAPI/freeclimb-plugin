@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.4.0 — 2026-07-06
+
+- Migrated the monorepo from npm workspaces to pnpm 11.5.3 with `pnpm-workspace.yaml`, `workspace:*` internal links, and Corepack-pinned installs in CI and onboarding (ADR 0008).
+- Added a single core REST resources seam in `@freeclimb/core` (`core/src/resources.ts`): typed read functions plus a `readResources` registry keyed by dashboard source name. MCP, CLI dashboard, `status`, and dev tooling now share one path/param/response implementation instead of hand-built duplicates (ADR 0009).
+- Consolidated HTTP client usage on the core `apiRequest`/`publicRequest` seam; moved dashboard polling data into `core/src/dashboard/data.ts` with the CLI Ink renderer and MCP dashboard tools as thin adapters.
+- Collapsed the MCP server to protocol glue with a typed handler table over the core read seam; CLI resource commands converted to thin oclif stubs over a deep `executor.ts` pipeline.
+- Added four skills: `sms-compliance`, `webhook-security`, `freeclimb-incident-triage`, and `conferences-queues-recordings`.
+- Added `rules/sms-compliance.mdc` for SMS opt-out, consent, quiet hours, and 10DLC guardrails.
+- Added `hooks/freeclimb-percl-guard.mjs` (`afterFileEdit`): validates `.percl.json` files on save via the core PerCL validator.
+- Added `/freeclimb-status` command for a one-shot read-only account health check.
+- Removed vestigial paths and stale references from earlier layout experiments.
+
 ## 0.3.0
 
 - CI is now blocking: `lint` and `test` no longer run with `continue-on-error`; the keychain round-trip test skips at runtime where no OS keychain is available, TTY-dependent login tests force a TTY, and the orphaned `cli/test/generation/` suite (tested a code generator that lives upstream) was removed (ADR 0006).

@@ -42,6 +42,14 @@ A FreeClimb phone number owned by an Account and assigned to an Application to r
 
 FreeClimb's call-control language, expressed as JSON command arrays returned by a webhook to drive a call flow.
 
+## PerCL guard hook
+
+The `hooks/freeclimb-percl-guard.mjs` `afterFileEdit` hook. When the agent or user saves a file ending in `.percl.json`, it loads `@freeclimb/core`'s `validatePercl` and injects validation errors into the agent context so invalid PerCL is caught before a webhook response is deployed.
+
+## Command executor
+
+The `cli/src/executor.ts` module and its `runResourceCommand` pipeline. Generated oclif command files are thin stubs that declare a `CommandSpec`; the executor owns argument parsing, validation, HTTP dispatch, output formatting, and `--dry-run` handling so resource commands share one implementation path.
+
 ## Trial account
 
 A FreeClimb account that can only place outbound calls or send SMS to pre-verified numbers. Inbound calls are unrestricted, making them the safest demo centerpiece.

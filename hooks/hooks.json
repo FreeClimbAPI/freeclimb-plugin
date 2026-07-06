@@ -11,6 +11,11 @@
         "command": "hooks/freeclimb-cli-guard.mjs",
         "matcher": "freeclimb\\s"
       }
+    ],
+    "afterFileEdit": [
+      {
+        "command": "hooks/freeclimb-percl-guard.mjs"
+      }
     ]
   }
 }

@@ -69,14 +69,16 @@ Because the MCP surface can no longer mutate the account, prompt-injection that 
 
 ## Included Components
 
-- Skills for FreeClimb concepts, PerCL call control, phone workflow building, flow verification, debugging, first-run onboarding, and the official SDK catalog.
+- Skills for FreeClimb concepts, PerCL call control, phone workflow building, flow verification, debugging, first-run onboarding, the official SDK catalog, SMS compliance, webhook security, incident triage, and conferences/queues/recordings.
 - A standalone FreeClimb MCP server entry (`command: "node", args: ["mcp/lib/bin.js"]`).
 - A `/freeclimb-setup` command for first-run build and browser authentication.
 - A `/build-freeclimb-phone-workflow` command for the demo flow.
 - A `/freeclimb-test-flow` command to validate PerCL and simulate the webhook path before a live call.
+- A `/freeclimb-status` command for a one-shot read-only account health check across calls, SMS, logs, and webhook configuration.
 - An always-applied rule (`rules/freeclimb.mdc`) that is the canonical guardrail source: credential handling, read-only MCP vs CLI-for-actions, dry-run/confirmation, and trial-account limits. Agents and commands reference it instead of restating it.
+- A contextual SMS compliance rule (`rules/sms-compliance.mdc`) for opt-out handling, consent, quiet hours, and 10DLC guardrails when composing or sending SMS.
 - A `freeclimb-builder` agent (reads via MCP, acts via the CLI) and a read-only `freeclimb-operator` agent for safe inspection.
-- Two hooks: a first-run setup nudge (`sessionStart`) and a `beforeShellExecution` guard that requires approval for billable FreeClimb CLI commands issued without `--dry-run`.
+- Three hooks: a first-run setup nudge (`sessionStart`), a `beforeShellExecution` guard that requires approval for billable FreeClimb CLI commands issued without `--dry-run`, and an `afterFileEdit` PerCL guard that validates `.percl.json` files on save using the core PerCL validator.
 - Starter templates under `templates/` (Node/Express and Python/Flask) using the official FreeClimb SDKs.
 
 ## Repository Layout
@@ -86,11 +88,11 @@ Because the MCP surface can no longer mutate the account, prompt-injection that 
 - `core/`: `@freeclimb/core` — shared HTTP, credentials, validation, errors, and PerCL generate/validate.
 - `mcp/`: `@freeclimb/mcp` — the standalone stdio MCP server and browser login bin.
 - `cli/`: `freeclimb-cli` — the power-user CLI frontend over `core`.
-- `skills/`: Agent guidance for FreeClimb concepts, PerCL, workflow building, verification, debugging, onboarding, and SDKs.
-- `commands/`: `/freeclimb-setup`, `/build-freeclimb-phone-workflow`, and `/freeclimb-test-flow`.
-- `rules/`: FreeClimb-specific agent rules.
+- `skills/`: Agent guidance for FreeClimb concepts, PerCL, workflow building, verification, debugging, onboarding, SDKs, SMS compliance, webhook security, incident triage, and conferences/queues/recordings.
+- `commands/`: `/freeclimb-setup`, `/build-freeclimb-phone-workflow`, `/freeclimb-test-flow`, and `/freeclimb-status`.
+- `rules/`: FreeClimb guardrails (`freeclimb.mdc`) and SMS compliance (`sms-compliance.mdc`).
 - `agents/`: `freeclimb-builder` (reads via MCP, acts via CLI) and `freeclimb-operator` (read-only) subagents.
-- `hooks/`: Session setup nudge and the billable-CLI dry-run guard.
+- `hooks/`: Session setup nudge, the billable-CLI dry-run guard, and the PerCL validation guard on `.percl.json` edits.
 - `templates/`: Node/Express and Python/Flask starter apps using the official SDKs.
 - `demo/slides/`: HTML presentation deck and assets.
 
