@@ -1,8 +1,7 @@
-import { Args, Command, Flags } from "@oclif/core"
+import { Command, Flags } from "@oclif/core"
 import chalk from "chalk"
-import axios from "axios"
 import { cred } from "../credentials.js"
-import { Environment } from "../environment.js"
+import { apiRequest } from "../http.js"
 import { wrapJsonOutput } from "../ui/format.js"
 import { createSpinner } from "../ui/spinner.js"
 import {
@@ -57,33 +56,29 @@ Use --json for machine-readable output.
             })
         }
 
-        const baseUrl =
-            Environment.getString("FREECLIMB_CLI_BASE_URL") || "https://www.freeclimb.com/apiserver"
-
-        const client = axios.create({
-            baseURL: `${baseUrl}/Accounts/${accountId}`,
-            auth: { username: accountId, password: apiKey },
-        })
-
-        // Show spinner for TTY, silent for non-TTY/JSON
         const spinner =
             !flags.json && isTTY() ? createSpinner({ text: "Fetching account status..." }) : null
 
         try {
             spinner?.start()
 
-            // Fetch account info and resources in parallel
             const [accountRes, numbersRes, applicationsRes] = await Promise.all([
-                client.get("").catch(() => null),
-                client.get("/IncomingPhoneNumbers").catch(() => null),
-                client.get("/Applications").catch(() => null),
+                apiRequest({ method: "GET", path: "" }).catch(() => null),
+                apiRequest({ method: "GET", path: "/IncomingPhoneNumbers" }).catch(() => null),
+                apiRequest({ method: "GET", path: "/Applications" }).catch(() => null),
             ])
 
             spinner?.stop()
 
-            const accountData = accountRes?.data
-            const numbersData = numbersRes?.data
-            const applicationsData = applicationsRes?.data
+            const accountData = accountRes?.data as
+                | { balance?: string; status?: string; type?: string }
+                | undefined
+            const numbersData = numbersRes?.data as
+                | { incomingPhoneNumbers?: unknown[] }
+                | undefined
+            const applicationsData = applicationsRes?.data as
+                | { applications?: unknown[] }
+                | undefined
 
             const status: AccountStatus = {
                 accountId,

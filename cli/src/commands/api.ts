@@ -1,8 +1,9 @@
 import { Args, Command, Flags } from "@oclif/core"
 import chalk from "chalk"
-import axios from "axios"
+import type { Method } from "axios"
 import { cred } from "../credentials.js"
 import { Environment } from "../environment.js"
+import { apiRequest } from "../http.js"
 import { wrapJsonOutput } from "../ui/format.js"
 import { getOutputFormat } from "../agent-config.js"
 import { isTTY } from "../ui/theme.js"
@@ -188,12 +189,10 @@ Full URLs are restricted to FreeClimb domains for credential safety.
         const baseUrl =
             Environment.getString("FREECLIMB_CLI_BASE_URL") || "https://www.freeclimb.com/apiserver"
 
-        let url = endpoint
-        if (url.startsWith("/")) {
-            url = `${baseUrl}/Accounts/${accountId}${url}`
-        } else {
+        let requestPath = endpoint
+        if (!endpoint.startsWith("/")) {
             try {
-                const parsed = new URL(url)
+                const parsed = new URL(endpoint)
                 const allowedHosts = ["freeclimb.com", "www.freeclimb.com"]
                 const isCustomBase = Environment.getString("FREECLIMB_CLI_BASE_URL") !== ""
                 if (isCustomBase) {
@@ -213,21 +212,18 @@ Full URLs are restricted to FreeClimb domains for credential safety.
                         { exit: 1 },
                     )
                 }
+                requestPath = parsed.toString()
             } catch {
-                this.error(chalk.red(`Invalid URL: ${url}`), { exit: 1 })
+                this.error(chalk.red(`Invalid URL: ${endpoint}`), { exit: 1 })
             }
         }
 
         try {
-            const response = await axios({
-                url,
-                method: cmdFlags.method as "GET" | "POST" | "PUT" | "DELETE",
-                auth: { username: accountId, password: apiKey },
+            const response = await apiRequest({
+                path: requestPath,
+                method: cmdFlags.method as Method,
                 params: Object.keys(params).length > 0 ? params : undefined,
                 data,
-                headers: {
-                    "Content-Type": "application/json",
-                },
             })
 
             let responseData = response.data

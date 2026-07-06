@@ -1,8 +1,8 @@
-import { Args, Command, Flags } from "@oclif/core"
+import { Command, Flags } from "@oclif/core"
 import chalk from "chalk"
-import axios from "axios"
 import { cred } from "../credentials.js"
 import { Environment } from "../environment.js"
+import { apiRequest, publicRequest } from "../http.js"
 import { wrapJsonOutput } from "../ui/format.js"
 import { createSpinner, Spinner } from "../ui/spinner.js"
 import { borderedBox, statusIndicator, keyValue } from "../ui/components.js"
@@ -190,7 +190,7 @@ Useful for troubleshooting authentication or connectivity issues.
 
         try {
             const start = Date.now()
-            await axios.get(baseUrl, { timeout: 10000 })
+            await publicRequest({ method: "GET", path: "", timeout: 10000 })
             const latency = Date.now() - start
 
             if (latency > 2000) {
@@ -240,14 +240,7 @@ Useful for troubleshooting authentication or connectivity issues.
                 return
             }
 
-            const baseUrl =
-                Environment.getString("FREECLIMB_CLI_BASE_URL") ||
-                "https://www.freeclimb.com/apiserver"
-
-            const response = await axios.get(`${baseUrl}/Accounts/${accountId}`, {
-                auth: { username: accountId, password: apiKey },
-                timeout: 10000,
-            })
+            const response = await apiRequest({ method: "GET", path: "", timeout: 10000 })
 
             if (response.status === 200) {
                 this.endCheck(result, checkName, "pass", "Authentication successful")
@@ -294,16 +287,9 @@ Useful for troubleshooting authentication or connectivity issues.
                 return
             }
 
-            const baseUrl =
-                Environment.getString("FREECLIMB_CLI_BASE_URL") ||
-                "https://www.freeclimb.com/apiserver"
+            const response = await apiRequest({ method: "GET", path: "", timeout: 10000 })
 
-            const response = await axios.get(`${baseUrl}/Accounts/${accountId}`, {
-                auth: { username: accountId, password: apiKey },
-                timeout: 10000,
-            })
-
-            const account = response.data
+            const account = response.data as { status?: string; type?: string }
             const status = account.status?.toLowerCase()
             const type = account.type?.toLowerCase()
 
