@@ -4,7 +4,15 @@ Standalone Model Context Protocol server for FreeClimb, built over `@freeclimb/c
 Runs over stdio with no dependency on the oclif/ink CLI.
 
 ## Files
-- `server.ts`: JSON-RPC server over stdio (tools, resources, prompts)
+- `server.ts`: Protocol glue only — creates the JSON-RPC server, registers schemas, wires the
+  stdio transport, and delegates to `handlers.ts`/`resources.ts`/`prompts.ts`
+- `handlers.ts`: Declarative tool dispatch table (`ToolName` → handler). Each handler maps
+  validated args to a `@freeclimb/core` resources/percl/dashboard call via an injectable
+  `HandlerContext`, so tests can stub core functions without module mocking
+- `resources.ts`: Resolves `freeclimb://` resources — the account/numbers/applications JSON
+  resources and the `freeclimb://skills/*` markdown docs (read from `cli/skills/`, falling back
+  to the plugin `skills/`)
+- `prompts.ts`: Prompt definitions (`diagnose`, `dashboard`) and the dashboard system prompt text
 - `tools.ts`: Tool definitions
 - `ui.ts`: MCP Apps UI (in-IDE FreeClimb-themed tables/cards)
 - `auth.ts`: Self-initiated local browser auth flow (writes to the OS keyring)

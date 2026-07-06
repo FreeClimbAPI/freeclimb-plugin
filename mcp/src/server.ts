@@ -15,241 +15,19 @@ import {
     ListPromptsRequestSchema,
     GetPromptRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js"
-import { readFileSync, existsSync } from "node:fs"
+import { readFileSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 import { dirname, join } from "node:path"
 
-import {
-    getAccount,
-    listCalls,
-    getCall,
-    listMessages,
-    getMessage,
-    listIncomingNumbers,
-    getIncomingNumber,
-    searchAvailableNumbers,
-    listApplications,
-    getApplication,
-    listLogs,
-    filterLogs,
-    listRecordings,
-    listConferences,
-    listQueues,
-    rejectControlChars,
-    validateUrl,
-    ValidationError,
-    parseDashboardSpec,
-    PRESET_NAMES,
-    loadPreset,
-    generatePercl,
-    validatePercl,
-    type PerclPattern,
-    type PresetName,
-} from "@freeclimb/core"
-import { tools, ToolName } from "./tools.js"
+import { tools, type ToolName } from "./tools.js"
 import { UI_TABLE_URI, UI_TABLE_MIME, UI_TOOLS, TABLE_HTML, buildUiPayload } from "./ui.js"
+import { dispatchTool } from "./handlers.js"
+import { listFreeclimbResources, readFreeclimbResource } from "./resources.js"
+import { promptDefinitions, getPrompt } from "./prompts.js"
 
 const currentDir = dirname(fileURLToPath(import.meta.url))
 const pkgPath = join(currentDir, "../package.json")
 const { version: MCP_VERSION } = JSON.parse(readFileSync(pkgPath, "utf-8"))
-
-// Resolve the plugin skills directory from the synced repo (no publishing in v1).
-function resolveSkillsDir(): string {
-    const candidates = [
-        process.env.FREECLIMB_MCP_SKILLS_DIR,
-        join(currentDir, "../../cli/skills"),
-        join(currentDir, "../../skills"),
-    ].filter((c): c is string => Boolean(c))
-    for (const candidate of candidates) {
-        if (existsSync(join(candidate, "manifest.json"))) return candidate
-    }
-    return candidates[candidates.length - 1] ?? join(currentDir, "../../skills")
-}
-
-const SKILLS_DIR = resolveSkillsDir()
-
-// Framework-neutral dashboard guidance (the in-IDE MCP Apps UI replaces the
-// ink/terminal catalog; the standalone MCP must not pull React/Ink).
-function getDashboardPrompt(): string {
-    return [
-        "You are generating a FreeClimb monitoring view rendered in-IDE via the MCP Apps UI.",
-        "Available structured views: table (list results) and account card.",
-        "Pick a focus: calls, queues, sms, or health, then call the matching list tool",
-        "(list_calls, list_queues, list_sms, get_account / list_logs) so results render as",
-        "FreeClimb-themed cards and tables. Use render_dashboard with a json-render spec only",
-        "when you need a composed multi-panel layout; otherwise prefer the list tools directly.",
-    ].join(" ")
-}
-
-// Discover skill files from skills/ directory
-function discoverSkillResources(): Array<{
-    description: string
-    name: string
-    path: string
-    uri: string
-}> {
-    const resources: Array<{ description: string; name: string; path: string; uri: string }> = []
-
-    if (!existsSync(SKILLS_DIR)) return resources
-
-    try {
-        const manifest = JSON.parse(readFileSync(join(SKILLS_DIR, "manifest.json"), "utf-8"))
-        for (const skill of manifest.skills) {
-            const filePath = join(SKILLS_DIR, skill.path)
-            if (existsSync(filePath)) {
-                resources.push({
-                    uri: `freeclimb://skills/${skill.id}`,
-                    name: skill.name,
-                    description: skill.description,
-                    path: filePath,
-                })
-            }
-        }
-    } catch {
-        // If manifest doesn't exist or can't be parsed, skip skill resources
-    }
-
-    return resources
-}
-
-// Tool handler
-//
-// This MCP surface is read-only. Every API call below is a GET or a read-only
-// query; mutating/billable operations are intentionally not exposed here and
-// are handled by the FreeClimb CLI instead.
-async function handleToolCall(name: ToolName, args: Record<string, unknown>): Promise<unknown> {
-    switch (name) {
-        // Call management
-        case "list_calls": {
-            return listCalls({
-                to: args.to as string | undefined,
-                from: args.from as string | undefined,
-                status: args.status as string | undefined,
-            })
-        }
-
-        case "get_call": {
-            return getCall(args.callId as string)
-        }
-
-        // SMS management
-        case "list_sms": {
-            return listMessages({
-                to: args.to as string | undefined,
-                from: args.from as string | undefined,
-            })
-        }
-
-        case "get_sms": {
-            return getMessage(args.messageId as string)
-        }
-
-        // Phone number management
-        case "list_numbers": {
-            return listIncomingNumbers()
-        }
-
-        case "get_number": {
-            return getIncomingNumber(args.phoneNumberId as string)
-        }
-
-        case "search_available_numbers": {
-            return searchAvailableNumbers({
-                areaCode: args.areaCode as string | undefined,
-                country: args.country as string | undefined,
-                smsEnabled: args.smsEnabled as boolean | undefined,
-                voiceEnabled: args.voiceEnabled as boolean | undefined,
-            })
-        }
-
-        // Application management
-        case "list_applications": {
-            return listApplications()
-        }
-
-        case "get_application": {
-            return getApplication(args.applicationId as string)
-        }
-
-        // Account information
-        case "get_account": {
-            return getAccount()
-        }
-
-        // Logs
-        case "list_logs": {
-            return listLogs({ maxItems: args.maxItems as number | undefined })
-        }
-
-        case "filter_logs": {
-            return filterLogs(args.pql as string, {
-                maxItems: args.maxItems as number | undefined,
-            })
-        }
-
-        // Recordings
-        case "list_recordings": {
-            return listRecordings({ callId: args.callId as string | undefined })
-        }
-
-        // Conferences
-        case "list_conferences": {
-            return listConferences({ status: args.status as string | undefined })
-        }
-
-        // Queues
-        case "list_queues": {
-            return listQueues()
-        }
-
-        // Dashboard generation (local, no API call)
-        case "generate_dashboard_prompt": {
-            let result = getDashboardPrompt()
-            if (args.preset) {
-                const presetName = args.preset as string
-                if (!PRESET_NAMES.includes(presetName as PresetName)) {
-                    throw new ValidationError(
-                        `Unknown preset: ${presetName}. Available: ${PRESET_NAMES.join(", ")}`,
-                    )
-                }
-                const presetSpec = loadPreset(presetName as PresetName)
-                result += `\n\n---\n\nHere is the "${presetName}" preset spec as a starting point:\n\n\`\`\`json\n${JSON.stringify(presetSpec, null, 2)}\n\`\`\``
-            }
-            return result
-        }
-
-        case "render_dashboard": {
-            // F8: render in-IDE via structured content; no temp file, no shell-out to the CLI.
-            const validatedSpec = parseDashboardSpec(args.spec)
-            return {
-                message: "Dashboard spec validated and ready to render in-IDE.",
-                spec: validatedSpec,
-            }
-        }
-
-        // PerCL validation (local, no API call)
-        case "validate_percl": {
-            return validatePercl(args.percl)
-        }
-
-        // PerCL generation (local, no API call)
-        case "generate_percl": {
-            rejectControlChars(args.pattern as string | undefined, "pattern")
-            rejectControlChars(args.text as string | undefined, "text")
-            validateUrl(args.actionUrl as string | undefined, "actionUrl")
-            return generatePercl(
-                args.pattern as PerclPattern,
-                args.text as string | undefined,
-                args.actionUrl as string | undefined,
-                args.options as Record<string, unknown> | undefined,
-            )
-        }
-
-        default: {
-            throw new Error(`Unknown tool: ${name}`)
-        }
-    }
-}
 
 export async function startMcpServer(): Promise<void> {
     const server = new Server(
@@ -266,7 +44,6 @@ export async function startMcpServer(): Promise<void> {
         },
     )
 
-    // List tools
     server.setRequestHandler(ListToolsRequestSchema, async () => ({
         tools: Object.values(tools).map((tool) => ({
             name: tool.name,
@@ -278,11 +55,10 @@ export async function startMcpServer(): Promise<void> {
         })),
     }))
 
-    // Call tools
     server.setRequestHandler(CallToolRequestSchema, async (request) => {
         try {
             const toolName = request.params.name as ToolName
-            const toolResult = await handleToolCall(
+            const toolResult = await dispatchTool(
                 toolName,
                 (request.params.arguments as Record<string, unknown>) || {},
             )
@@ -323,7 +99,6 @@ export async function startMcpServer(): Promise<void> {
         }
     })
 
-    // List resources
     server.setRequestHandler(ListResourcesRequestSchema, async () => {
         const uiResources = [
             {
@@ -345,42 +120,12 @@ export async function startMcpServer(): Promise<void> {
             },
         ]
 
-        const apiResources = [
-            {
-                uri: "freeclimb://account",
-                name: "Account Info",
-                description: "Current FreeClimb account information and status",
-                mimeType: "application/json",
-            },
-            {
-                uri: "freeclimb://numbers",
-                name: "Phone Numbers",
-                description: "All phone numbers owned by this account",
-                mimeType: "application/json",
-            },
-            {
-                uri: "freeclimb://applications",
-                name: "Applications",
-                description: "All applications configured in this account",
-                mimeType: "application/json",
-            },
-        ]
-
-        const skillResources = discoverSkillResources().map((s) => ({
-            uri: s.uri,
-            name: s.name,
-            description: s.description,
-            mimeType: "text/markdown",
-        }))
-
-        return { resources: [...uiResources, ...apiResources, ...skillResources] }
+        return { resources: [...uiResources, ...listFreeclimbResources()] }
     })
 
-    // Read resources
     server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
         const { uri } = request.params
 
-        // Handle MCP Apps UI resource (no API call needed)
         if (uri === UI_TABLE_URI) {
             return {
                 contents: [
@@ -404,120 +149,18 @@ export async function startMcpServer(): Promise<void> {
             }
         }
 
-        // Handle skill resources (no API call needed)
-        if (uri.startsWith("freeclimb://skills/")) {
-            const skillResources = discoverSkillResources()
-            const skill = skillResources.find((s) => s.uri === uri)
-            if (!skill) {
-                throw new Error(`Unknown skill resource: ${uri}`)
-            }
-            const content = readFileSync(skill.path, "utf-8")
-            return {
-                contents: [
-                    {
-                        uri,
-                        mimeType: "text/markdown",
-                        text: content,
-                    },
-                ],
-            }
-        }
-
-        // Handle API resources
-        let data: unknown
-
-        switch (uri) {
-            case "freeclimb://account": {
-                data = await getAccount()
-                break
-            }
-            case "freeclimb://numbers": {
-                data = await listIncomingNumbers()
-                break
-            }
-            case "freeclimb://applications": {
-                data = await listApplications()
-                break
-            }
-            default: {
-                throw new Error(`Unknown resource: ${uri}`)
-            }
-        }
-
-        return {
-            contents: [
-                {
-                    uri,
-                    mimeType: "application/json",
-                    text: JSON.stringify(data, null, 2),
-                },
-            ],
-        }
+        const resource = await readFreeclimbResource(uri)
+        return { contents: [resource] }
     })
 
-    // List prompts
     server.setRequestHandler(ListPromptsRequestSchema, async () => ({
-        prompts: [
-            {
-                name: "diagnose",
-                description:
-                    "Run FreeClimb CLI diagnostics to check connectivity and authentication",
-            },
-            {
-                name: "dashboard",
-                description:
-                    "Generate a custom terminal monitoring dashboard for FreeClimb resources",
-                arguments: [
-                    {
-                        name: "focus",
-                        description: "What to monitor: calls, queues, sms, or health",
-                        required: false,
-                    },
-                ],
-            },
-        ],
+        prompts: promptDefinitions,
     }))
 
-    // Get prompts
-    server.setRequestHandler(GetPromptRequestSchema, async (request) => {
-        switch (request.params.name) {
-            case "diagnose": {
-                return {
-                    description: "Run FreeClimb CLI diagnostics",
-                    messages: [
-                        {
-                            role: "user" as const,
-                            content: {
-                                type: "text" as const,
-                                text: "Run diagnostics on the FreeClimb CLI setup. Use the get_account tool to verify connectivity and authentication, then report the account status.",
-                            },
-                        },
-                    ],
-                }
-            }
-            case "dashboard": {
-                const focus = request.params.arguments?.focus || "general"
-                const prompt = getDashboardPrompt()
-                return {
-                    description: "Generate a FreeClimb monitoring dashboard",
-                    messages: [
-                        {
-                            role: "user" as const,
-                            content: {
-                                type: "text" as const,
-                                text: `${prompt}\n\nGenerate a terminal dashboard spec focused on: ${focus}. Use the FreeClimb data sources (calls, sms, queues, conferences, account, logs, numbers, applications) with $source bindings in the state. After generating the spec, use the render_dashboard tool to save and render it.`,
-                            },
-                        },
-                    ],
-                }
-            }
-            default: {
-                throw new Error(`Unknown prompt: ${request.params.name}`)
-            }
-        }
-    })
+    server.setRequestHandler(GetPromptRequestSchema, async (request) =>
+        getPrompt(request.params.name, request.params.arguments),
+    )
 
-    // Connect via stdio transport
     const transport = new StdioServerTransport()
     await server.connect(transport)
 }
