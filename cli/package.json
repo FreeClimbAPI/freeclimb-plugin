@@ -148,7 +148,7 @@
     "lint-write": "eslint . --fix --ext .js,.ts,.tsx --config .eslintrc.json && prettier --write **.{js,ts,tsx,json,md}",
     "prepack": "rm -rf lib; rm -f tsconfig.tsbuildinfo; tsc -b && oclif manifest && oclif readme --multi && npx tsx scripts/build-skills.ts",
     "pretest": "tsc -b && oclif manifest",
-    "test": "nyc --extension .ts mocha --require tsx --require test/setup.ts --forbid-only \"test/**/*.test.ts\"",
+    "test": "nyc --extension .ts mocha --require ./node_modules/tsx/dist/loader.mjs --require test/setup.ts --forbid-only \"test/**/*.test.ts\"",
     "version": "oclif readme --multi && git add README.md docs/",
     "setup": "bash scripts/setup.sh",
     "build:skills": "npx tsx scripts/build-skills.ts"

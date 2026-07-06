@@ -2,7 +2,8 @@ import { expect } from "chai"
 import nock from "nock"
 import sinon from "sinon"
 import { runCommand } from "@oclif/test"
-import { prompts } from "../lib/prompts.js"
+
+const { prompts } = await import("../lib/prompts.js")
 
 describe("Test for login command", function () {
     const originalIsTTY = process.stdout.isTTY

@@ -55,6 +55,7 @@ export class Environment {
     private loadVarsFromFile() {
         config({
             path: path.join(this.dataPath, "/.env"),
+            quiet: true,
         }) // this dotenv method loads the values from .env file into process memory
     }
 
