@@ -18,6 +18,10 @@ The standalone read-only Model Context Protocol server launched by the plugin wi
 
 The one-time, per-machine flow that builds the private workspaces and authenticates the MCP server. Driven by the `/freeclimb-setup` command and `freeclimb-onboarding` skill.
 
+## REST resources
+
+The `core/src/resources.ts` module in `@freeclimb/core` that owns every FreeClimb REST path, query/body param shape, and response envelope: typed per-resource read functions (`getAccount`, `listCalls`, `getCall`, `listMessages`, `listIncomingNumbers`, `searchAvailableNumbers`, `listApplications`, `listLogs`, `filterLogs`, `listRecordings`, `listConferences`, `listQueues`, and their `get*`/`list*` siblings) plus a derived string-keyed `readResources` registry keyed by dashboard source name (`calls`, `sms`, `numbers`, ...). The MCP server, CLI dashboard, `status` command, and dev tooling all read through this seam instead of hand-building paths.
+
 ## Keyring
 
 The operating system credential store where the MCP browser login and optional CLI login keep the Account ID and API Key. The agent-facing source of truth for credentials; never duplicated into chat or MCP config.

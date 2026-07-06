@@ -20,9 +20,21 @@ import { fileURLToPath } from "node:url"
 import { dirname, join } from "node:path"
 
 import {
-    createApiAxios,
-    validateResourceId,
-    validatePhoneNumber,
+    getAccount,
+    listCalls,
+    getCall,
+    listMessages,
+    getMessage,
+    listIncomingNumbers,
+    getIncomingNumber,
+    searchAvailableNumbers,
+    listApplications,
+    getApplication,
+    listLogs,
+    filterLogs,
+    listRecordings,
+    listConferences,
+    listQueues,
     rejectControlChars,
     validateUrl,
     ValidationError,
@@ -106,135 +118,88 @@ function discoverSkillResources(): Array<{
 // query; mutating/billable operations are intentionally not exposed here and
 // are handled by the FreeClimb CLI instead.
 async function handleToolCall(name: ToolName, args: Record<string, unknown>): Promise<unknown> {
-    const client = await createApiAxios()
-
     switch (name) {
         // Call management
         case "list_calls": {
-            validatePhoneNumber(args.to as string | undefined, "to")
-            validatePhoneNumber(args.from as string | undefined, "from")
-            return (
-                await client.get("/Calls", {
-                    params: {
-                        to: args.to,
-                        from: args.from,
-                        status: args.status,
-                    },
-                })
-            ).data
+            return listCalls({
+                to: args.to as string | undefined,
+                from: args.from as string | undefined,
+                status: args.status as string | undefined,
+            })
         }
 
         case "get_call": {
-            validateResourceId(args.callId as string | undefined, "callId")
-            return (await client.get(`/Calls/${args.callId}`)).data
+            return getCall(args.callId as string)
         }
 
         // SMS management
         case "list_sms": {
-            validatePhoneNumber(args.to as string | undefined, "to")
-            validatePhoneNumber(args.from as string | undefined, "from")
-            return (
-                await client.get("/Messages", {
-                    params: {
-                        to: args.to,
-                        from: args.from,
-                    },
-                })
-            ).data
+            return listMessages({
+                to: args.to as string | undefined,
+                from: args.from as string | undefined,
+            })
         }
 
         case "get_sms": {
-            validateResourceId(args.messageId as string | undefined, "messageId")
-            return (await client.get(`/Messages/${args.messageId}`)).data
+            return getMessage(args.messageId as string)
         }
 
         // Phone number management
         case "list_numbers": {
-            return (await client.get("/IncomingPhoneNumbers")).data
+            return listIncomingNumbers()
         }
 
         case "get_number": {
-            validateResourceId(args.phoneNumberId as string | undefined, "phoneNumberId")
-            return (await client.get(`/IncomingPhoneNumbers/${args.phoneNumberId}`)).data
+            return getIncomingNumber(args.phoneNumberId as string)
         }
 
         case "search_available_numbers": {
-            return (
-                await client.get("/AvailablePhoneNumbers", {
-                    params: {
-                        areaCode: args.areaCode,
-                        country: args.country || "US",
-                        smsEnabled: args.smsEnabled,
-                        voiceEnabled: args.voiceEnabled,
-                    },
-                })
-            ).data
+            return searchAvailableNumbers({
+                areaCode: args.areaCode as string | undefined,
+                country: args.country as string | undefined,
+                smsEnabled: args.smsEnabled as boolean | undefined,
+                voiceEnabled: args.voiceEnabled as boolean | undefined,
+            })
         }
 
         // Application management
         case "list_applications": {
-            return (await client.get("/Applications")).data
+            return listApplications()
         }
 
         case "get_application": {
-            validateResourceId(args.applicationId as string | undefined, "applicationId")
-            return (await client.get(`/Applications/${args.applicationId}`)).data
+            return getApplication(args.applicationId as string)
         }
 
         // Account information
         case "get_account": {
-            return (await client.get("")).data
+            return getAccount()
         }
 
         // Logs
         case "list_logs": {
-            return (
-                await client.get("/Logs", {
-                    params: {
-                        maxItems: args.maxItems || 100,
-                    },
-                })
-            ).data
+            return listLogs({ maxItems: args.maxItems as number | undefined })
         }
 
         case "filter_logs": {
-            rejectControlChars(args.pql as string | undefined, "pql")
-            return (
-                await client.post("/Logs", {
-                    pql: args.pql,
-                    maxItems: args.maxItems,
-                })
-            ).data
+            return filterLogs(args.pql as string, {
+                maxItems: args.maxItems as number | undefined,
+            })
         }
 
         // Recordings
         case "list_recordings": {
-            if (args.callId) {
-                validateResourceId(args.callId as string, "callId")
-            }
-            return (
-                await client.get("/Recordings", {
-                    params: {
-                        callId: args.callId,
-                    },
-                })
-            ).data
+            return listRecordings({ callId: args.callId as string | undefined })
         }
 
         // Conferences
         case "list_conferences": {
-            return (
-                await client.get("/Conferences", {
-                    params: {
-                        status: args.status,
-                    },
-                })
-            ).data
+            return listConferences({ status: args.status as string | undefined })
         }
 
         // Queues
         case "list_queues": {
-            return (await client.get("/Queues")).data
+            return listQueues()
         }
 
         // Dashboard generation (local, no API call)
@@ -459,20 +424,19 @@ export async function startMcpServer(): Promise<void> {
         }
 
         // Handle API resources
-        const client = await createApiAxios()
         let data: unknown
 
         switch (uri) {
             case "freeclimb://account": {
-                ;({ data } = await client.get(""))
+                data = await getAccount()
                 break
             }
             case "freeclimb://numbers": {
-                ;({ data } = await client.get("/IncomingPhoneNumbers"))
+                data = await listIncomingNumbers()
                 break
             }
             case "freeclimb://applications": {
-                ;({ data } = await client.get("/Applications"))
+                data = await listApplications()
                 break
             }
             default: {

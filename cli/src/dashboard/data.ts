@@ -1,57 +1,10 @@
-import type { AxiosInstance } from "axios"
 import { createApiAxios } from "../http.js"
+import { readResources } from "../resources.js"
 import { ValidationError } from "../validation.js"
 import type { SourceBinding, DashboardSpec } from "./types.js"
 import { isSourceBinding } from "./types.js"
 
-type DataFetcher = (client: AxiosInstance, params?: Record<string, unknown>) => Promise<unknown>
-
-const DATA_SOURCES: Record<string, DataFetcher> = {
-    calls: async (client, params) => {
-        const resp = await client.get("/Calls", { params })
-        return resp.data
-    },
-    sms: async (client, params) => {
-        const resp = await client.get("/Messages", { params })
-        return resp.data
-    },
-    queues: async (client, params) => {
-        const resp = await client.get("/Queues", { params })
-        return resp.data
-    },
-    conferences: async (client, params) => {
-        const resp = await client.get("/Conferences", { params })
-        return resp.data
-    },
-    account: async (client) => {
-        const resp = await client.get("")
-        return resp.data
-    },
-    logs: async (client, params) => {
-        if (params?.pql) {
-            const resp = await client.post("/Logs", params)
-            return resp.data
-        }
-        const resp = await client.get("/Logs", {
-            params: { maxItems: (params?.maxItems as number) || 100 },
-        })
-        return resp.data
-    },
-    numbers: async (client, params) => {
-        const resp = await client.get("/IncomingPhoneNumbers", { params })
-        return resp.data
-    },
-    applications: async (client, params) => {
-        const resp = await client.get("/Applications", { params })
-        return resp.data
-    },
-    recordings: async (client, params) => {
-        const resp = await client.get("/Recordings", { params })
-        return resp.data
-    },
-}
-
-const VALID_SOURCES = new Set(Object.keys(DATA_SOURCES))
+const VALID_SOURCES = new Set(Object.keys(readResources))
 
 export function validateSourceBindings(spec: DashboardSpec): void {
     if (!spec.state) return
@@ -122,9 +75,8 @@ export class DashboardDataManager {
     }
 
     private async fetchAll(): Promise<void> {
-        let client: AxiosInstance
         try {
-            client = await createApiAxios()
+            await createApiAxios()
         } catch (error: unknown) {
             this.onError?.("auth", error instanceof Error ? error : new Error(String(error)))
             return
@@ -132,11 +84,11 @@ export class DashboardDataManager {
 
         const results = await Promise.allSettled(
             this.bindings.map(async ({ path, binding }) => {
-                const fetcher = DATA_SOURCES[binding.$source]
+                const fetcher = readResources[binding.$source]
                 if (!fetcher) {
                     throw new Error(`Unknown data source: ${binding.$source}`)
                 }
-                const data = await fetcher(client, binding.params)
+                const data = await fetcher(binding.params)
                 return { path, value: data, source: binding.$source }
             }),
         )

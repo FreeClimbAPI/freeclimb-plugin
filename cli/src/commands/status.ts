@@ -1,7 +1,7 @@
 import { Command, Flags } from "@oclif/core"
 import chalk from "chalk"
 import { cred } from "../credentials.js"
-import { apiRequest } from "../http.js"
+import { getAccount, listApplications, listIncomingNumbers } from "../resources.js"
 import { wrapJsonOutput } from "../ui/format.js"
 import { createSpinner } from "../ui/spinner.js"
 import {
@@ -62,31 +62,27 @@ Use --json for machine-readable output.
         try {
             spinner?.start()
 
-            const [accountRes, numbersRes, applicationsRes] = await Promise.all([
-                apiRequest({ method: "GET", path: "" }).catch(() => null),
-                apiRequest({ method: "GET", path: "/IncomingPhoneNumbers" }).catch(() => null),
-                apiRequest({ method: "GET", path: "/Applications" }).catch(() => null),
+            const [accountData, numbersData, applicationsData] = await Promise.all([
+                getAccount().catch(() => null),
+                listIncomingNumbers().catch(() => null),
+                listApplications().catch(() => null),
             ])
 
             spinner?.stop()
 
-            const accountData = accountRes?.data as
+            const accountInfo = accountData as
                 | { balance?: string; status?: string; type?: string }
-                | undefined
-            const numbersData = numbersRes?.data as
-                | { incomingPhoneNumbers?: unknown[] }
-                | undefined
-            const applicationsData = applicationsRes?.data as
-                | { applications?: unknown[] }
-                | undefined
+                | null
+            const numbersInfo = numbersData as { incomingPhoneNumbers?: unknown[] } | null
+            const applicationsInfo = applicationsData as { applications?: unknown[] } | null
 
             const status: AccountStatus = {
                 accountId,
-                type: accountData?.type || "Unknown",
-                status: accountData?.status || "Unknown",
-                balance: accountData?.balance,
-                numbersCount: numbersData?.incomingPhoneNumbers?.length || 0,
-                applicationsCount: applicationsData?.applications?.length || 0,
+                type: accountInfo?.type || "Unknown",
+                status: accountInfo?.status || "Unknown",
+                balance: accountInfo?.balance,
+                numbersCount: numbersInfo?.incomingPhoneNumbers?.length || 0,
+                applicationsCount: applicationsInfo?.applications?.length || 0,
             }
 
             if (flags.json) {

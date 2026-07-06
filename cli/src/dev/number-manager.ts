@@ -1,4 +1,5 @@
 import { createApiAxios } from "../http.js"
+import { getIncomingNumber } from "../resources.js"
 
 export interface NumberInfo {
     alias: string | null
@@ -8,13 +9,12 @@ export interface NumberInfo {
 }
 
 export async function getNumber(phoneNumberId: string): Promise<NumberInfo> {
-    const client = await createApiAxios()
-    const response = await client.get(`/IncomingPhoneNumbers/${phoneNumberId}`)
+    const data = await getIncomingNumber(phoneNumberId)
     return {
-        phoneNumberId: response.data.phoneNumberId,
-        phoneNumber: response.data.phoneNumber,
-        applicationId: response.data.applicationId || null,
-        alias: response.data.alias || null,
+        phoneNumberId: data.phoneNumberId as string,
+        phoneNumber: data.phoneNumber as string,
+        applicationId: (data.applicationId as string) || null,
+        alias: (data.alias as string) || null,
     }
 }
 

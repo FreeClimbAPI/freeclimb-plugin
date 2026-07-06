@@ -1,4 +1,5 @@
 import { createApiAxios } from "../http.js"
+import { getApplication } from "../resources.js"
 import type { PreviousAppUrls } from "./state.js"
 
 export interface TempAppUrls {
@@ -18,13 +19,12 @@ function buildWebhookUrls(tunnelUrl: string): TempAppUrls {
 }
 
 export async function getAppUrls(applicationId: string): Promise<PreviousAppUrls> {
-    const client = await createApiAxios()
-    const response = await client.get(`/Applications/${applicationId}`)
+    const data = await getApplication(applicationId)
     return {
-        voiceUrl: response.data.voiceUrl || null,
-        smsUrl: response.data.smsUrl || null,
-        statusCallbackUrl: response.data.statusCallbackUrl || null,
-        callConnectUrl: response.data.callConnectUrl || null,
+        voiceUrl: (data.voiceUrl as string) || null,
+        smsUrl: (data.smsUrl as string) || null,
+        statusCallbackUrl: (data.statusCallbackUrl as string) || null,
+        callConnectUrl: (data.callConnectUrl as string) || null,
     }
 }
 
