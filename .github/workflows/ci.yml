@@ -26,13 +26,14 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v6
         with:
           node-version: 20
-          cache: npm
-      - run: npm ci
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
       - name: Build workspace (core -> mcp -> cli)
-        run: npm run build
+        run: pnpm build
       - name: Verify MCP entry point built
         run: test -f mcp/lib/bin.js
 
@@ -46,15 +47,16 @@ jobs:
         os: [ubuntu-latest, macos-latest]
     steps:
       - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
-          cache: npm
-      - run: npm ci
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
       - name: Build workspace
-        run: npm run build
+        run: pnpm build
       - name: Lint
-        run: npm run lint
+        run: pnpm lint
       - name: Test
-        run: npm test
+        run: pnpm test
         timeout-minutes: 8

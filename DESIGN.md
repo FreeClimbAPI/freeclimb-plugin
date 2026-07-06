@@ -2,7 +2,7 @@
 
 ## Source
 
-This demo deck uses FreeClimb's brand register, informed by `web/DESIGN.md`, `web/PRODUCT.md`, and the brand-register notes in `web/mui-migration.html`.
+This demo deck uses FreeClimb's brand register: deep teal and dark ground for structure, electric green and orange as campaign accents, Open Sans typography, and flat bordered panels for tool groupings.
 
 ## Color
 

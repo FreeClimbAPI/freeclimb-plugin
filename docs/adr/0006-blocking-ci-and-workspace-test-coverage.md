@@ -2,6 +2,8 @@
 
 Status: Accepted
 
+> Root `npm test --workspaces` / npm install wording is superseded by [ADR 0008](0008-pnpm-package-manager.md).
+
 ## Context
 
 The CI `test` job ran `npm run lint` and `npm test` with `continue-on-error: true`, annotated "some tests need a keychain/TTY in CI". That made every lint and test regression invisible: CI stayed green while the CLI suite had 3 failing login tests (broken by the non-TTY fail-fast path added for agent ergonomics), an orphaned `test/generation/` suite importing a `generation/` directory that no longer exists in this repo, and 161 lint errors. Meanwhile `core/` and `mcp/` — the packages that carry validation, PerCL, credentials plumbing, and the read-only MCP tool surface — had no tests at all, so the monorepo's most security-relevant code had less coverage than the CLI frontend.

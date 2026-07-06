@@ -2,6 +2,8 @@
 
 Status: Accepted
 
+> npm workspace package-manager details are superseded by [ADR 0008](0008-pnpm-package-manager.md).
+
 ## Context
 
 The Cursor plugin depends on the FreeClimb CLI for its MCP server and local dev tooling. The CLI previously lived in a separate fork (`github.com/jbohnevail/freeclimb-cli`), and the canonical published package (`freeclimb-cli`) is controlled by another team and lags behind. The plugin needs a single, trustworthy source for the CLI it runs.

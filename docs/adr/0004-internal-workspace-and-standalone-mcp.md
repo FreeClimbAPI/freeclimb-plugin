@@ -2,6 +2,8 @@
 
 Status: Accepted
 
+> npm workspace, `package-lock.json`, and `npm run setup` details are superseded by [ADR 0008](0008-pnpm-package-manager.md).
+
 Supersedes the distribution mechanism of ADR 0002 (bundled-build global install) and updates the credential-entry mechanism of ADR 0003 (adds a browser/loopback login alongside `freeclimb login`).
 
 ## Context

@@ -6,7 +6,7 @@ marker="$HOME/.cursor/.freeclimb-setup-complete"
 
 if [ ! -f "$plugin_root/mcp/lib/bin.js" ]; then
   cat <<'JSON'
-{"additional_context":"FreeClimb plugin: the standalone MCP server is not built yet, so the FreeClimb MCP tools will not work. Run the /freeclimb-setup command once (it runs `npm run setup` in the plugin directory to install dependencies and build core/mcp/cli). Skills, rules, and commands still work without it."}
+{"additional_context":"FreeClimb plugin: the standalone MCP server is not built yet, so the FreeClimb MCP tools will not work. Run the /freeclimb-setup command once (it runs `pnpm run setup` in the plugin directory to install dependencies and build core/mcp/cli). Skills, rules, and commands still work without it."}
 JSON
   exit 0
 fi

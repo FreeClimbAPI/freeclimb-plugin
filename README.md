@@ -31,7 +31,7 @@ The MCP server is the default surface — no global CLI install required. The fi
 
 This command (see the `freeclimb-onboarding` skill) will:
 
-1. Build the bundled MCP server once: from the plugin directory, run `npm run setup` (installs dependencies and builds `core/`, `mcp/`, and `cli/`). This produces `mcp/lib/bin.js`, which `.mcp.json` launches via `node mcp/lib/bin.js`.
+1. Build the bundled MCP server once: from the plugin directory, run `pnpm run setup` (installs dependencies and builds `core/`, `mcp/`, and `cli/`). This produces `mcp/lib/bin.js`, which `.mcp.json` launches via `node mcp/lib/bin.js`.
 2. Connect your FreeClimb account via the browser:
 
    ```bash
@@ -41,7 +41,7 @@ This command (see the `freeclimb-onboarding` skill) will:
    A local page opens at `127.0.0.1`, deep-links your FreeClimb Dashboard → API Credentials, and lets you paste your Account ID and API Key into that local page. They are written to your OS keyring. Never paste them into chat.
 3. Reload Cursor so the MCP server starts.
 
-Power users who want the CLI can additionally `npm i -g ./cli` to put `freeclimb` on their PATH; `freeclimb login` writes the same keyring, so either path authenticates the other.
+Power users who want the CLI can additionally `pnpm i -g ./cli` to put `freeclimb` on their PATH; `freeclimb login` writes the same keyring, so either path authenticates the other.
 
 Requirements: Node.js >= 20 and a working build toolchain (native modules are compiled during install).
 
@@ -104,18 +104,18 @@ When someone calls, greet them, ask them to press 1 for sales or 2 for support, 
 
 ## Developing
 
-The repo is an npm workspace with `core/`, `mcp/`, and `cli/`. From the repo root:
+The repo is a pnpm workspace with `core/`, `mcp/`, and `cli/`. From the repo root (enable pnpm once with `corepack enable && corepack prepare --activate`):
 
 ```bash
-npm run setup    # install all workspaces + build core, mcp, cli
-npm run build    # rebuild all packages (core -> mcp -> cli)
-npm test         # run the core, mcp, and cli test suites
-npm run validate # validate the plugin manifest/frontmatter and scan for secrets
+pnpm run setup    # install all workspaces + build core, mcp, cli
+pnpm run build    # rebuild all packages (core -> mcp -> cli)
+pnpm test         # run the core, mcp, and cli test suites
+pnpm run validate # validate the plugin manifest/frontmatter and scan for secrets
 ```
 
 To work on the CLI directly:
 
 ```bash
 cd cli
-npm run prepack   # build lib/ and the oclif manifest
+pnpm run prepack   # build lib/ and the oclif manifest
 ```

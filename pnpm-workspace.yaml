@@ -1,0 +1,13 @@
+packages:
+  - core
+  - cli
+  - mcp
+
+overrides:
+  "@json-render/core": "0.19.0"
+
+allowBuilds:
+  "@napi-rs/keyring": true
+  "@ngrok/ngrok": true
+  esbuild: true
+  unrs-resolver: true

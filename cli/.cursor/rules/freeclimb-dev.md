@@ -3,12 +3,12 @@
 ## Quick Start
 
 ```bash
-npm install --ignore-scripts
-npx tsc --noEmit       # Type check
-npm test               # Run tests with coverage
-npm run lint           # Check code style
-npm run lint-write     # Fix lint + format
-npm run prepack        # Build for distribution
+pnpm install
+pnpm exec tsc --noEmit       # Type check
+pnpm test               # Run tests with coverage
+pnpm run lint           # Check code style
+pnpm run lint-write     # Fix lint + format
+pnpm run prepack        # Build for distribution
 ```
 
 ## Architecture
@@ -17,7 +17,7 @@ npm run prepack        # Build for distribution
 
 ```
 src/
-├── commands/           # oclif v4 command implementations (mostly auto-generated)
+├── commands/           # oclif v4 command implementations
 ├── mcp/                # MCP JSON-RPC server (server.ts, tools.ts)
 ├── ui/                 # Terminal UI components
 │   ├── banner.ts       # ASCII art welcome banner
@@ -35,17 +35,6 @@ src/
 ├── freeclimb.ts        # API client wrapper (axios)
 ├── output.ts           # Output/pagination manager
 └── validation.ts       # Input validation (control chars, IDs, phones, URLs)
-
-generation/
-├── commands/
-│   ├── main.js         # Command file generator (writes src/commands/*.ts)
-│   ├── api-command.js  # ApiCommand class (endpoint, params, flags)
-│   └── character-mapping.js  # Flag → short char mappings
-├── schema/
-│   ├── generated-api-schema.json  # API schema source
-│   ├── description-overrides.json
-│   └── local-flags.json
-└── tests/              # Test file generator
 
 test/                   # Mocha + Chai + Nock tests
 ```
@@ -75,13 +64,9 @@ export class exampleGet extends Command {
 }
 ```
 
-### Auto-Generated Commands
+### Commands
 
-Most command files in `src/commands/` are auto-generated from `generation/commands/main.js`.
-
-**To modify command behavior**: Edit the generation templates, not the generated files.
-**To add a new command**: Add it to the API schema and generation system.
-**Manual commands** (not generated): `api.ts`, `describe.ts`, `diagnose.ts`, `login.ts`, `logout.ts`, `status.ts`, `mcp/*.ts`
+Command modules live under `src/commands/`. Manual commands (not part of the standard resource CRUD set): `api.ts`, `describe.ts`, `diagnose.ts`, `login.ts`, `logout.ts`, `status.ts`, `mcp/*.ts`
 
 ### Key Subsystems
 
@@ -100,8 +85,8 @@ Most command files in `src/commands/` are auto-generated from `generation/comman
 ## Testing
 
 ```bash
-npm test                                    # All tests + coverage
-npx mocha test/commands/sms-send.test.ts    # Single test
+pnpm test                                    # All tests + coverage
+pnpm exec mocha test/commands/sms-send.test.ts    # Single test
 ```
 
 **Framework**: Mocha + Chai + Nock (HTTP mocking)
@@ -128,6 +113,6 @@ describe("sms:send", () => {
 ## Linting
 
 ```bash
-npm run lint        # Check
-npm run lint-write  # Fix + format (eslint + prettier)
+pnpm run lint        # Check
+pnpm run lint-write  # Fix + format (eslint + prettier)
 ```

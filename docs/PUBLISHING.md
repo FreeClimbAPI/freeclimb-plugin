@@ -17,9 +17,10 @@ Publish the `cli/` package so power users can install the CLI without building t
 
    ```bash
    cd cli
-   npm install
-   npm run prepack
-   npm test
+   corepack enable && corepack prepare --activate
+   pnpm install
+   pnpm run prepack
+   pnpm test
    ```
 
 3. Publish:

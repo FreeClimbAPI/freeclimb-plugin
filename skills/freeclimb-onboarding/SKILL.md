@@ -11,7 +11,7 @@ Never ask the user to paste an Account ID or API Key into chat. Authentication h
 
 ## Step 1 - Locate the plugin directory
 
-The plugin ships as an npm workspace. Find its root (the directory that contains `mcp/`, `core/`, `cli/`, and `.mcp.json`):
+The plugin ships as a pnpm workspace. Find its root (the directory that contains `mcp/`, `core/`, `cli/`, and `.mcp.json`):
 
 ```bash
 ls -d ~/.cursor/plugins/local/freeclimb ~/.cursor/plugins/*/freeclimb 2>/dev/null | head -1
@@ -21,13 +21,13 @@ Use the first directory whose `.cursor-plugin/plugin.json` has `"name": "freecli
 
 ## Step 2 - Build the MCP server once (terminal, user-approved)
 
-From `<plugin-root>`:
+From `<plugin-root>` (enable pnpm once with `corepack enable && corepack prepare --activate`):
 
 ```bash
-npm run setup
+pnpm run setup
 ```
 
-This runs `npm install` and builds `core/`, `mcp/`, and `cli/`. It produces `<plugin-root>/mcp/lib/bin.js`, which `.mcp.json` launches via `node mcp/lib/bin.js`. It needs Node >= 20 and a working build toolchain (native modules compile during install).
+This runs `pnpm install` and builds `core/`, `mcp/`, and `cli/`. It produces `<plugin-root>/mcp/lib/bin.js`, which `.mcp.json` launches via `node mcp/lib/bin.js`. It needs Node >= 20 and a working build toolchain (native modules compile during install).
 
 Verify the build:
 
@@ -66,7 +66,7 @@ The plugin also ships a `beforeShellExecution` hook that surfaces billable FreeC
 Users who want the `freeclimb` CLI on PATH can also run, from `<plugin-root>`:
 
 ```bash
-npm i -g ./cli
+pnpm i -g ./cli
 freeclimb login
 ```
 
@@ -74,4 +74,4 @@ freeclimb login
 
 ## Re-running
 
-This setup is safe to run again. Re-run `npm run setup` after the plugin updates so the MCP server is rebuilt from the latest synced source. Updates flow through the Cursor plugin sync setting; there is no npm publish in v1.
+This setup is safe to run again. Re-run `pnpm run setup` after the plugin updates so the MCP server is rebuilt from the latest synced source. Updates flow through the Cursor plugin sync setting; there is no npm publish in v1.

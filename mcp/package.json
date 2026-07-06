@@ -29,11 +29,11 @@
   "scripts": {
     "build": "rm -f tsconfig.tsbuildinfo && tsc -b",
     "clean": "rm -rf lib tsconfig.tsbuildinfo",
-    "pretest": "test -d lib || npm run build",
+    "pretest": "test -d lib || pnpm run build",
     "test": "node --test test/*.test.mjs"
   },
   "dependencies": {
-    "@freeclimb/core": "^0.2.0",
+    "@freeclimb/core": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.27.1"
   },
   "devDependencies": {

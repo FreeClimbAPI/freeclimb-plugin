@@ -2,9 +2,9 @@
 set -euo pipefail
 echo "=== FreeClimb CLI Setup ==="
 echo "[1/4] Installing dependencies..."
-npm install --ignore-scripts
+pnpm install
 echo "[2/4] Building CLI..."
-npm run prepack
+pnpm run prepack
 echo "[3/4] Checking credentials..."
 if [ -n "${FREECLIMB_ACCOUNT_ID:-}" ] && [ -n "${FREECLIMB_API_KEY:-}" ]; then
     echo "  ✓ Credentials found in environment."

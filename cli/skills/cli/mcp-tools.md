@@ -17,7 +17,7 @@ The FreeClimb plugin includes a standalone MCP (Model Context Protocol) server t
 
 ## Setup
 
-Build once with `npm run setup`, then connect credentials with:
+Build once with `pnpm run setup`, then connect credentials with:
 
 ```bash
 node mcp/lib/bin.js login

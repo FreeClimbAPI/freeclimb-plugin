@@ -1,8 +1,0 @@
-{
-  "mcpServers": {
-    "freeclimb": {
-      "command": "node",
-      "args": ["../mcp/lib/bin.js"]
-    }
-  }
-}

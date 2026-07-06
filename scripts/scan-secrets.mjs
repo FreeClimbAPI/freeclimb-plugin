@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
-const SKIP_PATHS = [/^package-lock\.json$/, /(^|\/)package-lock\.json$/];
+const SKIP_PATHS = [/^package-lock\.json$/, /^pnpm-lock\.yaml$/, /(^|\/)package-lock\.json$/, /(^|\/)pnpm-lock\.yaml$/];
 const SKIP_EXTENSIONS = /\.(png|jpe?g|gif|ico|pdf|woff2?|ttf|eot|mp[34]|wav|tsbuildinfo)$/i;
 
 const KNOWN_PLACEHOLDERS = new Set([

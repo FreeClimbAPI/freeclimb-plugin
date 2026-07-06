@@ -17,7 +17,7 @@ The plugin's `.mcp.json` launches the locally-built server from the synced repo:
 node ${workspaceFolder}/mcp/lib/bin.js
 ```
 
-Build it first from the workspace root: `npm run build`.
+Build it first from the workspace root: `pnpm run build`.
 
 ## Auth
 Credentials live in the OS keyring (service `FreeClimb`), shared with the CLI's
