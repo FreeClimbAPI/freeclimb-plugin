@@ -135,6 +135,7 @@ export async function resolveDashboardSnapshot(
 
 export class DashboardDataManager {
     private interval: ReturnType<typeof setInterval> | null = null
+    private fetching = false
     private bindings: SourceBindingMatch[] = []
     private onUpdate: (updates: StateUpdate[]) => void
     private onError?: (source: string, error: Error) => void
@@ -174,18 +175,24 @@ export class DashboardDataManager {
     }
 
     private async fetchAll(): Promise<void> {
-        const { errors, updates } = await fetchSourceBindings(
-            this.bindings,
-            this.sources,
-            this.checkAuth,
-        )
+        if (this.fetching) return
+        this.fetching = true
+        try {
+            const { errors, updates } = await fetchSourceBindings(
+                this.bindings,
+                this.sources,
+                this.checkAuth,
+            )
 
-        for (const error of errors) {
-            this.onError?.(error.source === "auth" ? "auth" : "fetch", new Error(error.message))
-        }
+            for (const error of errors) {
+                this.onError?.(error.source === "auth" ? "auth" : "fetch", new Error(error.message))
+            }
 
-        if (updates.length > 0) {
-            this.onUpdate(updates)
+            if (updates.length > 0) {
+                this.onUpdate(updates)
+            }
+        } finally {
+            this.fetching = false
         }
     }
 

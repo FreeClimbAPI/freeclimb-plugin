@@ -11,7 +11,9 @@ import {
 
 const TRACKED_ENV_KEYS = [
     "FREECLIMB_CLI_BASE_URL",
+    "FREECLIMB_MAX_CONCURRENT_REQUESTS",
     "FREECLIMB_MAX_RETRIES",
+    "FREECLIMB_REQUESTS_PER_SECOND",
     "FREECLIMB_TIMEOUT",
     "ACCOUNT_ID",
     "API_KEY",
@@ -40,7 +42,13 @@ function startServer(handler) {
             req.on("data", (chunk) => chunks.push(chunk))
             req.on("end", () => {
                 const body = Buffer.concat(chunks).toString("utf-8")
-                const record = { method: req.method, url: req.url, headers: req.headers, body }
+                const record = {
+                    method: req.method,
+                    url: req.url,
+                    headers: req.headers,
+                    body,
+                    receivedAt: Date.now(),
+                }
                 requests.push(record)
                 handler(record, res)
             })
@@ -56,8 +64,8 @@ function startServer(handler) {
     })
 }
 
-function jsonReply(res, status, body) {
-    res.writeHead(status, { "Content-Type": "application/json" })
+function jsonReply(res, status, body, headers = {}) {
+    res.writeHead(status, { "Content-Type": "application/json", ...headers })
     res.end(JSON.stringify(body))
 }
 
@@ -132,6 +140,121 @@ describe("http", () => {
             },
         )
         assert.equal(calls, 2)
+    })
+
+    it("paces request starts according to the configured per-second limit", async () => {
+        envSnapshot = snapshotEnv()
+        server = await startServer((_req, res) => jsonReply(res, 200, { ok: true }))
+        process.env.FREECLIMB_CLI_BASE_URL = server.baseUrl
+        process.env.FREECLIMB_MAX_RETRIES = "0"
+        process.env.FREECLIMB_REQUESTS_PER_SECOND = "2"
+        process.env.FREECLIMB_MAX_CONCURRENT_REQUESTS = "10"
+
+        await Promise.all([
+            apiRequest({ method: "GET", path: "/paced-1" }),
+            apiRequest({ method: "GET", path: "/paced-2" }),
+            apiRequest({ method: "GET", path: "/paced-3" }),
+        ])
+
+        assert.equal(server.requests.length, 3)
+        assert.ok(server.requests[2].receivedAt - server.requests[0].receivedAt >= 900)
+    })
+
+    it("caps concurrent requests at the configured maximum", async () => {
+        envSnapshot = snapshotEnv()
+        let active = 0
+        let maxActive = 0
+        server = await startServer((_req, res) => {
+            active += 1
+            maxActive = Math.max(maxActive, active)
+            setTimeout(() => {
+                active -= 1
+                jsonReply(res, 200, { ok: true })
+            }, 75)
+        })
+        process.env.FREECLIMB_CLI_BASE_URL = server.baseUrl
+        process.env.FREECLIMB_MAX_RETRIES = "0"
+        process.env.FREECLIMB_REQUESTS_PER_SECOND = "100"
+        process.env.FREECLIMB_MAX_CONCURRENT_REQUESTS = "2"
+
+        await Promise.all(
+            Array.from({ length: 5 }, (_, index) =>
+                apiRequest({ method: "GET", path: `/concurrent-${index}` }),
+            ),
+        )
+
+        assert.equal(maxActive, 2)
+    })
+
+    it("honors a delta-seconds Retry-After header before retrying", async () => {
+        envSnapshot = snapshotEnv()
+        let calls = 0
+        server = await startServer((_req, res) => {
+            calls += 1
+            if (calls === 1) {
+                jsonReply(res, 429, { message: "slow down" }, { "Retry-After": "0.15" })
+            } else {
+                jsonReply(res, 200, { ok: true })
+            }
+        })
+        process.env.FREECLIMB_CLI_BASE_URL = server.baseUrl
+        process.env.FREECLIMB_MAX_RETRIES = "1"
+        process.env.FREECLIMB_REQUESTS_PER_SECOND = "100"
+        process.env.FREECLIMB_MAX_CONCURRENT_REQUESTS = "2"
+
+        const startedAt = Date.now()
+        const response = await apiRequest({ method: "GET", path: "/retry-after-seconds" })
+
+        assert.equal(response.status, 200)
+        assert.equal(calls, 2)
+        assert.ok(Date.now() - startedAt >= 125)
+    })
+
+    it("honors an HTTP-date Retry-After header before retrying", async () => {
+        envSnapshot = snapshotEnv()
+        let calls = 0
+        const retryAt = new Date(Date.now() + 2000).toUTCString()
+        server = await startServer((_req, res) => {
+            calls += 1
+            if (calls === 1) {
+                jsonReply(res, 429, { message: "slow down" }, { "Retry-After": retryAt })
+            } else {
+                jsonReply(res, 200, { ok: true })
+            }
+        })
+        process.env.FREECLIMB_CLI_BASE_URL = server.baseUrl
+        process.env.FREECLIMB_MAX_RETRIES = "1"
+        process.env.FREECLIMB_REQUESTS_PER_SECOND = "100"
+        process.env.FREECLIMB_MAX_CONCURRENT_REQUESTS = "2"
+
+        const startedAt = Date.now()
+        const response = await apiRequest({ method: "GET", path: "/retry-after-date" })
+
+        assert.equal(response.status, 200)
+        assert.equal(calls, 2)
+        assert.ok(Date.now() - startedAt >= 900)
+    })
+
+    it("does not retry POST or DELETE requests", async () => {
+        envSnapshot = snapshotEnv()
+        server = await startServer((_req, res) => {
+            jsonReply(res, 503, { message: "temporarily unavailable" })
+        })
+        process.env.FREECLIMB_CLI_BASE_URL = server.baseUrl
+        process.env.FREECLIMB_MAX_RETRIES = "3"
+        process.env.FREECLIMB_REQUESTS_PER_SECOND = "100"
+
+        await assert.rejects(() =>
+            apiRequest({ method: "POST", path: "/Applications", data: { alias: "test" } }),
+        )
+        await assert.rejects(() =>
+            apiRequest({ method: "DELETE", path: "/Applications/AP123" }),
+        )
+
+        assert.deepEqual(
+            server.requests.map((request) => request.method),
+            ["POST", "DELETE"],
+        )
     })
 
     it("does not retry a non-retryable 4xx and passes the error through immediately", async () => {
