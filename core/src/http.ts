@@ -2,13 +2,18 @@ import axios, { AxiosInstance, AxiosError, Method } from "axios"
 import { randomUUID } from "crypto"
 import { Environment } from "./environment.js"
 import { cred, clearCredentialCache } from "./credentials.js"
+import { getRequestLimiter, type RequestLimiter } from "./request-limiter.js"
 
 const DEFAULT_TIMEOUT = 30_000
 const DEFAULT_MAX_RETRIES = 3
+const DEFAULT_REQUESTS_PER_SECOND = 5
+const DEFAULT_MAX_CONCURRENT_REQUESTS = 2
 const DEFAULT_BASE_URL = "https://www.freeclimb.com/apiserver"
 const RETRYABLE_STATUS_CODES = new Set([429, 500, 502, 503, 504])
+const RETRYABLE_METHODS = new Set(["GET", "HEAD", "OPTIONS", "PUT"])
 const REQUEST_ID_KEY = "fcRequestId"
 const RETRY_COUNT_KEY = "fcRetryCount"
+const RELEASE_KEY = "fcRelease"
 
 function getMaxRetries(): number {
     const envVal = Environment.getString("FREECLIMB_MAX_RETRIES")
@@ -28,6 +33,26 @@ function getTimeout(): number {
     return DEFAULT_TIMEOUT
 }
 
+function getPositiveInteger(name: string, fallback: number): number {
+    const envVal = Environment.getString(name)
+    if (envVal) {
+        const parsed = Number(envVal)
+        if (Number.isInteger(parsed) && parsed > 0) return parsed
+    }
+    return fallback
+}
+
+function getRequestsPerSecond(): number {
+    return getPositiveInteger("FREECLIMB_REQUESTS_PER_SECOND", DEFAULT_REQUESTS_PER_SECOND)
+}
+
+function getMaxConcurrentRequests(): number {
+    return getPositiveInteger(
+        "FREECLIMB_MAX_CONCURRENT_REQUESTS",
+        DEFAULT_MAX_CONCURRENT_REQUESTS,
+    )
+}
+
 export function getBaseUrl(): string {
     return Environment.getString("FREECLIMB_CLI_BASE_URL") || DEFAULT_BASE_URL
 }
@@ -41,6 +66,23 @@ function backoffWithJitter(attempt: number): number {
     return base * (0.5 + Math.random() * 0.5)
 }
 
+function retryAfterDelay(value: unknown): number | undefined {
+    if (typeof value !== "string" && typeof value !== "number") return undefined
+    const raw = String(value).trim()
+    if (!raw) return undefined
+
+    const seconds = Number(raw)
+    if (Number.isFinite(seconds) && seconds >= 0) return seconds * 1000
+
+    const timestamp = Date.parse(raw)
+    if (Number.isNaN(timestamp)) return undefined
+    return Math.max(0, timestamp - Date.now())
+}
+
+function canRetry(method: unknown): boolean {
+    return RETRYABLE_METHODS.has(String(method ?? "GET").toUpperCase())
+}
+
 export function generateRequestId(): string {
     return randomUUID()
 }
@@ -49,39 +91,94 @@ export function getRequestId(config: any): string | undefined {
     return config?.[REQUEST_ID_KEY]
 }
 
-function attachResilience(instance: AxiosInstance, maxRetries: number): void {
-    instance.interceptors.request.use((config) => {
+function releaseRequest(config: any): void {
+    const release = config?.[RELEASE_KEY]
+    if (typeof release !== "function") return
+    delete config[RELEASE_KEY]
+    release()
+}
+
+function attachResilience(
+    instance: AxiosInstance,
+    maxRetries: number,
+    limiter: RequestLimiter,
+): void {
+    instance.interceptors.request.use(async (config) => {
         const requestId = generateRequestId()
         config.headers["X-Request-Id"] = requestId
         ;(config as any)[REQUEST_ID_KEY] = requestId
+        ;(config as any)[RELEASE_KEY] = await limiter.acquire()
         return config
     })
 
-    instance.interceptors.response.use(undefined, async (error: AxiosError) => {
-        const config = error.config as any
-        if (!config) throw error
+    instance.interceptors.response.use(
+        (response) => {
+            releaseRequest(response.config)
+            return response
+        },
+        async (error: AxiosError) => {
+            const config = error.config as any
+            if (!config) throw error
 
-        config[RETRY_COUNT_KEY] = config[RETRY_COUNT_KEY] || 0
+            releaseRequest(config)
+            config[RETRY_COUNT_KEY] = config[RETRY_COUNT_KEY] || 0
 
-        const status = error.response?.status
-        const isRetryable = status !== undefined && RETRYABLE_STATUS_CODES.has(status)
-        const isNetworkError = !error.response && error.code !== "ECONNABORTED"
+            const status = error.response?.status
+            const isRetryable = status !== undefined && RETRYABLE_STATUS_CODES.has(status)
+            const isNetworkError = !error.response && error.code !== "ECONNABORTED"
+            const nextAttempt = config[RETRY_COUNT_KEY] + 1
+            const fallbackDelay = backoffWithJitter(nextAttempt)
 
-        if ((isRetryable || isNetworkError) && config[RETRY_COUNT_KEY] < maxRetries) {
-            config[RETRY_COUNT_KEY] += 1
-            const delay = backoffWithJitter(config[RETRY_COUNT_KEY])
-            await sleep(delay)
-            return instance.request(config)
-        }
+            if (status === 429) {
+                const delay =
+                    retryAfterDelay(error.response?.headers?.["retry-after"]) ?? fallbackDelay
+                limiter.applyCooldown(delay)
+            }
 
-        throw error
-    })
+            if (
+                canRetry(config.method) &&
+                (isRetryable || isNetworkError) &&
+                config[RETRY_COUNT_KEY] < maxRetries
+            ) {
+                config[RETRY_COUNT_KEY] = nextAttempt
+                if (status !== 429) await sleep(fallbackDelay)
+                return instance.request(config)
+            }
+
+            throw error
+        },
+    )
 }
 
 const clientCache = new Map<string, AxiosInstance>()
 
 function cacheKey(flavor: string, accountId: string | undefined, apiKey: string | undefined) {
-    return [flavor, accountId, apiKey, getBaseUrl(), getTimeout(), getMaxRetries()].join("\u0000")
+    return [
+        flavor,
+        accountId,
+        apiKey,
+        getBaseUrl(),
+        getTimeout(),
+        getMaxRetries(),
+        getRequestsPerSecond(),
+        getMaxConcurrentRequests(),
+    ].join("\u0000")
+}
+
+function limiterKey(accountId: string | undefined): string {
+    return [
+        getBaseUrl(),
+        accountId ?? "public",
+        getRequestsPerSecond(),
+        getMaxConcurrentRequests(),
+    ].join("\u0000")
+}
+
+function createLimiter(accountId: string | undefined): RequestLimiter {
+    return getRequestLimiter(limiterKey(accountId), {
+        requestsPerSecond: getRequestsPerSecond(),
+        maxConcurrent: getMaxConcurrentRequests(),
+    })
 }
 
 function getCachedClient(key: string, build: () => AxiosInstance): AxiosInstance {
@@ -112,7 +209,7 @@ export async function createApiAxios(): Promise<AxiosInstance> {
             },
             timeout: getTimeout(),
         })
-        attachResilience(instance, getMaxRetries())
+        attachResilience(instance, getMaxRetries(), createLimiter(accountId))
         return instance
     })
 }
@@ -137,7 +234,7 @@ async function createPublicAxios(useAuth: boolean): Promise<AxiosInstance> {
                   }
                 : {}),
         })
-        attachResilience(instance, getMaxRetries())
+        attachResilience(instance, getMaxRetries(), createLimiter(accountId))
         return instance
     })
 }
@@ -275,7 +372,11 @@ async function executeWithAuthRefresh<T>(
     try {
         return await execute<T>(client, options)
     } catch (error) {
-        if (error instanceof FreeClimbHttpError && error.status === 401) {
+        if (
+            error instanceof FreeClimbHttpError &&
+            error.status === 401 &&
+            canRetry(options.method)
+        ) {
             clearCredentialCache()
             clientCache.clear()
             const freshClient = await createClient()

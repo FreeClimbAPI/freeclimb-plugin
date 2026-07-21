@@ -1108,7 +1108,7 @@ Guidelines for agents:
 - After a network error or timeout on a `create`/`buy`, **verify with `:list`/`:get` before retrying** to avoid duplicates.
 - A failed retry of a `delete` that returns "not found" usually means the original delete succeeded — treat it as done.
 - Use `--dry-run` to preview any mutation, and `--quiet` to capture the new resource ID for follow-up commands.
-- The CLI automatically retries transient failures (HTTP 429/500/502/503/504 and network errors) up to 3 times with exponential backoff — for every method, including POST/DELETE. Because POST is not idempotent, a retried `create`/`buy` after a dropped response can double-create; verify with `:list` if a transient error occurred. Tune with `FREECLIMB_MAX_RETRIES` (set `0` to disable).
+- The CLI automatically retries transient failures (HTTP 429/500/502/503/504 and network errors) for safe or idempotent methods up to 3 times with exponential backoff. It does not automatically retry POST, PATCH, or DELETE requests. Tune retries with `FREECLIMB_MAX_RETRIES` (set `0` to disable), request pacing with `FREECLIMB_REQUESTS_PER_SECOND`, and concurrency with `FREECLIMB_MAX_CONCURRENT_REQUESTS`.
 
 ## Diagnostic Workflow
 

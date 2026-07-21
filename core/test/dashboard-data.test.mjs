@@ -8,6 +8,18 @@ import {
     ValidationError,
 } from "../lib/index.js"
 
+function delay(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+async function waitFor(predicate, timeoutMs = 500) {
+    const deadline = Date.now() + timeoutMs
+    while (!predicate()) {
+        if (Date.now() >= deadline) throw new Error("Timed out waiting for condition")
+        await delay(5)
+    }
+}
+
 describe("extractSourceBindings", () => {
     it("finds top-level and nested bindings with their state paths", () => {
         const bindings = extractSourceBindings({
@@ -326,5 +338,37 @@ describe("DashboardDataManager", () => {
 
         manager.stop()
         manager.stop()
+    })
+
+    it("skips refresh ticks while the previous refresh is still running", async () => {
+        let calls = 0
+        let releaseSecondFetch
+        const manager = new DashboardDataManager(() => {}, undefined, {
+            sources: {
+                calls: async () => {
+                    calls += 1
+                    if (calls === 2) {
+                        await new Promise((resolve) => {
+                            releaseSecondFetch = resolve
+                        })
+                    }
+                    return {}
+                },
+            },
+        })
+
+        await manager.start(
+            { root: "main", elements: {}, state: { calls: { $source: "calls" } } },
+            10,
+        )
+        await waitFor(() => calls === 2)
+        await delay(35)
+
+        assert.equal(calls, 2)
+        releaseSecondFetch()
+        await waitFor(() => calls >= 3)
+        manager.stop()
+
+        assert.equal(calls, 3)
     })
 })

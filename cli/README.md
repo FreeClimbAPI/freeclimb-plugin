@@ -42,6 +42,12 @@ export FREECLIMB_ACCOUNT_ID=your_account_id
 export FREECLIMB_API_KEY=your_api_key
 ```
 
+### API Request Controls
+
+The CLI and MCP server pace FreeClimb API traffic to 5 request starts per second with at most 2 requests in flight per process. Override these limits with `FREECLIMB_REQUESTS_PER_SECOND` and `FREECLIMB_MAX_CONCURRENT_REQUESTS`.
+
+Safe and idempotent requests retry transient failures up to 3 times by default and honor `Retry-After`. Set `FREECLIMB_MAX_RETRIES=0` to disable retries. POST, PATCH, and DELETE requests are never retried automatically.
+
 ## Usage
 
 ```sh
