@@ -19,6 +19,7 @@ import {
     ValidationError,
     parseDashboardSpec,
     validateSourceBindings,
+    resolveDashboardSnapshot,
     PRESET_NAMES,
     loadPreset,
     generatePercl,
@@ -28,6 +29,7 @@ import {
 } from "@freeclimb/core"
 import type { ToolName } from "./tools.js"
 import { getDashboardPrompt } from "./prompts.js"
+import { buildDashboardPayload } from "./dashboard-ui.js"
 
 export interface HandlerContext {
     getAccount: typeof getAccount
@@ -45,6 +47,7 @@ export interface HandlerContext {
     listRecordings: typeof listRecordings
     listConferences: typeof listConferences
     listQueues: typeof listQueues
+    resolveDashboardSnapshot: typeof resolveDashboardSnapshot
 }
 
 export const defaultContext: HandlerContext = {
@@ -63,6 +66,7 @@ export const defaultContext: HandlerContext = {
     listRecordings,
     listConferences,
     listQueues,
+    resolveDashboardSnapshot,
 }
 
 export type ToolHandler = (args: Record<string, unknown>, ctx: HandlerContext) => Promise<unknown>
@@ -132,12 +136,13 @@ export const handlers: { [K in ToolName]: ToolHandler } = {
         return result
     },
 
-    render_dashboard: async (args) => {
+    render_dashboard: async (args, ctx) => {
         const validatedSpec = parseDashboardSpec(args.spec)
         validateSourceBindings(validatedSpec)
+        const snapshot = await ctx.resolveDashboardSnapshot(validatedSpec)
         return {
-            message: "Dashboard spec validated and ready to render in-IDE.",
-            spec: validatedSpec,
+            dashboard: buildDashboardPayload(validatedSpec, snapshot),
+            message: "FreeClimb dashboard snapshot rendered in-IDE.",
         }
     },
 

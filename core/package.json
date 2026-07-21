@@ -33,7 +33,7 @@
     "build": "rm -f tsconfig.tsbuildinfo && tsc -b",
     "clean": "rm -rf lib tsconfig.tsbuildinfo",
     "pretest": "test -d lib || pnpm run build",
-    "test": "node --test test/*.test.mjs"
+    "test": "FREECLIMB_KEYRING_SERVICE=FreeClimbCoreTest node --test test/*.test.mjs"
   },
   "dependencies": {
     "@napi-rs/keyring": "^1",

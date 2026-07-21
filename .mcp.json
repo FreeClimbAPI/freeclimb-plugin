@@ -1,8 +1,9 @@
 {
   "mcpServers": {
     "freeclimb": {
+      "type": "stdio",
       "command": "node",
-      "args": ["mcp/lib/bin.js"],
+      "args": ["${CURSOR_PLUGIN_ROOT}/mcp/lib/bin.js"],
       "_meta": {
         "ideToolTitles": {
           "get_account": "Get FreeClimb Account",

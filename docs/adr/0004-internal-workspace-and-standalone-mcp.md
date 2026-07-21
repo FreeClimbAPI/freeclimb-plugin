@@ -22,7 +22,7 @@ Restructure the repository into an internal npm workspace of three packages:
 
 For v1, nothing is published to npm. `@freeclimb/core` and `@freeclimb/mcp` are `private` and consumed via workspace symlinks; the whole repo ships and auto-updates through the Cursor plugin sync setting. A committed root `package-lock.json` provides reproducible installs.
 
-The MCP runs from the synced repo: `.mcp.json` uses `command: "node"`, `args: ["mcp/lib/bin.js"]` (a plugin-relative path; Cursor spawns stdio servers with the plugin install directory as cwd). A one-time `npm run setup` (`npm install && npm run build`) installs dependencies and produces `mcp/lib`. There is no `npx`, no registry fetch at runtime, and no global CLI build.
+The MCP runs from the synced repo: `.mcp.json` uses `command: "node"`, `args: ["${CURSOR_PLUGIN_ROOT}/mcp/lib/bin.js"]`. Cursor expands `CURSOR_PLUGIN_ROOT` to the installed plugin directory; relative arguments are not reliable because stdio servers can start from the user home directory. A one-time `pnpm run setup` installs dependencies and produces `mcp/lib`. There is no `npx`, no registry fetch at runtime, and no global CLI build.
 
 Authentication adds a self-initiated local browser (loopback) flow (`node mcp/lib/bin.js login`): a `127.0.0.1`-bound HTTP server with a one-time state token captures the Account ID and API Key and writes them to the OS keyring (never to chat, logs, or disk). `freeclimb login` remains available for CLI users; both write the same keyring entry.
 
@@ -44,4 +44,4 @@ Stand up a hosted (non-stdio) MCP server and a republished, signed `freeclimb-cl
 
 - Publish `@freeclimb/mcp` to npm and launch via `npx` (pinned + integrity): rejected for v1 because the forked CLI/core are not yet republished and we prefer no registry dependency; deferred to v2.
 - Keep the MCP inside the CLI (ADR 0002): rejected; it forces a CLI toolchain build on every MCP user and blocks non-technical adoption.
-- Launch via `${workspaceFolder}`: rejected; unreliable for a synced plugin. Plugin-relative paths resolve against the plugin install directory.
+- Launch via `${workspaceFolder}` or a bare relative argument: rejected; neither reliably identifies the synced plugin install directory.

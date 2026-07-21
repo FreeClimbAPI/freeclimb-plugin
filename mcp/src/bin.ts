@@ -6,8 +6,8 @@ async function main(): Promise<void> {
     const command = process.argv[2]
 
     if (command === "login" || command === "auth") {
-        const { accountId } = await runLoginFlow()
-        console.error(`FreeClimb connected (account ${accountId}). You can close the browser tab.`)
+        await runLoginFlow()
+        console.error("FreeClimb connected. You can close the browser tab.")
         return
     }
 

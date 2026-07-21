@@ -270,7 +270,7 @@ export const tools = {
     generate_dashboard_prompt: {
         name: "generate_dashboard_prompt",
         description:
-            "Get the component catalog and system prompt for generating terminal dashboard JSON specs. Returns instructions describing all available UI components, their schemas, and FreeClimb data bindings. Use this before generating a dashboard spec to understand what components you can use.",
+            "Get the supported sources, components, privacy constraints, and optional preset for generating an in-IDE FreeClimb snapshot dashboard.",
         inputSchema: {
             type: "object" as const,
             properties: {
@@ -288,17 +288,13 @@ export const tools = {
     render_dashboard: {
         name: "render_dashboard",
         description:
-            "Save a JSON dashboard spec and return the CLI command to render it. The spec must conform to the json-render format with FreeClimb data source bindings.",
+            "Render a privacy-safe, point-in-time FreeClimb dashboard in the IDE from a validated json-render spec with read-only data source bindings. Call again to refresh.",
         inputSchema: {
             type: "object" as const,
             properties: {
                 spec: {
                     type: "object",
                     description: "The json-render dashboard spec to render",
-                },
-                refresh: {
-                    type: "number",
-                    description: "Polling interval in seconds (default: 30)",
                 },
             },
             required: ["spec"],

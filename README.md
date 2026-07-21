@@ -4,13 +4,15 @@ Cursor plugin for building and operating FreeClimb voice and SMS workflows with 
 
 ## What It Does
 
-This plugin lets an agent turn a business request into a working communications workflow. The core demo flow:
+This plugin lets an agent turn a business request into a working communications workflow or a privacy-safe operations dashboard. The core workflow demo:
 
 1. Ask Cursor to create a simple FreeClimb support line.
 2. The agent uses the plugin skills to design a small IVR.
 3. The agent builds a local webhook app that returns PerCL.
 4. The FreeClimb CLI runs the local development environment and tunnel.
 5. You call the FreeClimb number live.
+
+For operations and demos, ask Cursor to create a FreeClimb dashboard. The `render-freeclimb-dashboard` skill composes a constrained declarative specification, reads account data through MCP, and renders a point-in-time HTML dashboard inline. Ask it to refresh to capture a new snapshot.
 
 ## Install the plugin
 
@@ -31,7 +33,7 @@ The MCP server is the default surface — no global CLI install required. The fi
 
 This command (see the `freeclimb-onboarding` skill) will:
 
-1. Build the bundled MCP server once: from the plugin directory, run `pnpm run setup` (installs dependencies and builds `core/`, `mcp/`, and `cli/`). This produces `mcp/lib/bin.js`, which `.mcp.json` launches via `node mcp/lib/bin.js`.
+1. Build the bundled MCP server once: from the plugin directory, run `pnpm run setup` (installs dependencies and builds `core/`, `mcp/`, and `cli/`). This produces `mcp/lib/bin.js`, which `.mcp.json` launches via `node ${CURSOR_PLUGIN_ROOT}/mcp/lib/bin.js`.
 2. Connect your FreeClimb account via the browser:
 
    ```bash
@@ -69,8 +71,8 @@ Because the MCP surface can no longer mutate the account, prompt-injection that 
 
 ## Included Components
 
-- Skills for FreeClimb concepts, PerCL call control, phone workflow building, flow verification, debugging, first-run onboarding, the official SDK catalog, SMS compliance, webhook security, incident triage, and conferences/queues/recordings.
-- A standalone FreeClimb MCP server entry (`command: "node", args: ["mcp/lib/bin.js"]`).
+- Skills for FreeClimb concepts, PerCL call control, phone workflow building, privacy-safe dashboard rendering, flow verification, debugging, first-run onboarding, the official SDK catalog, SMS compliance, webhook security, incident triage, and conferences/queues/recordings.
+- A standalone FreeClimb MCP server entry (`command: "node", args: ["${CURSOR_PLUGIN_ROOT}/mcp/lib/bin.js"]`).
 - A `/freeclimb-setup` command for first-run build and browser authentication.
 - A `/build-freeclimb-phone-workflow` command for the demo flow.
 - A `/freeclimb-test-flow` command to validate PerCL and simulate the webhook path before a live call.
@@ -84,11 +86,11 @@ Because the MCP surface can no longer mutate the account, prompt-injection that 
 ## Repository Layout
 
 - `.cursor-plugin/plugin.json`: Cursor plugin manifest.
-- `.mcp.json`: MCP server wiring (`node mcp/lib/bin.js`, stdio).
+- `.mcp.json`: MCP server wiring (`node ${CURSOR_PLUGIN_ROOT}/mcp/lib/bin.js`, stdio).
 - `core/`: `@freeclimb/core` — shared HTTP, credentials, validation, errors, and PerCL generate/validate.
 - `mcp/`: `@freeclimb/mcp` — the standalone stdio MCP server and browser login bin.
 - `cli/`: `freeclimb-cli` — the power-user CLI frontend over `core`.
-- `skills/`: Agent guidance for FreeClimb concepts, PerCL, workflow building, verification, debugging, onboarding, SDKs, SMS compliance, webhook security, incident triage, and conferences/queues/recordings.
+- `skills/`: Agent guidance for FreeClimb concepts, PerCL, workflow building, dashboard rendering, verification, debugging, onboarding, SDKs, SMS compliance, webhook security, incident triage, and conferences/queues/recordings.
 - `commands/`: `/freeclimb-setup`, `/build-freeclimb-phone-workflow`, `/freeclimb-test-flow`, and `/freeclimb-status`.
 - `rules/`: FreeClimb guardrails (`freeclimb.mdc`) and SMS compliance (`sms-compliance.mdc`).
 - `agents/`: `freeclimb-builder` (reads via MCP, acts via CLI) and `freeclimb-operator` (read-only) subagents.
@@ -102,6 +104,12 @@ Because the MCP surface can no longer mutate the account, prompt-injection that 
 Create a simple FreeClimb support line for a small business.
 
 When someone calls, greet them, ask them to press 1 for sales or 2 for support, and send anyone else to voicemail. Build the local webhook app, explain what FreeClimb resources are needed, and help me run it so I can call the number live.
+```
+
+Dashboard demo:
+
+```text
+Create a privacy-safe FreeClimb operations dashboard focused on account health, active calls, recent-call count, and recent-error count. Render it in the IDE without displaying identifiers, phone numbers, message bodies, or log text. After I place one inbound call, refresh the snapshot and summarize the aggregate change.
 ```
 
 ## Developing

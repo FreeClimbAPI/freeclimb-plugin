@@ -80,6 +80,12 @@ if (mcp) {
   if (!server) {
     errors.push(".mcp.json must define an mcpServers.freeclimb entry");
   } else {
+    if (server.type !== "stdio") {
+      errors.push(".mcp.json freeclimb server must use type stdio");
+    }
+    if (!server.args?.some((arg) => arg.includes("${CURSOR_PLUGIN_ROOT}"))) {
+      errors.push(".mcp.json must resolve the server path from ${CURSOR_PLUGIN_ROOT}");
+    }
     for (const arg of [server.command, ...(server.args || [])]) {
       if (typeof arg === "string" && arg.startsWith("/Users/")) {
         errors.push(`.mcp.json must not contain machine-specific absolute paths: ${arg}`);

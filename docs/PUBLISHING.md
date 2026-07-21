@@ -39,7 +39,7 @@ Publish the `cli/` package so power users can install the CLI without building t
 
 ## Plugin wiring
 
-Keep plugin MCP wiring on `node mcp/lib/bin.js` unless the MCP package is also published and signed:
+Keep plugin MCP wiring on `node ${CURSOR_PLUGIN_ROOT}/mcp/lib/bin.js` unless the MCP package is also published and signed:
 
 - `skills/freeclimb-onboarding/SKILL.md`: mention the published CLI as optional for power users.
-- `.mcp.json`: keep `command: "node"` and `args: ["mcp/lib/bin.js"]` for the plugin-managed read-only MCP server.
+- `.mcp.json`: keep `command: "node"` and `args: ["${CURSOR_PLUGIN_ROOT}/mcp/lib/bin.js"]` for the plugin-managed read-only MCP server.

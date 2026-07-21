@@ -6,8 +6,9 @@ The FreeClimb plugin includes a standalone MCP (Model Context Protocol) server t
 {
   "mcpServers": {
     "freeclimb": {
+      "type": "stdio",
       "command": "node",
-      "args": ["mcp/lib/bin.js"]
+      "args": ["${CURSOR_PLUGIN_ROOT}/mcp/lib/bin.js"]
     }
   }
 }
@@ -129,6 +130,22 @@ Filter logs using PQL (FreeClimb Query Language).
 | `pql` | string | yes | PQL query (e.g., `level = "ERROR"`) |
 | `maxItems` | number | no | Max entries to return |
 
+### Dashboards
+
+#### generate_dashboard_prompt
+Return the supported FreeClimb sources, components, privacy constraints, and an optional built-in preset for composing an in-IDE dashboard.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `preset` | string | no | Starting point: calls, queues, sms, or health |
+
+#### render_dashboard
+Resolve read-only FreeClimb sources once and render a constrained HTML dashboard inline through MCP Apps. The result is a point-in-time snapshot; call the tool again to refresh.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `spec` | object | yes | Declarative dashboard specification |
+
 ### Infrastructure
 
 #### list_recordings
@@ -195,4 +212,4 @@ Pre-built prompt templates:
 | Name | Description | Arguments |
 |------|-------------|-----------|
 | `diagnose` | Run CLI diagnostics | None |
-| `dashboard` | Generate a monitoring dashboard | `focus` (optional) |
+| `dashboard` | Generate an in-IDE snapshot dashboard | `focus` (optional) |

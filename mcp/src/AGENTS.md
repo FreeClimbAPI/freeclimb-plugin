@@ -22,7 +22,7 @@ Runs over stdio with no dependency on the oclif/ink CLI.
 The plugin's `.mcp.json` launches the locally-built server from the synced repo:
 
 ```
-node ${workspaceFolder}/mcp/lib/bin.js
+node ${CURSOR_PLUGIN_ROOT}/mcp/lib/bin.js
 ```
 
 Build it first from the workspace root: `pnpm run build`.

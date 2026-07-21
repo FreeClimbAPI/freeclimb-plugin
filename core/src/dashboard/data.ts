@@ -27,6 +27,17 @@ export interface StateUpdate {
     value: unknown
 }
 
+export interface DashboardSnapshotError {
+    message: string
+    path: string
+    source: string
+}
+
+export interface DashboardSnapshot {
+    errors: DashboardSnapshotError[]
+    updates: StateUpdate[]
+}
+
 export interface SourceBindingMatch {
     binding: SourceBinding
     path: string
@@ -56,6 +67,53 @@ export interface DashboardDataManagerOptions {
     checkAuth?: () => Promise<unknown>
     onWarn?: (message: string) => void
     sources?: Record<string, ResourceReader>
+}
+
+export async function resolveDashboardSnapshot(
+    spec: DashboardSpec,
+    options: Pick<DashboardDataManagerOptions, "checkAuth" | "sources"> = {},
+): Promise<DashboardSnapshot> {
+    validateSourceBindings(spec)
+    const bindings = extractSourceBindings(spec.state ?? {})
+    if (bindings.length === 0) return { errors: [], updates: [] }
+
+    const checkAuth = options.checkAuth ?? createApiAxios
+    const sources = options.sources ?? readResources
+
+    try {
+        await checkAuth()
+    } catch {
+        return {
+            errors: [{ message: "Authentication failed", path: "", source: "auth" }],
+            updates: [],
+        }
+    }
+
+    const results = await Promise.allSettled(
+        bindings.map(async ({ path, binding }) => {
+            const fetcher = sources[binding.$source]
+            if (!fetcher) {
+                throw new Error(`Unknown data source: ${binding.$source}`)
+            }
+            const value = await fetcher(binding.params)
+            return { path, source: binding.$source, value }
+        }),
+    )
+
+    const errors: DashboardSnapshotError[] = []
+    const updates: StateUpdate[] = []
+    for (const [index, result] of results.entries()) {
+        if (result.status === "fulfilled") {
+            updates.push({ path: result.value.path, value: result.value.value })
+        } else {
+            const match = bindings[index]
+            const message =
+                result.reason instanceof Error ? result.reason.message : String(result.reason)
+            errors.push({ message, path: match.path, source: match.binding.$source })
+        }
+    }
+
+    return { errors, updates }
 }
 
 export class DashboardDataManager {

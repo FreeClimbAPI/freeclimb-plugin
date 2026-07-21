@@ -22,9 +22,9 @@ The plugin does not add new FreeClimb account capabilities; it gives an agent st
 The plugin is distributed to a Cursor team by syncing this repository as-is. It packages:
 
 1. Agent assets: skills (`skills/`), a rule (`rules/freeclimb.mdc`), commands (`commands/`), agents (`agents/`), and hooks (`hooks/`).
-2. A plugin-relative MCP entry (`.mcp.json`) that launches `node mcp/lib/bin.js`.
+2. A plugin-rooted MCP entry (`.mcp.json`) that launches `node ${CURSOR_PLUGIN_ROOT}/mcp/lib/bin.js`.
 3. A private npm workspace with `@freeclimb/core`, `@freeclimb/mcp`, and `freeclimb-cli`.
-4. A first-run flow (`/freeclimb-setup` + `freeclimb-onboarding` skill) that runs `npm run setup` once to install dependencies and build `core/`, `mcp/`, and `cli/`.
+4. A first-run flow (`/freeclimb-setup` + `freeclimb-onboarding` skill) that runs `pnpm run setup` once to install dependencies and build `core/`, `mcp/`, and `cli/`.
 5. A browser login flow (`node mcp/lib/bin.js login`) that stores credentials in the OS keyring.
 
 For v1, nothing is published to npm. `@freeclimb/core` and `@freeclimb/mcp` are private packages consumed through workspace symlinks. The synced plugin repository and committed root lockfile are the distribution and dependency integrity boundary. The MCP server runs standalone over stdio and does not depend on a global CLI install, `npx`, or runtime npm registry fetch.
@@ -46,7 +46,7 @@ flowchart LR
   internet["Public internet / callers"] -->|tunnel URL| tunnel["ngrok / cloudflared"]
   tunnel --> proxy["local proxy :4000"]
   proxy --> localapp["user webhook app localhost:port"]
-  setup["npm run setup"] --> deps["node_modules + native builds"]
+  setup["pnpm run setup"] --> deps["node_modules + native builds"]
   hooks["sessionStart hook"] --> agent
 ```
 
@@ -73,7 +73,7 @@ Boundaries crossed:
 - CLI-only mutations: calls, SMS, number purchases, call updates, and application creates/updates are performed through the CLI.
 - Cursor command approvals/allowlist Run Mode is the governing host control for CLI actions.
 - CLI mutating commands support `--dry-run` and shared input validation.
-- Root `.mcp.json` launches `node mcp/lib/bin.js` and contains no credential `env` block.
+- Root `.mcp.json` launches `node ${CURSOR_PLUGIN_ROOT}/mcp/lib/bin.js` and contains no credential `env` block.
 - MCP browser login binds `127.0.0.1`, uses a one-time state token, caps request bodies, times out, shuts down after capture, and writes credentials only to the OS keyring.
 - `scripts/validate-plugin.mjs` validates plugin component paths, component frontmatter, root MCP config, and hook executability.
 - `scripts/scan-secrets.mjs` fails CI if credential-shaped values (Account-ID/API-key patterns) appear in tracked files.

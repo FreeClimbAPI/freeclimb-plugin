@@ -3,6 +3,7 @@ import { describe, it } from "node:test"
 import {
     DashboardDataManager,
     extractSourceBindings,
+    resolveDashboardSnapshot,
     validateSourceBindings,
     ValidationError,
 } from "../lib/index.js"
@@ -72,6 +73,119 @@ describe("validateSourceBindings", () => {
                 return true
             },
         )
+    })
+})
+
+describe("resolveDashboardSnapshot", () => {
+    it("resolves multiple sources once and forwards parameters", async () => {
+        const received = []
+        let authChecks = 0
+        const result = await resolveDashboardSnapshot(
+            {
+                root: "main",
+                elements: {},
+                state: {
+                    calls: { $source: "calls", params: { status: "completed" } },
+                    account: { $source: "account" },
+                },
+            },
+            {
+                checkAuth: async () => {
+                    authChecks += 1
+                },
+                sources: {
+                    calls: async (params) => {
+                        received.push(params)
+                        return { calls: [], total: 0 }
+                    },
+                    account: async () => ({ status: "active" }),
+                },
+            },
+        )
+
+        assert.equal(authChecks, 1)
+        assert.deepEqual(received, [{ status: "completed" }])
+        assert.deepEqual(result.errors, [])
+        assert.deepEqual(
+            result.updates.map((update) => update.path).sort(),
+            ["/account", "/calls"],
+        )
+    })
+
+    it("returns successful updates alongside source-specific failures", async () => {
+        const result = await resolveDashboardSnapshot(
+            {
+                root: "main",
+                elements: {},
+                state: {
+                    calls: { $source: "calls" },
+                    logs: { $source: "logs" },
+                },
+            },
+            {
+                checkAuth: async () => {},
+                sources: {
+                    calls: async () => ({ total: 3 }),
+                    logs: async () => {
+                        throw new Error("request failed")
+                    },
+                },
+            },
+        )
+
+        assert.deepEqual(result.updates, [{ path: "/calls", value: { total: 3 } }])
+        assert.deepEqual(result.errors, [
+            { message: "request failed", path: "/logs", source: "logs" },
+        ])
+    })
+
+    it("returns an authentication error without reading sources", async () => {
+        let fetched = false
+        const result = await resolveDashboardSnapshot(
+            {
+                root: "main",
+                elements: {},
+                state: { calls: { $source: "calls" } },
+            },
+            {
+                checkAuth: async () => {
+                    throw new Error("secret details")
+                },
+                sources: {
+                    calls: async () => {
+                        fetched = true
+                        return {}
+                    },
+                },
+            },
+        )
+
+        assert.equal(fetched, false)
+        assert.deepEqual(result, {
+            errors: [{ message: "Authentication failed", path: "", source: "auth" }],
+            updates: [],
+        })
+    })
+
+    it("rejects unknown sources before authentication", async () => {
+        let authChecked = false
+        await assert.rejects(
+            () =>
+                resolveDashboardSnapshot(
+                    {
+                        root: "main",
+                        elements: {},
+                        state: { data: { $source: "unknown" } },
+                    },
+                    {
+                        checkAuth: async () => {
+                            authChecked = true
+                        },
+                    },
+                ),
+            ValidationError,
+        )
+        assert.equal(authChecked, false)
     })
 })
 

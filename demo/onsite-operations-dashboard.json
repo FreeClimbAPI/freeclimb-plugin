@@ -1,0 +1,80 @@
+{
+  "root": "main",
+  "state": {
+    "account": { "$source": "account" },
+    "activeCalls": { "$source": "calls", "params": { "status": "inProgress" } },
+    "recentCalls": { "$source": "calls" },
+    "errors": { "$source": "logs", "params": { "pql": "level = \"ERROR\"", "maxItems": 20 } }
+  },
+  "elements": {
+    "main": {
+      "type": "Box",
+      "props": { "flexDirection": "column", "gap": 1 },
+      "children": ["header", "metrics", "account-card", "footer"]
+    },
+    "header": {
+      "type": "Heading",
+      "props": { "level": "h1", "text": "FreeClimb Live Operations" }
+    },
+    "metrics": {
+      "type": "Box",
+      "props": { "flexDirection": "row", "gap": 2 },
+      "children": ["active-card", "recent-card", "errors-card"]
+    },
+    "active-card": {
+      "type": "Card",
+      "props": { "title": "Now" },
+      "children": ["active-calls"]
+    },
+    "recent-card": {
+      "type": "Card",
+      "props": { "title": "Activity" },
+      "children": ["recent-calls"]
+    },
+    "errors-card": {
+      "type": "Card",
+      "props": { "title": "Reliability" },
+      "children": ["recent-errors"]
+    },
+    "active-calls": {
+      "type": "Metric",
+      "props": {
+        "label": "Active Calls",
+        "value": { "$state": "/activeCalls/total" }
+      }
+    },
+    "recent-calls": {
+      "type": "Metric",
+      "props": {
+        "label": "Recent Calls",
+        "value": { "$state": "/recentCalls/total" }
+      }
+    },
+    "recent-errors": {
+      "type": "Metric",
+      "props": {
+        "label": "Recent Errors",
+        "value": { "$state": "/errors/total" }
+      }
+    },
+    "account-card": {
+      "type": "Card",
+      "props": { "title": "Account Health" },
+      "children": ["account-status"]
+    },
+    "account-status": {
+      "type": "KeyValue",
+      "props": {
+        "label": "Status",
+        "value": { "$state": "/account/status" }
+      }
+    },
+    "footer": {
+      "type": "StatusLine",
+      "props": {
+        "text": "Read-only snapshot · refresh after the inbound call",
+        "status": "info"
+      }
+    }
+  }
+}

@@ -164,9 +164,10 @@ export async function filterLogs(
     const { data } = await apiRequest<FreeClimbPage>({
         method: "POST",
         path: "/Logs",
-        data: { pql, maxItems: params.maxItems },
+        data: { pql },
     })
-    return data
+    if (!params.maxItems || !Array.isArray(data.logs)) return data
+    return { ...data, logs: data.logs.slice(0, params.maxItems) }
 }
 
 export async function listRecordings(params: RecordingListParams = {}): Promise<FreeClimbPage> {

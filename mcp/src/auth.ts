@@ -11,10 +11,6 @@ const LOOPBACK_HOST = "127.0.0.1"
 const AUTH_TTL_MS = 5 * 60 * 1000
 const DASHBOARD_CREDENTIALS_URL = "https://www.freeclimb.com/dashboard/portal/account/credentials"
 
-export interface LoginResult {
-    accountId: string
-}
-
 function writeSetupMarker(): void {
     try {
         const dir = join(homedir(), ".cursor")
@@ -126,10 +122,10 @@ function parseForm(body: string): Record<string, string> {
  * server to 127.0.0.1, opens the browser, captures Account ID + API Key from a
  * local page, writes them to the OS keyring, then shuts down. Never logs the key.
  */
-export function runLoginFlow(): Promise<LoginResult> {
+export function runLoginFlow(): Promise<void> {
     const state = randomBytes(32).toString("hex")
 
-    return new Promise<LoginResult>((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
         let settled = false
         const server = createServer(async (req: IncomingMessage, res: ServerResponse) => {
             try {
@@ -165,8 +161,8 @@ export function runLoginFlow(): Promise<LoginResult> {
                     await cred.setCredentials(accountId, apiKey)
                     writeSetupMarker()
                     res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" })
+                    res.once("finish", () => finish(resolve))
                     res.end(successPage())
-                    finish(() => resolve({ accountId }))
                     return
                 }
                 res.writeHead(404, { "Content-Type": "text/plain" })
@@ -188,7 +184,7 @@ export function runLoginFlow(): Promise<LoginResult> {
             settled = true
             clearTimeout(timeout)
             server.close()
-            // Give the response a tick to flush before resolving.
+            server.closeAllConnections()
             setTimeout(action, 50)
         }
 

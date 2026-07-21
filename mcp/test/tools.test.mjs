@@ -56,4 +56,10 @@ describe("MCP tool definitions", () => {
         assert.ok("generate_percl" in tools)
         assert.ok("validate_percl" in tools)
     })
+
+    it("describes render_dashboard as a manually refreshed snapshot", () => {
+        assert.match(tools.render_dashboard.description, /point-in-time/)
+        assert.match(tools.render_dashboard.description, /Call again to refresh/)
+        assert.ok(!("refresh" in tools.render_dashboard.inputSchema.properties))
+    })
 })

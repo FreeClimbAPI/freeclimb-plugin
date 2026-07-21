@@ -27,7 +27,7 @@ From `<plugin-root>` (enable pnpm once with `corepack enable && corepack prepare
 pnpm run setup
 ```
 
-This runs `pnpm install` and builds `core/`, `mcp/`, and `cli/`. It produces `<plugin-root>/mcp/lib/bin.js`, which `.mcp.json` launches via `node mcp/lib/bin.js`. It needs Node >= 20 and a working build toolchain (native modules compile during install).
+This runs `pnpm install` and builds `core/`, `mcp/`, and `cli/`. It produces `<plugin-root>/mcp/lib/bin.js`, which `.mcp.json` launches via `node ${CURSOR_PLUGIN_ROOT}/mcp/lib/bin.js`. It needs Node >= 20 and a working build toolchain (native modules compile during install).
 
 Verify the build:
 

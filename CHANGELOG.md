@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- Fixed browser login so the loopback process exits after success and no longer prints the Account ID.
+- Fixed plugin MCP startup to resolve the bundled server from `${CURSOR_PLUGIN_ROOT}` instead of the process working directory.
+- Isolated core and CLI test keyrings so running the suite on an authenticated machine cannot read or overwrite the real FreeClimb credentials.
+- Fixed filtered log requests to send only the API-supported PQL body and apply result limits locally.
+- Added a privacy-safe onsite operations dashboard that shows account health, call counts, and error counts without exposing identifiers, phone numbers, message bodies, or log text.
+- Added a FreeClimb dashboard skill and constrained MCP App renderer for privacy-safe, manually refreshed in-IDE snapshots.
+
 ## 0.4.0 — 2026-07-06
 
 - Migrated the monorepo from npm workspaces to pnpm 11.5.3 with `pnpm-workspace.yaml`, `workspace:*` internal links, and Corepack-pinned installs in CI and onboarding (ADR 0008).

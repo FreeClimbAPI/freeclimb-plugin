@@ -8,6 +8,8 @@ import {
     buildTablePayload,
     buildAccountPayload,
 } from "../lib/ui.js"
+import { UI_DASHBOARD_URI } from "../lib/dashboard-ui.js"
+import { getUiResourceUri } from "../lib/server.js"
 
 describe("MCP Apps UI", () => {
     it("declares a ui:// resource with the MCP app mime profile", () => {
@@ -19,6 +21,12 @@ describe("MCP Apps UI", () => {
         for (const name of UI_TOOLS) {
             assert.ok(name in tools, name)
         }
+    })
+
+    it("routes render_dashboard to its dedicated MCP app resource", () => {
+        assert.equal(getUiResourceUri("render_dashboard"), UI_DASHBOARD_URI)
+        assert.equal(getUiResourceUri("list_calls"), UI_TABLE_URI)
+        assert.equal(getUiResourceUri("validate_percl"), undefined)
     })
 
     it("builds a calls table from list_calls data", () => {

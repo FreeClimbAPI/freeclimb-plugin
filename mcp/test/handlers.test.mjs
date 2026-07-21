@@ -82,4 +82,34 @@ describe("MCP tool dispatch", () => {
             dispatchTool("generate_percl", { pattern: "greeting", text: "hi\x01there" }),
         )
     })
+
+    it("resolves and renders a dashboard snapshot through the injected context", async () => {
+        let receivedSpec
+        const ctx = {
+            ...defaultContext,
+            resolveDashboardSnapshot: async (spec) => {
+                receivedSpec = spec
+                return {
+                    errors: [],
+                    updates: [{ path: "/calls", value: { total: 4 } }],
+                }
+            },
+        }
+        const spec = {
+            root: "metric",
+            state: { calls: { $source: "calls" } },
+            elements: {
+                metric: {
+                    type: "Metric",
+                    props: { label: "Calls", value: { $state: "/calls/total" } },
+                },
+            },
+        }
+
+        const result = await dispatchTool("render_dashboard", { spec }, ctx)
+
+        assert.deepEqual(receivedSpec, spec)
+        assert.equal(result.message, "FreeClimb dashboard snapshot rendered in-IDE.")
+        assert.equal(result.dashboard.root.props.value, 4)
+    })
 })

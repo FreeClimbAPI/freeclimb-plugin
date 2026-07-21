@@ -4,12 +4,14 @@ const DASHBOARD_SOURCE_NAMES = Object.keys(readResources)
 
 export function getDashboardPrompt(): string {
     return [
-        "You are generating a FreeClimb monitoring view rendered in-IDE via the MCP Apps UI.",
-        "Available structured views: table (list results) and account card.",
-        "Pick a focus: calls, queues, sms, or health, then call the matching list tool",
-        "(list_calls, list_queues, list_sms, get_account / list_logs) so results render as",
-        "FreeClimb-themed cards and tables. Use render_dashboard with a json-render spec only",
-        "when you need a composed multi-panel layout; otherwise prefer the list tools directly.",
+        "Generate a privacy-safe FreeClimb snapshot dashboard rendered in-IDE via MCP Apps.",
+        "Use declarative state bindings with $source and component values with absolute $state pointers.",
+        "Supported sources are account, applications, calls, conferences, logs, numbers, queues, recordings, and sms.",
+        "Supported components are Box, Heading, Card, Metric, KeyValue, Table, BarChart, Sparkline,",
+        "StatusLine, LogStream, CallStatusCard, and QueueDepthGauge.",
+        "Prefer aggregate counts and statuses. Do not display account IDs, resource IDs, phone numbers,",
+        "SMS bodies, log text, credentials, arbitrary HTML, scripts, styles, URLs, or actions.",
+        "Call render_dashboard with the completed spec. Call it again when the user asks to refresh.",
     ].join(" ")
 }
 
@@ -32,7 +34,7 @@ export const promptDefinitions: PromptDefinition[] = [
     },
     {
         name: "dashboard",
-        description: "Generate a custom terminal monitoring dashboard for FreeClimb resources",
+        description: "Generate an in-IDE snapshot dashboard for FreeClimb resources",
         arguments: [
             {
                 name: "focus",
@@ -80,7 +82,7 @@ export function getPrompt(name: string, args?: Record<string, string>): PromptRe
                         role: "user" as const,
                         content: {
                             type: "text" as const,
-                            text: `${prompt}\n\nGenerate a terminal dashboard spec focused on: ${focus}. Use the FreeClimb data sources (${DASHBOARD_SOURCE_NAMES.join(", ")}) with $source bindings in the state. After generating the spec, use the render_dashboard tool to save and render it.`,
+                            text: `${prompt}\n\nGenerate an in-IDE snapshot dashboard focused on: ${focus}. Use the FreeClimb data sources (${DASHBOARD_SOURCE_NAMES.join(", ")}) with $source bindings in the state, then call render_dashboard.`,
                         },
                     },
                 ],

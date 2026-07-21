@@ -21,6 +21,12 @@ import { dirname, join } from "node:path"
 
 import { tools, type ToolName } from "./tools.js"
 import { UI_TABLE_URI, UI_TABLE_MIME, UI_TOOLS, TABLE_HTML, buildUiPayload } from "./ui.js"
+import {
+    DASHBOARD_HTML,
+    UI_DASHBOARD_MIME,
+    UI_DASHBOARD_URI,
+    type DashboardPayload,
+} from "./dashboard-ui.js"
 import { dispatchTool } from "./handlers.js"
 import { listFreeclimbResources, readFreeclimbResource } from "./resources.js"
 import { promptDefinitions, getPrompt } from "./prompts.js"
@@ -28,6 +34,12 @@ import { promptDefinitions, getPrompt } from "./prompts.js"
 const currentDir = dirname(fileURLToPath(import.meta.url))
 const pkgPath = join(currentDir, "../package.json")
 const { version: MCP_VERSION } = JSON.parse(readFileSync(pkgPath, "utf-8"))
+
+export function getUiResourceUri(toolName: ToolName): string | undefined {
+    if (toolName === "render_dashboard") return UI_DASHBOARD_URI
+    if (UI_TOOLS.has(toolName)) return UI_TABLE_URI
+    return undefined
+}
 
 export async function startMcpServer(): Promise<void> {
     const server = new Server(
@@ -45,14 +57,17 @@ export async function startMcpServer(): Promise<void> {
     )
 
     server.setRequestHandler(ListToolsRequestSchema, async () => ({
-        tools: Object.values(tools).map((tool) => ({
-            name: tool.name,
-            description: tool.description,
-            inputSchema: tool.inputSchema,
-            ...(UI_TOOLS.has(tool.name as ToolName)
-                ? { _meta: { ui: { resourceUri: UI_TABLE_URI, visibility: ["model", "app"] } } }
-                : {}),
-        })),
+        tools: Object.values(tools).map((tool) => {
+            const resourceUri = getUiResourceUri(tool.name as ToolName)
+            return {
+                name: tool.name,
+                description: tool.description,
+                inputSchema: tool.inputSchema,
+                ...(resourceUri
+                    ? { _meta: { ui: { resourceUri, visibility: ["model", "app"] } } }
+                    : {}),
+            }
+        }),
     }))
 
     server.setRequestHandler(CallToolRequestSchema, async (request) => {
@@ -62,9 +77,14 @@ export async function startMcpServer(): Promise<void> {
                 toolName,
                 (request.params.arguments as Record<string, unknown>) || {},
             )
-            const uiPayload = UI_TOOLS.has(toolName)
-                ? buildUiPayload(toolName, toolResult)
-                : undefined
+            const uiPayload =
+                toolName === "render_dashboard"
+                    ? {
+                          dashboard: (toolResult as { dashboard: DashboardPayload }).dashboard,
+                      }
+                    : UI_TOOLS.has(toolName)
+                      ? buildUiPayload(toolName, toolResult)
+                      : undefined
             return {
                 content: [
                     {
@@ -118,6 +138,20 @@ export async function startMcpServer(): Promise<void> {
                     },
                 },
             },
+            {
+                uri: UI_DASHBOARD_URI,
+                name: "FreeClimb Dashboard",
+                description: "FreeClimb snapshot dashboard",
+                mimeType: UI_DASHBOARD_MIME,
+                _meta: {
+                    ui: {
+                        prefersBorder: false,
+                        csp: {
+                            resourceDomains: [],
+                        },
+                    },
+                },
+            },
         ]
 
         return { resources: [...uiResources, ...listFreeclimbResources()] }
@@ -141,6 +175,26 @@ export async function startMcpServer(): Promise<void> {
                                         "https://fonts.googleapis.com",
                                         "https://fonts.gstatic.com",
                                     ],
+                                },
+                            },
+                        },
+                    },
+                ],
+            }
+        }
+
+        if (uri === UI_DASHBOARD_URI) {
+            return {
+                contents: [
+                    {
+                        uri: UI_DASHBOARD_URI,
+                        mimeType: UI_DASHBOARD_MIME,
+                        text: DASHBOARD_HTML,
+                        _meta: {
+                            ui: {
+                                prefersBorder: false,
+                                csp: {
+                                    resourceDomains: [],
                                 },
                             },
                         },

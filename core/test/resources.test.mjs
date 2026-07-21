@@ -259,15 +259,22 @@ describe("resources", () => {
         assert.equal(server.requests[0].query.maxItems, "5")
     })
 
-    it("filterLogs POSTs pql and maxItems to /Logs and rejects control characters", async () => {
-        await setUpServer((_req, res) => jsonReply(res, 200, { logs: [] }))
+    it("filterLogs POSTs only pql, limits results locally, and rejects control characters", async () => {
+        await setUpServer((_req, res) =>
+            jsonReply(res, 200, {
+                logs: [{ requestId: "RQ1" }, { requestId: "RQ2" }],
+                total: 2,
+            }),
+        )
 
-        await filterLogs('level = "ERROR"', { maxItems: 25 })
+        const result = await filterLogs('level = "ERROR"', { maxItems: 1 })
 
         const req = server.requests[0]
         assert.equal(req.method, "POST")
         assert.equal(req.path, "/Accounts/AC_RESOURCES_TEST_ACCOUNT_ID/Logs")
-        assert.deepEqual(req.body, { pql: 'level = "ERROR"', maxItems: 25 })
+        assert.deepEqual(req.body, { pql: 'level = "ERROR"' })
+        assert.deepEqual(result.logs, [{ requestId: "RQ1" }])
+        assert.equal(result.total, 2)
 
         await assert.rejects(() => filterLogs("level = \x01ERROR\x01"), ValidationError)
     })
@@ -368,6 +375,6 @@ describe("resources", () => {
         await readResources.logs({ pql: 'level = "ERROR"', maxItems: 10 })
 
         assert.equal(server.requests[0].method, "POST")
-        assert.deepEqual(server.requests[0].body, { pql: 'level = "ERROR"', maxItems: 10 })
+        assert.deepEqual(server.requests[0].body, { pql: 'level = "ERROR"' })
     })
 })
