@@ -24,7 +24,7 @@ Adopt pnpm 11.5.3 as the sole package manager for the monorepo:
 - Replace the root lockfile with `pnpm-lock.yaml` and use `pnpm install --frozen-lockfile` in CI.
 - Link internal packages with the `workspace:*` protocol (`@freeclimb/core`, `@freeclimb/mcp`).
 - Rewrite root scripts to use `pnpm --filter`, `pnpm -r`, and `pnpm build`/`pnpm test`/`pnpm lint`.
-- CI installs via `pnpm/action-setup@v4` (reads `packageManager`) and caches with `cache: pnpm`.
+- CI installs via `pnpm/action-setup@v6` (reads `packageManager`) and caches with `cache: pnpm`.
 - Onboarding docs use `corepack enable && corepack prepare --activate` before `pnpm install` / `pnpm run setup`.
 - Allow native build scripts needed by the CLI through `allowBuilds` in `pnpm-workspace.yaml` (`@napi-rs/keyring`, `@ngrok/ngrok`, `esbuild`, `unrs-resolver`).
 
