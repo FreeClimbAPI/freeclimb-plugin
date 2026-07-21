@@ -152,7 +152,7 @@ describe("logs:list Data Test", function () {
         it("Test all required paramaters and flag maxItem", async () => {
             nock("https://www.freeclimb.com")
                 .get(`/apiserver/Accounts/${await cred.accountId}/Logs`)
-                .query({})
+                .query({ maxItems: 2 })
                 .reply(200, testJsonLogs)
             const { stdout } = await runCommand([
                 "logs:list",

@@ -59,7 +59,7 @@ with freeclimb.ApiClient(configuration) as client:
 
 ## Credentials
 
-SDKs authenticate with Account ID + API Key. In apps, read them from environment variables (e.g. `FREECLIMB_ACCOUNT_ID` / `FREECLIMB_API_KEY`); never hardcode or commit them. The agent never handles raw credentials — those live in the OS keyring via the plugin login flow.
+Guardrails: follow `rules/freeclimb.mdc` (canonical). In apps, read Account ID and API Key from environment variables (e.g. `FREECLIMB_ACCOUNT_ID` / `FREECLIMB_API_KEY`); never hardcode or commit them.
 
 ## Request signature verification
 

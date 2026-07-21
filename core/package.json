@@ -38,7 +38,6 @@
   "dependencies": {
     "@napi-rs/keyring": "^1",
     "axios": "^1",
-    "chalk": "^4",
     "dotenv": "^17",
     "tslib": "^2",
     "zod": "^4.3.6"

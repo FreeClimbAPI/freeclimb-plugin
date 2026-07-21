@@ -7,6 +7,8 @@ description: Design FreeClimb conference, queue, and recording workflows - lifec
 
 Use this skill when a request involves multi-party calls, holding callers for an agent, or capturing audio (call center transfers, coaching/whisper setups, on-hold experiences, compliance recordings).
 
+Guardrails: follow `rules/freeclimb.mdc` (canonical).
+
 For exact PerCL command syntax and parameters, use the `percl-call-control` skill and `generate_percl`/`validate_percl` MCP tools rather than duplicating the reference here.
 
 ## Conferences

@@ -180,6 +180,24 @@ export async function listRecordings(params: RecordingListParams = {}): Promise<
     return data
 }
 
+export async function getRecording(recordingId: string): Promise<Record<string, unknown>> {
+    validateResourceId(recordingId, "recordingId")
+    const { data } = await apiRequest<Record<string, unknown>>({
+        method: "GET",
+        path: `/Recordings/${recordingId}`,
+    })
+    return data
+}
+
+export async function listCallLogs(callId: string): Promise<FreeClimbPage> {
+    validateResourceId(callId, "callId")
+    const { data } = await apiRequest<FreeClimbPage>({
+        method: "GET",
+        path: `/Calls/${callId}/Logs`,
+    })
+    return data
+}
+
 export async function listConferences(
     params: ConferenceListParams = {},
 ): Promise<FreeClimbPage> {
@@ -195,6 +213,108 @@ export async function listQueues(params?: Record<string, unknown>): Promise<Free
     const { data } = await apiRequest<FreeClimbPage>({ method: "GET", path: "/Queues", params })
     return data
 }
+
+export async function getConference(conferenceId: string): Promise<Record<string, unknown>> {
+    validateResourceId(conferenceId, "conferenceId")
+    const { data } = await apiRequest<Record<string, unknown>>({
+        method: "GET",
+        path: `/Conferences/${conferenceId}`,
+    })
+    return data
+}
+
+export async function listConferenceParticipants(conferenceId: string): Promise<FreeClimbPage> {
+    validateResourceId(conferenceId, "conferenceId")
+    const { data } = await apiRequest<FreeClimbPage>({
+        method: "GET",
+        path: `/Conferences/${conferenceId}/Participants`,
+    })
+    return data
+}
+
+export async function getQueue(queueId: string): Promise<Record<string, unknown>> {
+    validateResourceId(queueId, "queueId")
+    const { data } = await apiRequest<Record<string, unknown>>({
+        method: "GET",
+        path: `/Queues/${queueId}`,
+    })
+    return data
+}
+
+export async function listQueueMembers(queueId: string): Promise<FreeClimbPage> {
+    validateResourceId(queueId, "queueId")
+    const { data } = await apiRequest<FreeClimbPage>({
+        method: "GET",
+        path: `/Queues/${queueId}/Members`,
+    })
+    return data
+}
+
+export async function listBrands(): Promise<FreeClimbPage> {
+    const { data } = await apiRequest<FreeClimbPage>({
+        method: "GET",
+        path: "/Messages/10DLC/Brands",
+    })
+    return data
+}
+
+export async function getBrand(brandId: string): Promise<Record<string, unknown>> {
+    validateResourceId(brandId, "brandId")
+    const { data } = await apiRequest<Record<string, unknown>>({
+        method: "GET",
+        path: `/Messages/10DLC/Brands/${brandId}`,
+    })
+    return data
+}
+
+export async function listCampaigns(): Promise<FreeClimbPage> {
+    const { data } = await apiRequest<FreeClimbPage>({
+        method: "GET",
+        path: "/Messages/10DLC/Campaigns",
+    })
+    return data
+}
+
+export async function getCampaign(campaignId: string): Promise<Record<string, unknown>> {
+    validateResourceId(campaignId, "campaignId")
+    const { data } = await apiRequest<Record<string, unknown>>({
+        method: "GET",
+        path: `/Messages/10DLC/Campaigns/${campaignId}`,
+    })
+    return data
+}
+
+export async function listPartnerCampaigns(): Promise<FreeClimbPage> {
+    const { data } = await apiRequest<FreeClimbPage>({
+        method: "GET",
+        path: "/Messages/10DLC/PartnerCampaigns",
+    })
+    return data
+}
+
+export async function getPartnerCampaign(campaignId: string): Promise<Record<string, unknown>> {
+    validateResourceId(campaignId, "campaignId")
+    const { data } = await apiRequest<Record<string, unknown>>({
+        method: "GET",
+        path: `/Messages/10DLC/PartnerCampaigns/${campaignId}`,
+    })
+    return data
+}
+
+export async function listExports(): Promise<FreeClimbPage> {
+    const { data } = await apiRequest<FreeClimbPage>({ method: "GET", path: "/Exports" })
+    return data
+}
+
+export async function getExport(exportId: string): Promise<Record<string, unknown>> {
+    validateResourceId(exportId, "exportId")
+    const { data } = await apiRequest<Record<string, unknown>>({
+        method: "GET",
+        path: `/Exports/${exportId}`,
+    })
+    return data
+}
+
 
 export type ResourceReader = (params?: Record<string, unknown>) => Promise<unknown>
 

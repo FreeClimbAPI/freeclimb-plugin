@@ -1,4 +1,5 @@
 import chalk from "chalk"
+import { getViewForCliTopic, viewColumns, type ViewColumn } from "@freeclimb/core"
 import { BrandColors, supportsColor, isTTY, getTerminalWidth } from "./theme.js"
 import { getBoxChars } from "./chars.js"
 
@@ -297,128 +298,32 @@ export function formatTableWithBorders(
     return lines.join("\n")
 }
 
-export function formatCallsList(data: unknown): string {
-    const calls = Array.isArray(data) ? data : (data as any)?.calls || []
-
-    if (calls.length === 0) {
-        return chalk.dim("No calls found")
-    }
-
-    return formatTable(calls, [
-        { key: "callId", header: "Call ID", width: 24 },
-        { key: "from", header: "From", width: 15 },
-        { key: "to", header: "To", width: 15 },
-        { key: "status", header: "Status", width: 12 },
-        { key: "direction", header: "Direction", width: 10 },
-        { key: "dateCreated", header: "Created", width: 22 },
-    ])
+export function viewColumnsToTableColumns(columns: ViewColumn[]): { header: string; key: string; width?: number }[] {
+    return columns.map(({ key, header, width }) => ({ key, header, width }))
 }
 
-export function formatSmsList(data: unknown): string {
-    const messages = Array.isArray(data) ? data : (data as any)?.messages || []
-
-    if (messages.length === 0) {
-        return chalk.dim("No messages found")
+function formatViewList(topic: string, data: unknown): string {
+    const view = getViewForCliTopic(topic)
+    if (!view) {
+        return JSON.stringify(data, null, 2)
     }
 
-    return formatTable(messages, [
-        { key: "messageId", header: "Message ID", width: 24 },
-        { key: "from", header: "From", width: 15 },
-        { key: "to", header: "To", width: 15 },
-        { key: "status", header: "Status", width: 12 },
-        { key: "direction", header: "Direction", width: 10 },
-        { key: "dateCreated", header: "Created", width: 22 },
-    ])
-}
+    const items = Array.isArray(data)
+        ? data
+        : (data as Record<string, unknown>)?.[view.listKey]
 
-export function formatApplicationsList(data: unknown): string {
-    const apps = Array.isArray(data) ? data : (data as any)?.applications || []
-
-    if (apps.length === 0) {
-        return chalk.dim("No applications found")
+    if (!Array.isArray(items)) {
+        return JSON.stringify(data, null, 2)
     }
 
-    return formatTable(apps, [
-        { key: "applicationId", header: "App ID", width: 24 },
-        { key: "alias", header: "Alias", width: 20 },
-        { key: "voiceUrl", header: "Voice URL", width: 40 },
-    ])
-}
-
-export function formatIncomingNumbersList(data: unknown): string {
-    const numbers = Array.isArray(data) ? data : (data as any)?.incomingPhoneNumbers || []
-
-    if (numbers.length === 0) {
-        return chalk.dim("No incoming numbers found")
+    if (items.length === 0) {
+        return chalk.dim(view.emptyMessage ?? `No ${view.title.toLowerCase()} found`)
     }
 
-    return formatTable(numbers, [
-        { key: "phoneNumberId", header: "Number ID", width: 24 },
-        { key: "phoneNumber", header: "Phone Number", width: 15 },
-        { key: "alias", header: "Alias", width: 20 },
-        { key: "applicationId", header: "App ID", width: 24 },
-    ])
-}
-
-export function formatQueuesList(data: unknown): string {
-    const queues = Array.isArray(data) ? data : (data as any)?.queues || []
-
-    if (queues.length === 0) {
-        return chalk.dim("No queues found")
-    }
-
-    return formatTable(queues, [
-        { key: "queueId", header: "Queue ID", width: 24 },
-        { key: "alias", header: "Alias", width: 20 },
-        { key: "currentSize", header: "Size", width: 8 },
-        { key: "maxSize", header: "Max", width: 8 },
-        { key: "averageWaitTime", header: "Avg Wait", width: 10 },
-    ])
-}
-
-export function formatConferencesList(data: unknown): string {
-    const conferences = Array.isArray(data) ? data : (data as any)?.conferences || []
-
-    if (conferences.length === 0) {
-        return chalk.dim("No conferences found")
-    }
-
-    return formatTable(conferences, [
-        { key: "conferenceId", header: "Conference ID", width: 24 },
-        { key: "alias", header: "Alias", width: 20 },
-        { key: "status", header: "Status", width: 12 },
-        { key: "dateCreated", header: "Created", width: 22 },
-    ])
-}
-
-export function formatRecordingsList(data: unknown): string {
-    const recordings = Array.isArray(data) ? data : (data as any)?.recordings || []
-
-    if (recordings.length === 0) {
-        return chalk.dim("No recordings found")
-    }
-
-    return formatTable(recordings, [
-        { key: "recordingId", header: "Recording ID", width: 24 },
-        { key: "callId", header: "Call ID", width: 24 },
-        { key: "durationSec", header: "Duration", width: 10 },
-        { key: "dateCreated", header: "Created", width: 22 },
-    ])
-}
-
-export function formatLogsList(data: unknown): string {
-    const logs = Array.isArray(data) ? data : (data as any)?.logs || []
-
-    if (logs.length === 0) {
-        return chalk.dim("No logs found")
-    }
-
-    return formatTable(logs, [
-        { key: "timestamp", header: "Timestamp", width: 22 },
-        { key: "level", header: "Level", width: 8 },
-        { key: "requestId", header: "Request ID", width: 24 },
-        { key: "message", header: "Message", width: 50 },
-    ])
+    return formatTable(
+        items as Record<string, unknown>[],
+        viewColumnsToTableColumns(viewColumns(view, "wide")),
+    )
 }
 
 export function formatSingleItem(data: Record<string, unknown>): string {
@@ -439,18 +344,13 @@ export function getFormatterForTopic(
     topic: string,
     commandName: string,
 ): ((data: unknown) => string) | null {
-    const formatters: Record<string, (data: unknown) => string> = {
-        "calls:list": formatCallsList,
-        "sms:list": formatSmsList,
-        "applications:list": formatApplicationsList,
-        "incoming-numbers:list": formatIncomingNumbersList,
-        "call-queues:list": formatQueuesList,
-        "conferences:list": formatConferencesList,
-        "recordings:list": formatRecordingsList,
-        "logs:list": formatLogsList,
-        "logs:filter": formatLogsList,
+    if (!getViewForCliTopic(topic)) {
+        return null
     }
 
-    const key = `${topic}:${commandName}`
-    return formatters[key] || null
+    if (commandName !== "list" && commandName !== "filter") {
+        return null
+    }
+
+    return (data: unknown) => formatViewList(topic, data)
 }

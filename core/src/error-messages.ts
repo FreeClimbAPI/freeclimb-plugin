@@ -1,12 +1,11 @@
-import chalk from "chalk"
-import { isAgentMode } from "./agent-config.js"
-
-const { red, yellow, cyan, dim, bold } = chalk
-
-interface ErrorSuggestion {
+export interface ErrorSuggestion {
     docUrl?: string
     message: string
     tryCommands?: string[]
+}
+
+export function getErrorSuggestion(code: number): ErrorSuggestion | undefined {
+    return errorSuggestions.get(code)
 }
 
 const errorSuggestions = new Map<number, ErrorSuggestion>()
@@ -214,73 +213,3 @@ errorSuggestions.set(49, {
     message: "Contact support for assistance",
     docUrl: "https://support.freeclimb.com",
 })
-
-export function errorWithSuggestions(errorM: any): string {
-    const errorInfo = errorSuggestions.get(errorM.code)
-    const suggestion = errorInfo?.message || "Refer to documentation"
-    const tryCommands = errorInfo?.tryCommands || []
-    const docUrl = errorInfo?.docUrl || errorM.url
-
-    return formatEnhancedError(errorM.code, errorM.message, suggestion, tryCommands, docUrl)
-}
-
-export function returnFormat(
-    code: number,
-    message: string,
-    url: string,
-    suggestion: string,
-): string {
-    return formatEnhancedError(code, message, suggestion, [], url)
-}
-
-function formatEnhancedError(
-    code: number,
-    message: string,
-    suggestion: string,
-    tryCommands: string[],
-    docUrl?: string,
-): string {
-    if (isAgentMode()) {
-        return JSON.stringify(
-            {
-                error: true,
-                code,
-                message,
-                suggestion,
-                tryCommands: tryCommands.length > 0 ? tryCommands : undefined,
-                docUrl: docUrl || undefined,
-            },
-            null,
-            2,
-        )
-    }
-
-    const lines: string[] = []
-
-    lines.push("")
-    lines.push(red(`Error: ${message}`))
-    lines.push("")
-    lines.push(`${bold("Code:")} ${code}`)
-    lines.push(`${bold("Suggestion:")} ${suggestion}`)
-
-    if (tryCommands.length > 0) {
-        lines.push("")
-        lines.push(yellow("Try:"))
-        tryCommands.forEach((cmd, i) => {
-            if (cmd.startsWith("freeclimb")) {
-                lines.push(`  ${i + 1}. ${cyan(cmd)}`)
-            } else {
-                lines.push(`  ${i + 1}. ${cmd}`)
-            }
-        })
-    }
-
-    if (docUrl) {
-        lines.push("")
-        lines.push(dim(`Need help? ${docUrl}`))
-    }
-
-    lines.push("")
-
-    return lines.join("\n")
-}

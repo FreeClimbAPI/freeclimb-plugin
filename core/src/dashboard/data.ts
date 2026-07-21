@@ -69,22 +69,17 @@ export interface DashboardDataManagerOptions {
     sources?: Record<string, ResourceReader>
 }
 
-export async function resolveDashboardSnapshot(
-    spec: DashboardSpec,
-    options: Pick<DashboardDataManagerOptions, "checkAuth" | "sources"> = {},
+async function fetchSourceBindings(
+    bindings: SourceBindingMatch[],
+    sources: Record<string, ResourceReader>,
+    checkAuth: () => Promise<unknown>,
 ): Promise<DashboardSnapshot> {
-    validateSourceBindings(spec)
-    const bindings = extractSourceBindings(spec.state ?? {})
-    if (bindings.length === 0) return { errors: [], updates: [] }
-
-    const checkAuth = options.checkAuth ?? createApiAxios
-    const sources = options.sources ?? readResources
-
     try {
         await checkAuth()
-    } catch {
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error)
         return {
-            errors: [{ message: "Authentication failed", path: "", source: "auth" }],
+            errors: [{ message: message || "Authentication failed", path: "", source: "auth" }],
             updates: [],
         }
     }
@@ -114,6 +109,28 @@ export async function resolveDashboardSnapshot(
     }
 
     return { errors, updates }
+}
+
+export async function resolveDashboardSnapshot(
+    spec: DashboardSpec,
+    options: Pick<DashboardDataManagerOptions, "checkAuth" | "sources"> = {},
+): Promise<DashboardSnapshot> {
+    validateSourceBindings(spec)
+    const bindings = extractSourceBindings(spec.state ?? {})
+    if (bindings.length === 0) return { errors: [], updates: [] }
+
+    const snapshot = await fetchSourceBindings(
+        bindings,
+        options.sources ?? readResources,
+        options.checkAuth ?? createApiAxios,
+    )
+    if (snapshot.errors.some((e) => e.source === "auth")) {
+        return {
+            errors: [{ message: "Authentication failed", path: "", source: "auth" }],
+            updates: [],
+        }
+    }
+    return snapshot
 }
 
 export class DashboardDataManager {
@@ -157,35 +174,14 @@ export class DashboardDataManager {
     }
 
     private async fetchAll(): Promise<void> {
-        try {
-            await this.checkAuth()
-        } catch (error: unknown) {
-            this.onError?.("auth", error instanceof Error ? error : new Error(String(error)))
-            return
-        }
-
-        const results = await Promise.allSettled(
-            this.bindings.map(async ({ path, binding }) => {
-                const fetcher = this.sources[binding.$source]
-                if (!fetcher) {
-                    throw new Error(`Unknown data source: ${binding.$source}`)
-                }
-                const data = await fetcher(binding.params)
-                return { path, value: data, source: binding.$source }
-            }),
+        const { errors, updates } = await fetchSourceBindings(
+            this.bindings,
+            this.sources,
+            this.checkAuth,
         )
 
-        const updates: StateUpdate[] = []
-        for (const result of results) {
-            if (result.status === "fulfilled") {
-                updates.push(result.value)
-            } else {
-                const reason =
-                    result.reason instanceof Error
-                        ? result.reason
-                        : new Error(String(result.reason))
-                this.onError?.("fetch", reason)
-            }
+        for (const error of errors) {
+            this.onError?.(error.source === "auth" ? "auth" : "fetch", new Error(error.message))
         }
 
         if (updates.length > 0) {

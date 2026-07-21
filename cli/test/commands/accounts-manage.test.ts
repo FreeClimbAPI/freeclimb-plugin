@@ -17,13 +17,19 @@ describe("accounts:manage Data Test", function () {
         nock.cleanAll()
     })
 
-    it("Test all required paramaters", async () => {
-        nock("https://www.freeclimb.com")
-            .post(`/apiserver/Accounts/${await cred.accountId}`, {})
-            .query({})
-            .reply(200, testJson)
-        const { stdout } = await runCommand(["accounts:manage"])
-        expect(stdout).to.contain(nockServerResponse)
+    it("warns and skips the API when no update flags are provided", async () => {
+        nock.disableNetConnect()
+        try {
+            const { stderr } = await runCommand(["accounts:manage"])
+            const plainStderr = stderr.replaceAll(
+                new RegExp(`${String.fromCodePoint(27)}[^m]*m`, "g"),
+                "",
+            )
+            expect(plainStderr).to.contain("Nothing Has Been Updated")
+            expect(plainStderr).to.contain("freeclimb accounts:manage -h")
+        } finally {
+            nock.enableNetConnect()
+        }
     })
 
     it("Test Freeclimb Api error repsonce is process correctly without a suggestion", async () => {
@@ -34,22 +40,26 @@ describe("accounts:manage Data Test", function () {
             details: {},
         }
         nock("https://www.freeclimb.com")
-            .post(`/apiserver/Accounts/${await cred.accountId}`, {})
+            .post(`/apiserver/Accounts/${await cred.accountId}`, {
+                alias: "test-alias",
+            })
             .query({})
             .reply(500, testJsonErrorNoSuggestion)
-        const { error } = await runCommand(["accounts:manage"])
+        const { error } = await runCommand(["accounts:manage", "--alias", "test-alias"])
         expect(error?.oclif?.exit).to.equal(3)
     })
 
     it("Sends API requests to the base URL from an environment variable", async () => {
         nock("https://user-custom-domain.example.com")
-            .post(`/apiserver/Accounts/${await cred.accountId}`, {})
+            .post(`/apiserver/Accounts/${await cred.accountId}`, {
+                alias: "test-alias",
+            })
             .query({})
             .reply(200, testJson)
         const orig = process.env.FREECLIMB_CLI_BASE_URL
         process.env.FREECLIMB_CLI_BASE_URL = "https://user-custom-domain.example.com/apiserver"
         try {
-            const { stdout } = await runCommand(["accounts:manage"])
+            const { stdout } = await runCommand(["accounts:manage", "--alias", "test-alias"])
             expect(stdout).to.contain(nockServerResponse)
         } finally {
             if (orig === undefined) {delete process.env.FREECLIMB_CLI_BASE_URL}
@@ -65,10 +75,12 @@ describe("accounts:manage Data Test", function () {
             details: {},
         }
         nock("https://www.freeclimb.com")
-            .post(`/apiserver/Accounts/${await cred.accountId}`, {})
+            .post(`/apiserver/Accounts/${await cred.accountId}`, {
+                alias: "test-alias",
+            })
             .query({})
             .reply(500, testJsonErrorWithSuggestion)
-        const { error } = await runCommand(["accounts:manage"])
+        const { error } = await runCommand(["accounts:manage", "--alias", "test-alias"])
         expect(error?.oclif?.exit).to.equal(3)
     })
 
@@ -79,10 +91,12 @@ describe("accounts:manage Data Test", function () {
 
     it("Test error resulting in an unreadable response", async () => {
         nock("https://www.freeclimb.com")
-            .post(`/apiserver/Accounts/${await cred.accountId}`, {})
+            .post(`/apiserver/Accounts/${await cred.accountId}`, {
+                alias: "test-alias",
+            })
             .query({})
             .reply(200)
-        const { error } = await runCommand(["accounts:manage"])
+        const { error } = await runCommand(["accounts:manage", "--alias", "test-alias"])
         expect(error?.oclif?.exit).to.equal(3)
     })
 
@@ -138,14 +152,9 @@ describe("accounts:manage Data Test", function () {
         })
 
         it("Tests return of Exit Code 3 when flag next is not available", async () => {
-            nock("https://www.freeclimb.com")
-                .post(`/apiserver/Accounts/${await cred.accountId}`, {})
-                .query({})
-                .reply(200, testJson)
             const orig = process.env.FREECLIMB_ACCOUNTS_MANAGE_NEXT
             delete process.env.FREECLIMB_ACCOUNTS_MANAGE_NEXT
             try {
-                await runCommand(["accounts:manage"])
                 const { error } = await runCommand(["accounts:manage", "--next"])
                 expect(error?.oclif?.exit).to.equal(3)
             } finally {
@@ -167,10 +176,12 @@ describe("accounts:manage Status Test", function () {
 
     it("Test all required paramaters", async () => {
         nock("https://www.freeclimb.com")
-            .post(`/apiserver/Accounts/${await cred.accountId}`, {})
+            .post(`/apiserver/Accounts/${await cred.accountId}`, {
+                alias: "test-alias",
+            })
             .query({})
             .reply(204, testJsonStatus)
-        const { stdout } = await runCommand(["accounts:manage"])
+        const { stdout } = await runCommand(["accounts:manage", "--alias", "test-alias"])
         expect(stdout).to.contain(statusResponse)
     })
 })

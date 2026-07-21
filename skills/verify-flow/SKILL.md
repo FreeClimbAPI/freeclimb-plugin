@@ -9,13 +9,15 @@ Use this skill before telling the user to place a live call or send a live SMS, 
 
 Two phases: validate the PerCL, then simulate the webhook path end to end.
 
+Guardrails: follow `rules/freeclimb.mdc` (canonical).
+
 ## Phase 1 - Validate PerCL
 
 For every route that returns PerCL, validate the JSON before deploying:
 
 - Use the `validate_percl` MCP tool with the exact array your route returns.
-- Fix all `errors`. Treat `warnings` (especially localhost/relative `actionUrl`) as blockers for a real call: FreeClimb cannot reach `localhost`, so the flow dies after the first step.
-- Confirm every `actionUrl` and webhook URL is an absolute, publicly reachable HTTPS URL (the tunnel/deploy base, not `localhost`).
+- Fix all `errors`. Treat `warnings` (especially localhost/relative `actionUrl`) as blockers for a real call.
+- Confirm every `actionUrl` and webhook URL uses the public base URL (tunnel/deploy), not `localhost`.
 
 If you do not have the MCP tools, validate by inspection against the `percl-call-control` skill.
 

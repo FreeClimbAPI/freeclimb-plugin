@@ -1,13 +1,14 @@
 import { Command, Flags } from "@oclif/core"
 import chalk from "chalk"
+import { getBaseUrl } from "@freeclimb/core"
 import { cred } from "../credentials.js"
 import { Environment } from "../environment.js"
-import { apiRequest, publicRequest } from "../http.js"
+import { apiRequest, publicRequest, FreeClimbHttpError } from "../http.js"
 import { wrapJsonOutput } from "../ui/format.js"
 import { createSpinner, Spinner } from "../ui/spinner.js"
-import { borderedBox, statusIndicator, keyValue } from "../ui/components.js"
+import { borderedBox, statusIndicator } from "../ui/components.js"
 import { BrandColors, supportsColor, isTTY, getTerminalWidth } from "../ui/theme.js"
-import { icons, getBoxChars } from "../ui/chars.js"
+import { icons } from "../ui/chars.js"
 
 interface DiagnoseResult {
     checks: {
@@ -18,6 +19,22 @@ interface DiagnoseResult {
     }[]
     overallStatus: "healthy" | "degraded" | "error"
     timestamp: string
+}
+
+interface CachedCredentials {
+    accountId: string | undefined
+    apiKey: string | undefined
+}
+
+interface ConnectivityProbe {
+    baseUrl: string
+    error?: { code?: string; message: string }
+    latency?: number
+}
+
+interface AccountProbe {
+    account?: { status?: string; type?: string }
+    error?: { message: string; status?: number }
 }
 
 export class Diagnose extends Command {
@@ -46,10 +63,11 @@ Useful for troubleshooting authentication or connectivity issues.
 
     private currentSpinner: Spinner | null = null
 
+    private cachedCredentials: CachedCredentials | null = null
+
     async run() {
         const { flags } = await this.parse(Diagnose)
 
-        // Use spinners only for TTY and non-JSON output
         this.jsonMode = flags.json
         this.useSpinners = !flags.json && isTTY()
 
@@ -70,19 +88,20 @@ Useful for troubleshooting authentication or connectivity issues.
             this.log("")
         }
 
-        // Check 1: Credentials configuration
         await this.checkCredentials(result)
 
-        // Check 2: API connectivity
-        await this.checkConnectivity(result)
+        const credentials = await this.loadCredentials()
+        const hasCredentials = Boolean(credentials.accountId && credentials.apiKey)
 
-        // Check 3: Authentication
-        await this.checkAuthentication(result)
+        const [connectivityProbe, accountProbe] = await Promise.all([
+            this.probeConnectivity(),
+            hasCredentials ? this.probeAccount() : Promise.resolve(null),
+        ])
 
-        // Check 4: Account status
-        await this.checkAccountStatus(result)
+        this.applyConnectivityCheck(result, connectivityProbe)
+        this.applyAuthenticationCheck(result, accountProbe, hasCredentials)
+        this.applyAccountStatusCheck(result, accountProbe, hasCredentials)
 
-        // Determine overall status
         const hasFail = result.checks.some((c) => c.status === "fail")
         const hasWarn = result.checks.some((c) => c.status === "warn")
         result.overallStatus = hasFail ? "error" : hasWarn ? "degraded" : "healthy"
@@ -92,8 +111,17 @@ Useful for troubleshooting authentication or connectivity issues.
             return
         }
 
-        // Render summary
         this.renderSummary(result)
+    }
+
+    private async loadCredentials(): Promise<CachedCredentials> {
+        if (!this.cachedCredentials) {
+            this.cachedCredentials = {
+                accountId: await cred.accountId,
+                apiKey: await cred.apiKey,
+            }
+        }
+        return this.cachedCredentials
     }
 
     private startCheck(name: string): void {
@@ -132,7 +160,6 @@ Useful for troubleshooting authentication or connectivity issues.
             }
             this.currentSpinner = null
         } else if (!this.useSpinners && !this.jsonMode) {
-            // Non-TTY, non-JSON output
             this.log(statusIndicator(status, `${name}: ${message}`))
             if (details) {
                 this.log(chalk.dim(`  ${details}`))
@@ -145,8 +172,7 @@ Useful for troubleshooting authentication or connectivity issues.
         this.startCheck(checkName)
 
         try {
-            const accountId = await cred.accountId
-            const apiKey = await cred.apiKey
+            const { accountId, apiKey } = await this.loadCredentials()
 
             if (!accountId || !apiKey) {
                 this.endCheck(
@@ -181,31 +207,46 @@ Useful for troubleshooting authentication or connectivity issues.
         }
     }
 
-    private async checkConnectivity(result: DiagnoseResult): Promise<void> {
-        const checkName = "API Connectivity"
-        this.startCheck(checkName)
-
-        const baseUrl =
-            Environment.getString("FREECLIMB_CLI_BASE_URL") || "https://www.freeclimb.com/apiserver"
+    private async probeConnectivity(): Promise<ConnectivityProbe> {
+        const baseUrl = getBaseUrl()
 
         try {
             const start = Date.now()
             await publicRequest({ method: "GET", path: "", timeout: 10000 })
-            const latency = Date.now() - start
-
-            if (latency > 2000) {
-                this.endCheck(
-                    result,
-                    checkName,
-                    "warn",
-                    `API reachable but slow (${latency}ms)`,
-                    "Check your network connection",
-                )
-            } else {
-                this.endCheck(result, checkName, "pass", `API reachable (${latency}ms)`, baseUrl)
-            }
+            return { baseUrl, latency: Date.now() - start }
         } catch (error: any) {
-            if (error.code === "ECONNREFUSED") {
+            return {
+                baseUrl,
+                error: { code: error.code, message: error.message },
+            }
+        }
+    }
+
+    private async probeAccount(): Promise<AccountProbe> {
+        try {
+            const response = await apiRequest<{ status?: string; type?: string }>({
+                method: "GET",
+                path: "",
+                timeout: 10000,
+            })
+            return { account: response.data }
+        } catch (error: unknown) {
+            const httpError = error instanceof FreeClimbHttpError ? error : undefined
+            return {
+                error: {
+                    message: error instanceof Error ? error.message : String(error),
+                    status: httpError?.status,
+                },
+            }
+        }
+    }
+
+    private applyConnectivityCheck(result: DiagnoseResult, probe: ConnectivityProbe): void {
+        const checkName = "API Connectivity"
+        this.startCheck(checkName)
+
+        if (probe.error) {
+            if (probe.error.code === "ECONNREFUSED") {
                 this.endCheck(
                     result,
                     checkName,
@@ -213,7 +254,7 @@ Useful for troubleshooting authentication or connectivity issues.
                     "Cannot connect to FreeClimb API",
                     "Check your internet connection",
                 )
-            } else if (error.code === "ETIMEDOUT") {
+            } else if (probe.error.code === "ETIMEDOUT") {
                 this.endCheck(
                     result,
                     checkName,
@@ -222,76 +263,103 @@ Useful for troubleshooting authentication or connectivity issues.
                     "Network may be slow or blocked",
                 )
             } else {
-                this.endCheck(result, checkName, "warn", "API check returned error", error.message)
+                this.endCheck(
+                    result,
+                    checkName,
+                    "warn",
+                    "API check returned error",
+                    probe.error.message,
+                )
             }
+            return
+        }
+
+        const latency = probe.latency ?? 0
+        if (latency > 2000) {
+            this.endCheck(
+                result,
+                checkName,
+                "warn",
+                `API reachable but slow (${latency}ms)`,
+                "Check your network connection",
+            )
+        } else {
+            this.endCheck(result, checkName, "pass", `API reachable (${latency}ms)`, probe.baseUrl)
         }
     }
 
-    private async checkAuthentication(result: DiagnoseResult): Promise<void> {
+    private applyAuthenticationCheck(
+        result: DiagnoseResult,
+        probe: AccountProbe | null,
+        hasCredentials: boolean,
+    ): void {
         const checkName = "Authentication"
         this.startCheck(checkName)
 
-        try {
-            const accountId = await cred.accountId
-            const apiKey = await cred.apiKey
+        if (!hasCredentials) {
+            this.endCheck(result, checkName, "fail", "No credentials to test")
+            return
+        }
 
-            if (!accountId || !apiKey) {
-                this.endCheck(result, checkName, "fail", "No credentials to test")
-                return
-            }
+        if (!probe) {
+            this.endCheck(result, checkName, "fail", "Authentication check failed")
+            return
+        }
 
-            const response = await apiRequest({ method: "GET", path: "", timeout: 10000 })
+        if (probe.account) {
+            this.endCheck(result, checkName, "pass", "Authentication successful")
+            return
+        }
 
-            if (response.status === 200) {
-                this.endCheck(result, checkName, "pass", "Authentication successful")
-            }
-        } catch (error: any) {
-            if (error.response?.status === 401) {
-                this.endCheck(
-                    result,
-                    checkName,
-                    "fail",
-                    "Invalid credentials",
-                    "Run 'freeclimb login' to re-authenticate",
-                )
-            } else if (error.response?.status === 403) {
-                this.endCheck(
-                    result,
-                    checkName,
-                    "fail",
-                    "Account access denied",
-                    "Check your account status",
-                )
-            } else {
-                this.endCheck(
-                    result,
-                    checkName,
-                    "fail",
-                    "Authentication check failed",
-                    error.message,
-                )
-            }
+        const status = probe.error?.status
+        if (status === 401) {
+            this.endCheck(
+                result,
+                checkName,
+                "fail",
+                "Invalid credentials",
+                "Run 'freeclimb login' to re-authenticate",
+            )
+        } else if (status === 403) {
+            this.endCheck(
+                result,
+                checkName,
+                "fail",
+                "Account access denied",
+                "Check your account status",
+            )
+        } else {
+            this.endCheck(
+                result,
+                checkName,
+                "fail",
+                "Authentication check failed",
+                probe.error?.message,
+            )
         }
     }
 
-    private async checkAccountStatus(result: DiagnoseResult): Promise<void> {
+    private applyAccountStatusCheck(
+        result: DiagnoseResult,
+        probe: AccountProbe | null,
+        hasCredentials: boolean,
+    ): void {
         const checkName = "Account Status"
         this.startCheck(checkName)
 
-        try {
-            const accountId = await cred.accountId
-            const apiKey = await cred.apiKey
+        if (!hasCredentials) {
+            this.endCheck(result, checkName, "fail", "Cannot check - no credentials")
+            return
+        }
 
-            if (!accountId || !apiKey) {
-                this.endCheck(result, checkName, "fail", "Cannot check - no credentials")
-                return
-            }
+        if (!probe) {
+            this.endCheck(result, checkName, "fail", "Cannot check - authentication failed")
+            return
+        }
 
-            const response = await apiRequest({ method: "GET", path: "", timeout: 10000 })
-
-            const account = response.data as { status?: string; type?: string }
-            const status = account.status?.toLowerCase()
-            const type = account.type?.toLowerCase()
+        if (probe.account) {
+            const status = probe.account.status?.toLowerCase()
+            const type = probe.account.type?.toLowerCase()
 
             if (status === "active") {
                 const typeLabel = type === "trial" ? " (trial)" : ""
@@ -307,19 +375,20 @@ Useful for troubleshooting authentication or connectivity issues.
             } else {
                 this.endCheck(result, checkName, "warn", `Account status: ${status}`)
             }
-        } catch (error: any) {
-            // Skip if auth already failed
-            if (error.response?.status === 401 || error.response?.status === 403) {
-                this.endCheck(result, checkName, "fail", "Cannot check - authentication failed")
-            } else {
-                this.endCheck(
-                    result,
-                    checkName,
-                    "warn",
-                    "Could not fetch account status",
-                    error.message,
-                )
-            }
+            return
+        }
+
+        const authStatus = probe.error?.status
+        if (authStatus === 401 || authStatus === 403) {
+            this.endCheck(result, checkName, "fail", "Cannot check - authentication failed")
+        } else {
+            this.endCheck(
+                result,
+                checkName,
+                "warn",
+                "Could not fetch account status",
+                probe.error?.message,
+            )
         }
     }
 
@@ -327,10 +396,8 @@ Useful for troubleshooting authentication or connectivity issues.
         const width = Math.min(getTerminalWidth(), 80)
         this.log("")
 
-        // Summary header
         const summaryLines: string[] = []
 
-        // Count results
         const passCount = result.checks.filter((c) => c.status === "pass").length
         const failCount = result.checks.filter((c) => c.status === "fail").length
         const warnCount = result.checks.filter((c) => c.status === "warn").length
@@ -341,7 +408,6 @@ Useful for troubleshooting authentication or connectivity issues.
             "",
         )
 
-        // Overall status message
         let statusMessage: string
         let statusColor: "success" | "warning" | "error"
 
@@ -363,8 +429,7 @@ Useful for troubleshooting authentication or connectivity issues.
             }
         }
 
-        // Word-wrap status message to fit within the box
-        const maxLineLen = width - 6 // 2 borders + 2 padding + 2 indent
+        const maxLineLen = width - 6
         const words = statusMessage.split(" ")
         const wrappedLines: string[] = []
         let currentLine = ""

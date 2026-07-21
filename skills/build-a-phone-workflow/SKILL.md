@@ -7,6 +7,10 @@ description: Turn a business request into a practical FreeClimb voice or SMS wor
 
 Use this skill when the user asks for a phone line, IVR, voicemail, call routing, SMS responder, appointment reminder, or similar communications workflow.
 
+Guardrails: follow `rules/freeclimb.mdc` (canonical).
+
+For voice application setup depth, use MCP resource `freeclimb://skills/freeclimb-voice-applications`.
+
 ## Start With The Business Goal
 
 Restate the user's request in simple terms:
@@ -32,8 +36,6 @@ Translate the request into:
 For local development, prefer `freeclimb dev` because it creates a tunnel, configures webhook URLs, and can assign a number.
 
 ## Make Webhook URLs Publicly Reachable
-
-FreeClimb requires every PerCL `actionUrl` to be an absolute, publicly reachable URL. Relative paths and `localhost` URLs fail silently: the caller hears the first greeting, then the menu or recording step dies because FreeClimb cannot reach the next route.
 
 Build the app so it constructs absolute URLs from a configurable public base instead of hardcoding `localhost`:
 
@@ -65,17 +67,11 @@ Use Express for the simplest Node.js demo app unless the current project already
 
 For SMS apps, the Application's `smsUrl` receives inbound messages (FreeClimb POSTs `from`, `to`, `text`). Respond with PerCL using the `Sms` command, sending from a FreeClimb SMS-enabled number.
 
-Always honor opt-out and help, since messaging carries compliance obligations:
-
-- `STOP` / `UNSUBSCRIBE` / `CANCEL` / `END` / `QUIT`: stop messaging that number and confirm once.
-- `HELP` / `INFO`: reply with what the service is and how to opt out.
-- Do not send unsolicited, repeated, or surprise messages. Only message numbers that initiated contact or explicitly opted in.
+Honor opt-out and help per `rules/freeclimb.mdc`; see the `sms-compliance` skill for the full pattern.
 
 ```text
 /sms-inbound: read `text`; if STOP-like -> confirm opt-out; if HELP -> send help; else handle normally.
 ```
-
-On trial accounts, outbound SMS only reaches verified destination numbers.
 
 ## Validate Before Going Live
 
@@ -104,6 +100,3 @@ Create a simple FreeClimb support line for a small business.
 When someone calls, greet them, ask them to press 1 for sales or 2 for support, and send anyone else to voicemail. Build the local webhook app, explain what FreeClimb resources are needed, and help me run it so I can call the number live.
 ```
 
-## Safety
-
-Use `--dry-run` before destructive or paid actions when available. Confirm with the user before buying numbers, deleting resources, or exposing secrets.

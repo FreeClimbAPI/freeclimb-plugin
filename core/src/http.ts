@@ -1,7 +1,7 @@
 import axios, { AxiosInstance, AxiosError, Method } from "axios"
 import { randomUUID } from "crypto"
 import { Environment } from "./environment.js"
-import { cred } from "./credentials.js"
+import { cred, clearCredentialCache } from "./credentials.js"
 
 const DEFAULT_TIMEOUT = 30_000
 const DEFAULT_MAX_RETRIES = 3
@@ -28,7 +28,7 @@ function getTimeout(): number {
     return DEFAULT_TIMEOUT
 }
 
-function getBaseUrl(): string {
+export function getBaseUrl(): string {
     return Environment.getString("FREECLIMB_CLI_BASE_URL") || DEFAULT_BASE_URL
 }
 
@@ -78,45 +78,68 @@ function attachResilience(instance: AxiosInstance, maxRetries: number): void {
     })
 }
 
+const clientCache = new Map<string, AxiosInstance>()
+
+function cacheKey(flavor: string, accountId: string | undefined, apiKey: string | undefined) {
+    return [flavor, accountId, apiKey, getBaseUrl(), getTimeout(), getMaxRetries()].join("\u0000")
+}
+
+function getCachedClient(key: string, build: () => AxiosInstance): AxiosInstance {
+    const cached = clientCache.get(key)
+    if (cached) return cached
+    const instance = build()
+    clientCache.set(key, instance)
+    if (clientCache.size > 8) {
+        const oldest = clientCache.keys().next().value
+        if (oldest !== undefined && oldest !== key) clientCache.delete(oldest)
+    }
+    return instance
+}
+
 export async function createApiAxios(): Promise<AxiosInstance> {
     const accountId = await cred.accountId
     const apiKey = await cred.apiKey
 
-    const instance = axios.create({
-        baseURL: `${getBaseUrl()}/Accounts/${accountId}`,
-        auth: {
-            username: accountId,
-            password: apiKey,
-        },
-        headers: {
-            "Content-Type": "application/json",
-        },
-        timeout: getTimeout(),
+    return getCachedClient(cacheKey("api", accountId, apiKey), () => {
+        const instance = axios.create({
+            baseURL: `${getBaseUrl()}/Accounts/${accountId}`,
+            auth: {
+                username: accountId,
+                password: apiKey,
+            },
+            headers: {
+                "Content-Type": "application/json",
+            },
+            timeout: getTimeout(),
+        })
+        attachResilience(instance, getMaxRetries())
+        return instance
     })
-
-    attachResilience(instance, getMaxRetries())
-    return instance
 }
 
 async function createPublicAxios(useAuth: boolean): Promise<AxiosInstance> {
-    const instance = axios.create({
-        baseURL: getBaseUrl(),
-        headers: {
-            "Content-Type": "application/json",
-        },
-        timeout: getTimeout(),
-        ...(useAuth
-            ? {
-                  auth: {
-                      username: (await cred.accountId) || "",
-                      password: (await cred.apiKey) || "",
-                  },
-              }
-            : {}),
-    })
+    const accountId = useAuth ? (await cred.accountId) || "" : undefined
+    const apiKey = useAuth ? (await cred.apiKey) || "" : undefined
 
-    attachResilience(instance, getMaxRetries())
-    return instance
+    return getCachedClient(cacheKey(useAuth ? "public-auth" : "public", accountId, apiKey), () => {
+        const instance = axios.create({
+            baseURL: getBaseUrl(),
+            headers: {
+                "Content-Type": "application/json",
+            },
+            timeout: getTimeout(),
+            ...(useAuth
+                ? {
+                      auth: {
+                          username: accountId as string,
+                          password: apiKey as string,
+                      },
+                  }
+                : {}),
+        })
+        attachResilience(instance, getMaxRetries())
+        return instance
+    })
 }
 
 export interface ApiResponse<T = unknown> {
@@ -244,14 +267,35 @@ async function execute<T>(
     }
 }
 
+async function executeWithAuthRefresh<T>(
+    createClient: () => Promise<AxiosInstance>,
+    options: ApiRequestOptions,
+): Promise<ApiResponse<T>> {
+    const client = await createClient()
+    try {
+        return await execute<T>(client, options)
+    } catch (error) {
+        if (error instanceof FreeClimbHttpError && error.status === 401) {
+            clearCredentialCache()
+            clientCache.clear()
+            const freshClient = await createClient()
+            return execute<T>(freshClient, options)
+        }
+        throw error
+    }
+}
+
 export async function apiRequest<T = unknown>(options: ApiRequestOptions): Promise<ApiResponse<T>> {
-    const client = await createApiAxios()
-    return execute<T>(client, options)
+    return executeWithAuthRefresh<T>(createApiAxios, options)
 }
 
 export async function publicRequest<T = unknown>(
     options: PublicRequestOptions,
 ): Promise<ApiResponse<T>> {
-    const client = await createPublicAxios(options.auth ?? false)
-    return execute<T>(client, options)
+    const useAuth = options.auth ?? false
+    if (!useAuth) {
+        const client = await createPublicAxios(false)
+        return execute<T>(client, options)
+    }
+    return executeWithAuthRefresh<T>(() => createPublicAxios(true), options)
 }

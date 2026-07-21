@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
-import { tools } from "../lib/tools.js"
+import { tools } from "../lib/registry.js"
 
 const MUTATING_TOOL_NAMES = [
     "make_call",
@@ -14,8 +14,8 @@ const MUTATING_TOOL_NAMES = [
 ]
 
 describe("MCP tool definitions", () => {
-    it("exposes exactly the 19 read-only tools", () => {
-        assert.equal(Object.keys(tools).length, 19)
+    it("exposes exactly the 33 read-only tools", () => {
+        assert.equal(Object.keys(tools).length, 33)
     })
 
     it("contains no mutating tools (ADR 0005)", () => {

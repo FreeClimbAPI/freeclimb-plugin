@@ -7,17 +7,19 @@ description: Triage FreeClimb production incidents by correlating logs with call
 
 Use this skill when a user reports a production FreeClimb problem — calls dropping, SMS not arriving, a spike in failures — and asks for a diagnosis rather than a single lookup.
 
-Use the MCP tools for every read in this runbook. Reach for the CLI only for `freeclimb diagnose`/`freeclimb status` or to hand the user a support-ready command; the MCP surface is read-only and cannot change the account.
+Guardrails: follow `rules/freeclimb.mdc` (canonical).
+
+Use the MCP tools for every read in this runbook. Reach for the CLI only for `freeclimb diagnose`/`freeclimb status` or to hand the user a support-ready command.
 
 ## Triage Runbook
 
 1. **Account standing.** Call `get_account` first. A suspended, unpaid, or degraded account explains everything else — stop here and surface it if so.
 2. **Scope the incident.** Get the affected `callId`/`messageId` (or a time window) from the user. Use `get_call` / `get_sms` to pull the specific record(s): status, `from`/`to`, timestamps, `applicationId`.
-3. **Correlate logs.** Use `filter_logs` with PQL scoped to the incident:
+3. **Correlate logs.** When you have a `callId`, prefer `list_call_logs` (MCP) or GET `/Accounts/{accountId}/Calls/{callId}/Logs`. Otherwise use `filter_logs` with PQL scoped to the incident:
    - `callId = "CA..."` or `messageId = "SM..."` for a single incident.
    - `level = "ERROR"` combined with a time range for a spike.
    - Combine filters (e.g. `level = "ERROR" AND callId = "CA..."`) to narrow fast.
-4. **Check the application config.** Use `get_application` on the relevant `applicationId` — a webhook URL that changed or points at a dead tunnel is one of the most common root causes.
+4. **Check the application config.** Use `get_application` on the relevant `applicationId` — a webhook URL that changed or points at a dead tunnel is one of the most common root causes. If fallback URLs are configured, remember `voiceFallbackUrl`/`smsFallbackUrl` each fire at most once when the primary URL fails — they are not a retry loop.
 5. **Check number assignment.** Use `list_numbers`/`get_number` to confirm the number is still assigned to the expected application.
 6. **Widen if needed.** If the single-call trail doesn't explain it, use `list_calls`/`list_sms` filtered by status/time to see if it's an isolated incident or a pattern.
 
@@ -26,12 +28,14 @@ Use the MCP tools for every read in this runbook. Reach for the CLI only for `fr
 | Signature | Evidence Pattern | Fix |
 |-----------|-------------------|-----|
 | Dead/unreachable `actionUrl` | Call connects, plays the first prompt, then drops; logs show a webhook timeout or connection error for the follow-up POST | Confirm the tunnel/server is up; `get_application` to check the URL is current and HTTPS; redeploy or re-tunnel |
+| `webhookFailed` / `webhookInvalidResponse` | `get_call` shows matching `callEndedReason`; logs show POST failure or invalid PerCL after a webhook | Fix URL reachability/HTTPS on the failing route; run `validate_percl` on the response body |
 | Invalid PerCL response | Logs show a parse/validation error right after a webhook POST; call ends abruptly after a route change | Pull the offending route's response and run `validate_percl` on it; fix the malformed command or bad `actionUrl` |
+| Fallback URL exhausted | Primary webhook timed out or errored once, then fallback also failed | `voiceFallbackUrl`/`smsFallbackUrl` are one-shot alternates — fix the primary server, not another fallback layer |
 | Trial-account limits | Error codes 29 (unverified outbound number) or 76 (number limit reached) in logs; outbound call/SMS to a new number fails immediately | Verify the destination in the dashboard, or note the account needs to upgrade past trial |
 | Rate limiting | Error code 24, or HTTP 429 in logs, clustered around a burst of requests | Confirm request volume/timing with the user; recommend backoff/spacing; this is not a code bug |
 | Carrier-level failure | Call `status` is `busy`, `failed`, or `noAnswer` with no corresponding application-level error in logs | Not a FreeClimb-side bug; carrier/destination issue. Confirm the destination number is reachable and correctly formatted |
 
-Cross-reference exact error codes against `cli/skills/platform/error-recovery.md` (surfaced via the MCP resource `freeclimb://skills/freeclimb-error-recovery`) when a log entry includes a numeric code.
+Cross-reference exact error codes against MCP resource `freeclimb://skills/freeclimb-error-recovery` (monorepo: `cli/skills/platform/error-recovery.md`) when a log entry includes a numeric code.
 
 ## Escalation
 

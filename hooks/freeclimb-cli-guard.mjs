@@ -10,7 +10,7 @@ process.stdin.on("end", () => {
   }
 
   const billable =
-    /\bfreeclimb\s+(calls:make|calls:update|sms:send|incoming-numbers:(buy|delete|update)|applications:(create|update|delete)|conference-participants:remove|recordings:delete)\b/.test(
+    /\bfreeclimb\s+(calls:make|calls:update|sms:send|incoming-numbers:(buy|delete|update)|applications:(create|update|delete)|conference-participants:remove|recordings:delete|exports:delete|blobs:delete)\b/.test(
       command,
     ) ||
     (/\bfreeclimb\s+api\b/.test(command) && /--method[= ]+(POST|PUT|DELETE)\b/i.test(command));

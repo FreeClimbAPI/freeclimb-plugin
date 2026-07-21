@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
-import { tools } from "../lib/tools.js"
-import { handlers, dispatchTool, defaultContext } from "../lib/handlers.js"
+import { ValidationError } from "@freeclimb/core"
+import { tools, handlers, dispatchTool, defaultContext, toolRegistry } from "../lib/registry.js"
 
 describe("MCP tool dispatch", () => {
     it("has a handler for every tool name", () => {
@@ -72,6 +72,96 @@ describe("MCP tool dispatch", () => {
         assert.deepEqual(result, { applicationId: "AP1" })
     })
 
+    it("dispatches list_brands through the injected context", async () => {
+        const ctx = {
+            ...defaultContext,
+            listBrands: async () => ({ brands: [{ brandId: "BR1" }] }),
+        }
+
+        const result = await dispatchTool("list_brands", {}, ctx)
+
+        assert.deepEqual(result, { brands: [{ brandId: "BR1" }] })
+    })
+
+    it("dispatches get_brand through the injected context with the given id", async () => {
+        let capturedId
+        const ctx = {
+            ...defaultContext,
+            getBrand: async (id) => {
+                capturedId = id
+                return { brandId: id }
+            },
+        }
+
+        const result = await dispatchTool("get_brand", { brandId: "BR1" }, ctx)
+
+        assert.equal(capturedId, "BR1")
+        assert.deepEqual(result, { brandId: "BR1" })
+    })
+
+    it("dispatches list_call_logs through the injected context with the given callId", async () => {
+        let capturedCallId
+        const ctx = {
+            ...defaultContext,
+            listCallLogs: async (callId) => {
+                capturedCallId = callId
+                return { logs: [{ level: "ERROR", message: "timeout" }] }
+            },
+        }
+
+        const result = await dispatchTool("list_call_logs", { callId: "CA1" }, ctx)
+
+        assert.equal(capturedCallId, "CA1")
+        assert.deepEqual(result, { logs: [{ level: "ERROR", message: "timeout" }] })
+    })
+
+    it("dispatches list_conference_participants through the injected context", async () => {
+        let capturedId
+        const ctx = {
+            ...defaultContext,
+            listConferenceParticipants: async (conferenceId) => {
+                capturedId = conferenceId
+                return { participants: [{ callId: "CA2" }] }
+            },
+        }
+
+        const result = await dispatchTool(
+            "list_conference_participants",
+            { conferenceId: "CF1" },
+            ctx,
+        )
+
+        assert.equal(capturedId, "CF1")
+        assert.deepEqual(result, { participants: [{ callId: "CA2" }] })
+    })
+
+    it("dispatches get_recording through the injected context with the given id", async () => {
+        let capturedId
+        const ctx = {
+            ...defaultContext,
+            getRecording: async (id) => {
+                capturedId = id
+                return { recordingId: id, durationSec: 42 }
+            },
+        }
+
+        const result = await dispatchTool("get_recording", { recordingId: "RE1" }, ctx)
+
+        assert.equal(capturedId, "RE1")
+        assert.deepEqual(result, { recordingId: "RE1", durationSec: 42 })
+    })
+
+    it("dispatches list_exports through the injected context", async () => {
+        const ctx = {
+            ...defaultContext,
+            listExports: async () => ({ exports: [{ exportId: "EX1", status: "completed" }] }),
+        }
+
+        const result = await dispatchTool("list_exports", {}, ctx)
+
+        assert.deepEqual(result, { exports: [{ exportId: "EX1", status: "completed" }] })
+    })
+
     it("validates PerCL locally without touching the context", async () => {
         const result = await dispatchTool("validate_percl", { percl: [{ Hangup: {} }] })
         assert.ok(result)
@@ -111,5 +201,44 @@ describe("MCP tool dispatch", () => {
         assert.deepEqual(receivedSpec, spec)
         assert.equal(result.message, "FreeClimb dashboard snapshot rendered in-IDE.")
         assert.equal(result.dashboard.root.props.value, 4)
+    })
+
+    it("rejects every tool with required args when called with empty input", async () => {
+        const stubCtx = {
+            ...defaultContext,
+            getCall: async () => {
+                throw new Error("should not reach handler")
+            },
+        }
+
+        for (const [name, entry] of Object.entries(toolRegistry)) {
+            const required = entry.inputSchema.required ?? []
+            if (required.length === 0) continue
+
+            await assert.rejects(
+                () => dispatchTool(name, {}, stubCtx),
+                (error) => {
+                    assert.ok(error instanceof ValidationError, name)
+                    return true
+                },
+                name,
+            )
+        }
+    })
+
+    it("still dispatches get_call when required args are present", async () => {
+        let capturedId
+        const ctx = {
+            ...defaultContext,
+            getCall: async (id) => {
+                capturedId = id
+                return { callId: id }
+            },
+        }
+
+        const result = await dispatchTool("get_call", { callId: "CA123" }, ctx)
+
+        assert.equal(capturedId, "CA123")
+        assert.deepEqual(result, { callId: "CA123" })
     })
 })

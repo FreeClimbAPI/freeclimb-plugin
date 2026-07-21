@@ -5,6 +5,8 @@ description: Create privacy-safe FreeClimb dashboards from read-only account dat
 
 # Render A FreeClimb Dashboard
 
+Guardrails: follow `rules/freeclimb.mdc` (canonical).
+
 ## Start With The Decision
 
 Identify what the user needs to decide or monitor. Prefer a small dashboard with:

@@ -19,15 +19,15 @@ import { readFileSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 import { dirname, join } from "node:path"
 
-import { tools, type ToolName } from "./tools.js"
-import { UI_TABLE_URI, UI_TABLE_MIME, UI_TOOLS, TABLE_HTML, buildUiPayload } from "./ui.js"
+import { dispatchTool, tools, type ToolName } from "./registry.js"
+import { UI_TABLE_URI, UI_TABLE_MIME, UI_TOOLS, buildUiPayload } from "./ui.js"
+import { TABLE_HTML } from "./ui-html.js"
 import {
     DASHBOARD_HTML,
     UI_DASHBOARD_MIME,
     UI_DASHBOARD_URI,
     type DashboardPayload,
 } from "./dashboard-ui.js"
-import { dispatchTool } from "./handlers.js"
 import { listFreeclimbResources, readFreeclimbResource } from "./resources.js"
 import { promptDefinitions, getPrompt } from "./prompts.js"
 

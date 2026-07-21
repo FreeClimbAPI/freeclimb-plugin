@@ -7,7 +7,7 @@ description: First-run setup for the FreeClimb plugin - build the standalone MCP
 
 Goal: get the standalone FreeClimb MCP server built and the account connected, so the plugin's MCP tools work. The MCP server is the default surface; installing the CLI is an optional power-user step.
 
-Never ask the user to paste an Account ID or API Key into chat. Authentication happens in a local browser page that writes credentials to the OS keyring.
+Guardrails: follow `rules/freeclimb.mdc` (canonical). Authentication happens in a local browser page that writes credentials to the OS keyring.
 
 ## Step 1 - Locate the plugin directory
 
@@ -45,7 +45,7 @@ node mcp/lib/bin.js login
 
 This opens a local page on `127.0.0.1` that deep-links the FreeClimb Dashboard → API Credentials. The user pastes their Account ID and API Key into that local page. The credentials are written to the OS keyring and a setup marker is recorded. Nothing is sent to chat.
 
-Do not run a non-interactive login with credentials supplied in chat. Do not echo, store, or write the Account ID or API Key anywhere.
+Do not run a non-interactive login with credentials supplied in chat.
 
 ## Step 4 - Reload
 
@@ -53,13 +53,11 @@ Tell the user to reload Cursor (Developer: Reload Window) so the FreeClimb MCP s
 
 ## Step 5 - Recommend safe execution settings
 
-The FreeClimb MCP tools are read-only, but billable and irreversible actions run through the FreeClimb CLI as terminal commands. Advise the user to harden Cursor's agent execution settings under **Cursor Settings → Agents → Approvals & Execution**:
+Advise the user to harden Cursor's agent execution settings under **Cursor Settings → Agents → Approvals & Execution**:
 
-- Run Mode: `Allowlist` (not `Run Everything (Unsandboxed)`) — this is the primary control for billable CLI actions.
+- Run Mode: `Allowlist` (not `Run Everything (Unsandboxed)`).
 - Browser Protection: enabled.
-- MCP Tools Protection: enabled (defense in depth; the FreeClimb tools are read-only).
-
-The plugin also ships a `beforeShellExecution` hook that surfaces billable FreeClimb CLI commands for approval when they lack `--dry-run`. See the "Read-only MCP, CLI for actions" section of the plugin README for details.
+- MCP Tools Protection: enabled.
 
 ## Optional - Install the CLI (power users)
 

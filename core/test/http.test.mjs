@@ -156,6 +156,47 @@ describe("http", () => {
         assert.equal(calls, 1)
     })
 
+    it("refreshes credentials and retries exactly once on a 401", async () => {
+        envSnapshot = snapshotEnv()
+        let calls = 0
+        server = await startServer((_req, res) => {
+            calls += 1
+            if (calls === 1) {
+                jsonReply(res, 401, { message: "unauthorized" })
+            } else {
+                jsonReply(res, 200, { ok: true })
+            }
+        })
+        process.env.FREECLIMB_CLI_BASE_URL = server.baseUrl
+        process.env.FREECLIMB_MAX_RETRIES = "0"
+
+        const response = await apiRequest({ method: "GET", path: "/rotated" })
+
+        assert.equal(response.status, 200)
+        assert.equal(calls, 2)
+    })
+
+    it("surfaces a persistent 401 after a single refresh attempt", async () => {
+        envSnapshot = snapshotEnv()
+        let calls = 0
+        server = await startServer((_req, res) => {
+            calls += 1
+            jsonReply(res, 401, { message: "unauthorized" })
+        })
+        process.env.FREECLIMB_CLI_BASE_URL = server.baseUrl
+        process.env.FREECLIMB_MAX_RETRIES = "0"
+
+        await assert.rejects(
+            () => apiRequest({ method: "GET", path: "/still-unauthorized" }),
+            (error) => {
+                assert.ok(error instanceof FreeClimbHttpError)
+                assert.equal(error.status, 401)
+                return true
+            },
+        )
+        assert.equal(calls, 2)
+    })
+
     it("normalizes connection failures as network errors without a response", async () => {
         envSnapshot = snapshotEnv()
         const temp = await startServer((_req, res) => jsonReply(res, 200, {}))

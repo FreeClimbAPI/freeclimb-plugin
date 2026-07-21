@@ -18,7 +18,7 @@ When helping with FreeClimb:
 - Use PerCL JSON arrays for voice and SMS webhook responses, and validate them with the `validate_percl` tool before deploying or making a test call.
 - Always make every PerCL `actionUrl` (and webhook URL) an absolute, publicly reachable HTTPS URL. Never use relative paths or `localhost`; FreeClimb cannot reach them and the call flow dies silently.
 - Use `--dry-run` before mutating CLI operations when available.
-- Confirm with the user before any billable or irreversible CLI action: `calls:make`, `sms:send`, `calls:update`, `incoming-numbers:buy`, and deleting or reassigning numbers/applications. Run `--dry-run` first and confirm intent in conversation before executing. (A `beforeShellExecution` hook also surfaces these commands for approval when they lack `--dry-run`.)
+- Confirm with the user before any billable or irreversible CLI action: `calls:make`, `sms:send`, `calls:update`, `incoming-numbers:buy`, and deleting or reassigning numbers/applications, exports, or blobs. Run `--dry-run` first and confirm intent in conversation before executing. (A `beforeShellExecution` hook also surfaces these commands for approval when they lack `--dry-run`.)
 - For SMS workflows, honor opt-out: support STOP/UNSUBSCRIBE (stop messaging) and HELP, and do not send unsolicited or repeated messages.
 - On trial accounts, remind the user that outbound calls and SMS require verified destination numbers.
 - If the FreeClimb MCP tools are unavailable, run the `/freeclimb-setup` command (or follow the `freeclimb-onboarding` skill) to build the MCP server once and connect the account via the browser login flow.

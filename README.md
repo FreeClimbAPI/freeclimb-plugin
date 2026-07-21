@@ -71,7 +71,7 @@ Because the MCP surface can no longer mutate the account, prompt-injection that 
 
 ## Included Components
 
-- Skills for FreeClimb concepts, PerCL call control, phone workflow building, privacy-safe dashboard rendering, flow verification, debugging, first-run onboarding, the official SDK catalog, SMS compliance, webhook security, incident triage, and conferences/queues/recordings.
+- Skills for FreeClimb concepts, PerCL call control, phone workflow building, privacy-safe dashboard rendering, flow verification, debugging, first-run onboarding, the official SDK catalog, SMS compliance, webhook security, incident triage, conferences/queues/recordings, MMS messaging, voice input and transcription, TTS, WebRTC calling, and blob-store state.
 - A standalone FreeClimb MCP server entry (`command: "node", args: ["${CURSOR_PLUGIN_ROOT}/mcp/lib/bin.js"]`).
 - A `/freeclimb-setup` command for first-run build and browser authentication.
 - A `/build-freeclimb-phone-workflow` command for the demo flow.
@@ -90,7 +90,7 @@ Because the MCP surface can no longer mutate the account, prompt-injection that 
 - `core/`: `@freeclimb/core` — shared HTTP, credentials, validation, errors, and PerCL generate/validate.
 - `mcp/`: `@freeclimb/mcp` — the standalone stdio MCP server and browser login bin.
 - `cli/`: `freeclimb-cli` — the power-user CLI frontend over `core`.
-- `skills/`: Agent guidance for FreeClimb concepts, PerCL, workflow building, dashboard rendering, verification, debugging, onboarding, SDKs, SMS compliance, webhook security, incident triage, and conferences/queues/recordings.
+- `skills/`: Agent guidance for FreeClimb concepts, PerCL, workflow building, dashboard rendering, verification, debugging, onboarding, SDKs, SMS compliance, webhook security, incident triage, conferences/queues/recordings, MMS messaging, voice input and transcription, TTS, WebRTC calling, and blob-store state.
 - `commands/`: `/freeclimb-setup`, `/build-freeclimb-phone-workflow`, `/freeclimb-test-flow`, and `/freeclimb-status`.
 - `rules/`: FreeClimb guardrails (`freeclimb.mdc`) and SMS compliance (`sms-compliance.mdc`).
 - `agents/`: `freeclimb-builder` (reads via MCP, acts via CLI) and `freeclimb-operator` (read-only) subagents.

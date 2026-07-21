@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
-import { tools } from "../lib/tools.js"
+import { tools } from "../lib/registry.js"
 import {
     UI_TABLE_URI,
     UI_TABLE_MIME,
@@ -56,6 +56,38 @@ describe("MCP Apps UI", () => {
         })
         assert.ok(payload)
         assert.equal(payload.rows[0].text, "hi")
+    })
+
+    it("builds a brands table from list_brands data", () => {
+        const payload = buildTablePayload("list_brands", {
+            brands: [{ brandId: "BR1", displayName: "Acme", entityType: "PRIVATE", identityStatus: "VERIFIED" }],
+        })
+        assert.ok(payload)
+        assert.equal(payload.rows[0].displayName, "Acme")
+    })
+
+    it("builds a call logs table from list_call_logs data", () => {
+        const payload = buildTablePayload("list_call_logs", {
+            logs: [{ level: "ERROR", message: "webhook timeout", timestamp: "2026-01-01T00:00:00Z" }],
+        })
+        assert.ok(payload)
+        assert.equal(payload.rows[0].level, "ERROR")
+    })
+
+    it("builds a queue members table from list_queue_members data", () => {
+        const payload = buildTablePayload("list_queue_members", {
+            queueMembers: [{ callId: "CA1", position: 1, waitTime: 30 }],
+        })
+        assert.ok(payload)
+        assert.equal(payload.rows[0].callId, "CA1")
+    })
+
+    it("builds an exports table from list_exports data", () => {
+        const payload = buildTablePayload("list_exports", {
+            exports: [{ exportId: "EX1", resourceType: "Calls", status: "completed" }],
+        })
+        assert.ok(payload)
+        assert.equal(payload.rows[0].status, "completed")
     })
 
     it("handles empty and malformed data without throwing", () => {

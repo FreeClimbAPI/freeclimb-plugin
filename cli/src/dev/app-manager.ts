@@ -1,4 +1,8 @@
-import { createApiAxios } from "../http.js"
+import {
+    createApplication,
+    updateApplication,
+    deleteApplication,
+} from "@freeclimb/core"
 import { getApplication } from "../resources.js"
 import type { PreviousAppUrls } from "./state.js"
 
@@ -31,31 +35,27 @@ export async function getAppUrls(applicationId: string): Promise<PreviousAppUrls
 export async function createTempApp(
     tunnelUrl: string,
 ): Promise<{ alias: string; applicationId: string }> {
-    const client = await createApiAxios()
     const alias = `fc-cli-dev-${Date.now()}`
     const urls = buildWebhookUrls(tunnelUrl)
 
-    const response = await client.post("/Applications", {
+    const data = await createApplication({
         alias,
         ...urls,
     })
 
     return {
-        applicationId: response.data.applicationId,
+        applicationId: data.applicationId as string,
         alias,
     }
 }
 
 export async function updateAppUrls(applicationId: string, tunnelUrl: string): Promise<void> {
-    const client = await createApiAxios()
     const urls = buildWebhookUrls(tunnelUrl)
-
-    await client.post(`/Applications/${applicationId}`, urls)
+    await updateApplication(applicationId, urls)
 }
 
 export async function restoreAppUrls(applicationId: string, urls: PreviousAppUrls): Promise<void> {
-    const client = await createApiAxios()
-    await client.post(`/Applications/${applicationId}`, {
+    await updateApplication(applicationId, {
         voiceUrl: urls.voiceUrl || "",
         smsUrl: urls.smsUrl || "",
         statusCallbackUrl: urls.statusCallbackUrl || "",
@@ -64,6 +64,5 @@ export async function restoreAppUrls(applicationId: string, urls: PreviousAppUrl
 }
 
 export async function deleteTempApp(applicationId: string): Promise<void> {
-    const client = await createApiAxios()
-    await client.delete(`/Applications/${applicationId}`)
+    await deleteApplication(applicationId)
 }

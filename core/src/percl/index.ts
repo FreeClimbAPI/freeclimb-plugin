@@ -12,7 +12,7 @@ export const PERCL_COMMANDS = [
     "Sms",
     "RecordUtterance",
     "StartRecordCall",
-    "StopRecordCall",
+    "TranscribeUtterance",
     "Enqueue",
     "Dequeue",
     "AddToConference",
@@ -21,9 +21,8 @@ export const PERCL_COMMANDS = [
     "RemoveFromConference",
     "SetListen",
     "SetTalk",
+    "SetDTMFPassThrough",
     "Reject",
-    "Park",
-    "Unpark",
 ] as const
 
 export type PerclCommandName = (typeof PERCL_COMMANDS)[number]
@@ -38,6 +37,8 @@ const URL_FIELDS: ReadonlySet<string> = new Set([
     "notificationUrl",
     "statusCallbackUrl",
     "leaveConferenceUrl",
+    "ifMachineUrl",
+    "callControlUrl",
     "file",
 ])
 

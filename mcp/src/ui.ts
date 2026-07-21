@@ -1,13 +1,26 @@
-/**
- * MCP Apps (SEP-1865) support for the FreeClimb MCP server.
- *
- * Declares a single FreeClimb-themed HTML table resource that Cursor renders
- * inline. List-style tools attach `_meta.ui.resourceUri` pointing at this
- * resource, and their results carry a `structuredContent.table` payload that
- * the iframe renders.
- */
+import {
+    getResourceView,
+    viewCellValue,
+    viewColumns,
+    type ResourceViewName,
+} from "@freeclimb/core"
+import type { ToolName } from "./registry.js"
+import {
+    buildAccountPayload,
+    buildApplicationCardPayload,
+    buildCallPayload,
+    type CardPayload,
+} from "./ui-cards.js"
+import { formatDate, toText } from "./ui-format.js"
 
-import type { ToolName } from "./tools.js"
+export { TABLE_HTML } from "./ui-html.js"
+export {
+    buildAccountPayload,
+    buildApplicationCardPayload,
+    buildCallPayload,
+    type CardField,
+    type CardPayload,
+} from "./ui-cards.js"
 
 export const UI_TABLE_URI = "ui://freeclimb/table"
 export const UI_TABLE_MIME = "text/html;profile=mcp-app"
@@ -20,6 +33,13 @@ export const UI_TOOLS: ReadonlySet<ToolName> = new Set<ToolName>([
     "list_conferences",
     "list_queues",
     "list_logs",
+    "list_call_logs",
+    "list_conference_participants",
+    "list_queue_members",
+    "list_brands",
+    "list_campaigns",
+    "list_partner_campaigns",
+    "list_exports",
     "search_available_numbers",
     "get_account",
     "get_call",
@@ -39,595 +59,80 @@ export interface TablePayload {
     title: string
 }
 
-function toText(value: unknown): string {
-    if (value === null || value === undefined) return ""
-    if (typeof value === "string") return value
-    if (typeof value === "number" || typeof value === "boolean") return String(value)
-    return JSON.stringify(value)
-}
-
-function formatDate(value: unknown): string {
-    const raw = toText(value)
-    if (!raw) return ""
-    const parsed = new Date(raw)
-    if (Number.isNaN(parsed.getTime())) return raw
-    return parsed.toLocaleString("en-US", {
-        month: "short",
-        day: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-    })
+const TOOL_VIEW_MAP: Partial<Record<ToolName, ResourceViewName>> = {
+    list_calls: "calls",
+    list_sms: "sms",
+    list_numbers: "numbers",
+    search_available_numbers: "availableNumbers",
+    list_applications: "applications",
+    list_conferences: "conferences",
+    list_queues: "queues",
+    list_logs: "logs",
+    list_call_logs: "logs",
+    list_conference_participants: "participants",
+    list_queue_members: "queueMembers",
+    list_brands: "brands",
+    list_campaigns: "campaigns",
+    list_partner_campaigns: "campaigns",
+    list_exports: "exports",
 }
 
 function asArray(value: unknown): Array<Record<string, unknown>> {
     return Array.isArray(value) ? (value as Array<Record<string, unknown>>) : []
 }
 
+function buildRowsFromView(
+    view: NonNullable<ReturnType<typeof getResourceView>>,
+    items: Array<Record<string, unknown>>,
+): Array<Record<string, string>> {
+    const columns = viewColumns(view, "compact")
+    return items.map((row) => {
+        const out: Record<string, string> = {}
+        for (const column of columns) {
+            const raw = viewCellValue(column, row)
+            out[column.key] = column.date ? formatDate(raw) : toText(raw)
+        }
+        return out
+    })
+}
+
 export function buildTablePayload(toolName: ToolName, data: unknown): TablePayload | undefined {
+    const viewName = TOOL_VIEW_MAP[toolName]
+    if (!viewName) return undefined
+
+    const view = getResourceView(viewName)
+    if (!view) return undefined
+
     const root = (data ?? {}) as Record<string, unknown>
+    const items = asArray(root[view.listKey])
+    const columns = viewColumns(view, "compact").map((column) => ({
+        key: column.key,
+        header: column.header,
+    }))
 
-    switch (toolName) {
-        case "list_sms": {
-            const rows = asArray(root.messages).map((m) => ({
-                from: toText(m.from),
-                to: toText(m.to),
-                text: toText(m.text),
-                status: toText(m.status),
-                date: formatDate(m.dateCreated),
-            }))
-            return {
-                eyebrow: "FreeClimb · Messaging",
-                title: "Recent SMS Messages",
-                statusKey: "status",
-                columns: [
-                    { key: "from", header: "From" },
-                    { key: "to", header: "To" },
-                    { key: "text", header: "Message" },
-                    { key: "status", header: "Status" },
-                    { key: "date", header: "Date" },
-                ],
-                rows,
-            }
-        }
-
-        case "list_calls": {
-            const rows = asArray(root.calls).map((c) => ({
-                from: toText(c.from),
-                to: toText(c.to),
-                status: toText(c.status),
-                direction: toText(c.direction),
-                date: formatDate(c.startTime ?? c.dateCreated),
-            }))
-            return {
-                eyebrow: "FreeClimb · Voice",
-                title: "Recent Calls",
-                statusKey: "status",
-                columns: [
-                    { key: "from", header: "From" },
-                    { key: "to", header: "To" },
-                    { key: "status", header: "Status" },
-                    { key: "direction", header: "Direction" },
-                    { key: "date", header: "Date" },
-                ],
-                rows,
-            }
-        }
-
-        case "list_numbers": {
-            const rows = asArray(root.incomingPhoneNumbers).map((n) => ({
-                phoneNumber: toText(n.phoneNumber),
-                alias: toText(n.alias),
-                applicationId: toText(n.applicationId),
-                capabilities: [n.voiceEnabled ? "Voice" : null, n.smsEnabled ? "SMS" : null]
-                    .filter(Boolean)
-                    .join(" · "),
-            }))
-            return {
-                eyebrow: "FreeClimb · Numbers",
-                title: "Phone Numbers",
-                columns: [
-                    { key: "phoneNumber", header: "Number" },
-                    { key: "alias", header: "Alias" },
-                    { key: "capabilities", header: "Capabilities" },
-                    { key: "applicationId", header: "Application" },
-                ],
-                rows,
-            }
-        }
-
-        case "search_available_numbers": {
-            const rows = asArray(root.availablePhoneNumbers).map((n) => ({
-                phoneNumber: toText(n.phoneNumber),
-                region: toText(n.region),
-                country: toText(n.country),
-                capabilities: [n.voiceEnabled ? "Voice" : null, n.smsEnabled ? "SMS" : null]
-                    .filter(Boolean)
-                    .join(" · "),
-            }))
-            return {
-                eyebrow: "FreeClimb · Numbers",
-                title: "Available Numbers",
-                columns: [
-                    { key: "phoneNumber", header: "Number" },
-                    { key: "region", header: "Region" },
-                    { key: "country", header: "Country" },
-                    { key: "capabilities", header: "Capabilities" },
-                ],
-                rows,
-            }
-        }
-
-        case "list_applications": {
-            const rows = asArray(root.applications).map((a) => ({
-                alias: toText(a.alias),
-                applicationId: toText(a.applicationId),
-                voiceUrl: toText(a.voiceUrl),
-                smsUrl: toText(a.smsUrl),
-            }))
-            return {
-                eyebrow: "FreeClimb · Applications",
-                title: "Applications",
-                columns: [
-                    { key: "alias", header: "Alias" },
-                    { key: "applicationId", header: "ID" },
-                    { key: "voiceUrl", header: "Voice URL" },
-                    { key: "smsUrl", header: "SMS URL" },
-                ],
-                rows,
-            }
-        }
-
-        case "list_conferences": {
-            const rows = asArray(root.conferences).map((c) => ({
-                alias: toText(c.alias),
-                conferenceId: toText(c.conferenceId),
-                status: toText(c.status),
-                date: formatDate(c.dateCreated),
-            }))
-            return {
-                eyebrow: "FreeClimb · Voice",
-                title: "Conferences",
-                statusKey: "status",
-                columns: [
-                    { key: "alias", header: "Alias" },
-                    { key: "conferenceId", header: "ID" },
-                    { key: "status", header: "Status" },
-                    { key: "date", header: "Created" },
-                ],
-                rows,
-            }
-        }
-
-        case "list_queues": {
-            const rows = asArray(root.queues).map((q) => ({
-                alias: toText(q.alias),
-                queueId: toText(q.queueId),
-                maxSize: toText(q.maxSize),
-                currentSize: toText(q.currentSize ?? q.size),
-            }))
-            return {
-                eyebrow: "FreeClimb · Voice",
-                title: "Call Queues",
-                columns: [
-                    { key: "alias", header: "Alias" },
-                    { key: "queueId", header: "ID" },
-                    { key: "currentSize", header: "Waiting" },
-                    { key: "maxSize", header: "Max" },
-                ],
-                rows,
-            }
-        }
-
-        case "list_logs": {
-            const rows = asArray(root.logs).map((l) => ({
-                level: toText(l.level),
-                message: toText(l.message),
-                date: formatDate(l.timestamp ?? l.dateCreated),
-            }))
-            return {
-                eyebrow: "FreeClimb · Logs",
-                title: "Account Logs",
-                statusKey: "level",
-                columns: [
-                    { key: "level", header: "Level" },
-                    { key: "message", header: "Message" },
-                    { key: "date", header: "Time" },
-                ],
-                rows,
-            }
-        }
-
-        default: {
-            return undefined
-        }
-    }
-}
-
-export interface CardField {
-    kind?: "good" | "warn" | "neutral" | "mono"
-    label: string
-    value: string
-}
-
-export interface CardPayload {
-    eyebrow: string
-    fields: CardField[]
-    title: string
-}
-
-export function buildAccountPayload(data: unknown): CardPayload {
-    const a = (data ?? {}) as Record<string, unknown>
-    const type = toText(a.type)
-    const status = toText(a.status)
-    const fields: CardField[] = [
-        { label: "Account ID", value: toText(a.accountId), kind: "mono" },
-        { label: "Type", value: type, kind: type.toLowerCase() === "trial" ? "warn" : "good" },
-        {
-            label: "Status",
-            value: status,
-            kind: status.toLowerCase() === "active" ? "good" : "warn",
-        },
-        { label: "Created", value: formatDate(a.dateCreatedISO ?? a.dateCreated) },
-    ]
     return {
-        eyebrow: "FreeClimb · Account",
-        title: toText(a.alias) || "FreeClimb Account",
-        fields: fields.filter((f) => f.value),
-    }
-}
-
-function callStatusKind(status: string): CardField["kind"] {
-    const s = status.toLowerCase()
-    if (["completed", "inprogress"].includes(s)) return "good"
-    if (["failed", "busy", "noanswer", "canceled"].includes(s)) return "warn"
-    return "neutral"
-}
-
-export function buildCallPayload(data: unknown): CardPayload {
-    const c = (data ?? {}) as Record<string, unknown>
-    const status = toText(c.status)
-    const fields: CardField[] = [
-        { label: "Call ID", value: toText(c.callId), kind: "mono" },
-        { label: "From", value: toText(c.from), kind: "mono" },
-        { label: "To", value: toText(c.to), kind: "mono" },
-        { label: "Status", value: status, kind: callStatusKind(status) },
-        { label: "Direction", value: toText(c.direction) },
-        { label: "Duration", value: c.duration != null ? `${toText(c.duration)}s` : "" },
-        { label: "Started", value: formatDate(c.startTime ?? c.dateCreated) },
-    ]
-    return {
-        eyebrow: "FreeClimb · Call",
-        title: "Call Detail",
-        fields: fields.filter((f) => f.value),
-    }
-}
-
-export function buildApplicationCardPayload(data: unknown): CardPayload {
-    const a = (data ?? {}) as Record<string, unknown>
-    const fields: CardField[] = [
-        { label: "Alias", value: toText(a.alias) },
-        { label: "Application ID", value: toText(a.applicationId), kind: "mono" },
-        { label: "Voice URL", value: toText(a.voiceUrl), kind: "mono" },
-        { label: "SMS URL", value: toText(a.smsUrl), kind: "mono" },
-        { label: "Status Callback", value: toText(a.statusCallbackUrl), kind: "mono" },
-    ]
-    return {
-        eyebrow: "FreeClimb · Application",
-        title: toText(a.alias) || "Application Detail",
-        fields: fields.filter((f) => f.value),
+        eyebrow: view.eyebrow,
+        title: view.title,
+        statusKey: view.statusKey,
+        columns,
+        rows: buildRowsFromView(view, items),
     }
 }
 
 export function buildUiPayload(
     toolName: ToolName,
     data: unknown,
-): { table: TablePayload } | { account: CardPayload } | undefined {
+): { table: TablePayload } | { card: CardPayload } | undefined {
     switch (toolName) {
         case "get_account":
-            return { account: buildAccountPayload(data) }
+            return { card: buildAccountPayload(data) }
         case "get_call":
-            return { account: buildCallPayload(data) }
+            return { card: buildCallPayload(data) }
         case "get_application":
-            return { account: buildApplicationCardPayload(data) }
+            return { card: buildApplicationCardPayload(data) }
         default: {
             const table = buildTablePayload(toolName, data)
             return table ? { table } : undefined
         }
     }
 }
-
-export const TABLE_HTML = `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8" />
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --brand-blue: #004e63;
-    --brand-blue-hover: #26697a;
-    --brand-green: #c2ff18;
-    --brand-orange: #fa660a;
-    --background-blue: #00333f;
-    --background-dark: #11242d;
-    --inner-blue: #003744;
-    --white: rgba(255, 255, 255, 0.92);
-    --muted: rgba(255, 255, 255, 0.62);
-    --faint: rgba(255, 255, 255, 0.12);
-  }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; }
-  body {
-    font-family: "Atkinson Hyperlegible", Helvetica, system-ui, sans-serif;
-    color: var(--white);
-    background: transparent;
-    padding: 4px;
-  }
-  .card {
-    background: linear-gradient(135deg, var(--background-blue), var(--background-dark));
-    border: 1px solid var(--faint);
-    border-radius: 14px;
-    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
-    overflow: hidden;
-  }
-  .card-head {
-    padding: 16px 20px 12px;
-    border-bottom: 1px solid var(--faint);
-  }
-  .eyebrow {
-    color: var(--brand-green);
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    margin: 0 0 4px;
-  }
-  .title { font-size: 18px; font-weight: 700; margin: 0; }
-  .count { color: var(--muted); font-size: 12px; font-weight: 700; }
-  table { border-collapse: collapse; width: 100%; font-size: 13px; }
-  thead th {
-    text-align: left;
-    padding: 10px 20px;
-    color: var(--mist, #a1d0d3);
-    font-size: 11px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    background: var(--inner-blue);
-  }
-  tbody td {
-    padding: 11px 20px;
-    border-top: 1px solid var(--faint);
-    vertical-align: top;
-    max-width: 320px;
-    overflow-wrap: anywhere;
-  }
-  tbody tr:hover { background: rgba(38, 105, 122, 0.22); }
-  .mono { font-variant-numeric: tabular-nums; }
-  .pill {
-    display: inline-block;
-    padding: 2px 10px;
-    border-radius: 999px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    border: 1px solid var(--faint);
-  }
-  .pill-good { color: #06231a; background: var(--brand-green); border-color: transparent; }
-  .pill-warn { color: #2a1300; background: var(--brand-orange); border-color: transparent; }
-  .pill-neutral { color: var(--white); background: rgba(255,255,255,0.08); }
-  #empty { padding: 22px 20px; color: var(--muted); }
-  .card-foot {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 12px 20px;
-    border-top: 1px solid var(--faint);
-  }
-  .showing { color: var(--muted); font-size: 12px; font-weight: 700; }
-  .more-btn {
-    font: inherit;
-    font-weight: 700;
-    font-size: 12px;
-    letter-spacing: 0.02em;
-    color: #06231a;
-    background: var(--brand-green);
-    border: 0;
-    border-radius: 999px;
-    padding: 7px 16px;
-    cursor: pointer;
-    transition: transform 120ms ease, filter 120ms ease;
-  }
-  .more-btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
-  .more-btn:active { transform: translateY(0); }
-  .fields { margin: 0; padding: 8px 20px 18px; }
-  .field {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    padding: 11px 0;
-    border-top: 1px solid var(--faint);
-  }
-  .field:first-child { border-top: 0; }
-  .field-label { color: var(--muted); font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
-  .field-value { font-size: 14px; text-align: right; overflow-wrap: anywhere; }
-</style>
-</head>
-<body>
-  <div class="card">
-    <div class="card-head">
-      <p class="eyebrow" id="eyebrow">FreeClimb</p>
-      <p class="title"><span id="title">Loading…</span> <span class="count" id="count"></span></p>
-    </div>
-    <table id="tbl" hidden>
-      <thead><tr id="head-row"></tr></thead>
-      <tbody id="rows"></tbody>
-    </table>
-    <div class="card-foot" id="foot" hidden>
-      <span class="showing" id="showing"></span>
-      <button class="more-btn" id="more" type="button" hidden>Show more</button>
-    </div>
-    <dl class="fields" id="fields" hidden></dl>
-    <div id="empty">Waiting for data…</div>
-  </div>
-<script>
-  var nextId = 1;
-  var pending = {};
-
-  function request(method, params) {
-    var id = nextId++;
-    window.parent.postMessage({ jsonrpc: "2.0", id: id, method: method, params: params }, "*");
-    return new Promise(function (resolve, reject) { pending[id] = { resolve: resolve, reject: reject }; });
-  }
-  function notify(method, params) {
-    window.parent.postMessage({ jsonrpc: "2.0", method: method, params: params }, "*");
-  }
-  function esc(s) {
-    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
-      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
-    });
-  }
-  function pillClass(value) {
-    var v = String(value || "").toLowerCase();
-    if (["delivered", "completed", "received", "sent", "inprogress", "in-progress"].indexOf(v) !== -1) return "pill-good";
-    if (["failed", "undelivered", "busy", "noanswer", "no-answer", "canceled", "error"].indexOf(v) !== -1) return "pill-warn";
-    return "pill-neutral";
-  }
-  var PAGE_SIZE = 10;
-  var current = null;
-  var visible = PAGE_SIZE;
-
-  function reportSize() {
-    notify("ui/notifications/size-changed", {
-      width: document.documentElement.scrollWidth,
-      height: document.documentElement.scrollHeight
-    });
-  }
-  function draw() {
-    if (!current) return;
-    var cols = current.columns || [];
-    var rows = current.rows || [];
-    var slice = rows.slice(0, visible);
-
-    var tbody = document.getElementById("rows");
-    tbody.innerHTML = slice.map(function (row) {
-      return "<tr>" + cols.map(function (c) {
-        var raw = row[c.key];
-        if (current.statusKey && c.key === current.statusKey && raw) {
-          return "<td><span class=\\"pill " + pillClass(raw) + "\\">" + esc(raw) + "</span></td>";
-        }
-        var cls = (c.key === "from" || c.key === "to" || c.key === "phoneNumber") ? " class=\\"mono\\"" : "";
-        return "<td" + cls + ">" + esc(raw) + "</td>";
-      }).join("") + "</tr>";
-    }).join("");
-
-    var foot = document.getElementById("foot");
-    var showing = document.getElementById("showing");
-    var more = document.getElementById("more");
-    foot.hidden = false;
-    showing.textContent = "Showing " + slice.length + " of " + rows.length;
-    var remaining = rows.length - slice.length;
-    if (remaining > 0) {
-      more.hidden = false;
-      more.textContent = "Show more (" + Math.min(PAGE_SIZE, remaining) + ")";
-    } else {
-      more.hidden = true;
-    }
-    reportSize();
-  }
-  function render(table) {
-    if (!table) return;
-    current = table;
-    visible = PAGE_SIZE;
-    document.getElementById("fields").hidden = true;
-    document.getElementById("eyebrow").textContent = table.eyebrow || "FreeClimb";
-    document.getElementById("title").textContent = table.title || "Results";
-    var cols = table.columns || [];
-    var rows = table.rows || [];
-    document.getElementById("count").textContent = rows.length ? "(" + rows.length + ")" : "";
-
-    document.getElementById("head-row").innerHTML =
-      cols.map(function (c) { return "<th>" + esc(c.header) + "</th>"; }).join("");
-
-    var tbl = document.getElementById("tbl");
-    var empty = document.getElementById("empty");
-    if (!rows.length) {
-      tbl.hidden = true;
-      document.getElementById("foot").hidden = true;
-      empty.hidden = false;
-      empty.textContent = "No results.";
-      reportSize();
-      return;
-    }
-    empty.hidden = true;
-    tbl.hidden = false;
-    draw();
-  }
-
-  document.getElementById("more").addEventListener("click", function () {
-    visible += PAGE_SIZE;
-    draw();
-  });
-
-  function renderCard(card) {
-    if (!card) return;
-    document.getElementById("eyebrow").textContent = card.eyebrow || "FreeClimb";
-    document.getElementById("title").textContent = card.title || "FreeClimb";
-    document.getElementById("count").textContent = "";
-    document.getElementById("tbl").hidden = true;
-    document.getElementById("foot").hidden = true;
-    document.getElementById("empty").hidden = true;
-
-    var fields = card.fields || [];
-    var dl = document.getElementById("fields");
-    dl.innerHTML = fields.map(function (f) {
-      var v = esc(f.value);
-      if (f.kind === "good" || f.kind === "warn") {
-        var pc = f.kind === "good" ? "pill-good" : "pill-warn";
-        v = "<span class=\\"pill " + pc + "\\">" + v + "</span>";
-      } else if (f.kind === "mono") {
-        v = "<span class=\\"mono\\">" + v + "</span>";
-      }
-      return "<div class=\\"field\\"><span class=\\"field-label\\">" + esc(f.label) +
-        "</span><span class=\\"field-value\\">" + v + "</span></div>";
-    }).join("");
-    dl.hidden = false;
-    reportSize();
-  }
-
-  window.addEventListener("message", function (event) {
-    var msg = event.data;
-    if (!msg || msg.jsonrpc !== "2.0") return;
-    if (msg.id != null && pending[msg.id]) {
-      var p = pending[msg.id];
-      delete pending[msg.id];
-      if (msg.error) { p.reject(new Error(msg.error.message)); } else { p.resolve(msg.result); }
-      return;
-    }
-    if (msg.method === "ui/notifications/tool-result") {
-      var sc = msg.params && msg.params.structuredContent;
-      if (!sc) return;
-      if (sc.table) render(sc.table);
-      else if (sc.account) renderCard(sc.account);
-    }
-  });
-
-  (function () {
-    var announced = false;
-    function announce() {
-      if (announced) return;
-      announced = true;
-      notify("ui/notifications/initialized", {});
-    }
-    request("ui/initialize", {
-      appInfo: { name: "freeclimb-table", version: "1.0.0" },
-      appCapabilities: { availableDisplayModes: ["inline"] },
-      protocolVersion: "2025-06-18"
-    }).then(announce).catch(announce);
-    setTimeout(announce, 800);
-  })();
-</script>
-</body>
-</html>`

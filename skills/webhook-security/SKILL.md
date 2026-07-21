@@ -9,11 +9,31 @@ Use this skill when building, reviewing, or hardening a FreeClimb webhook server
 
 A FreeClimb webhook is a public HTTP endpoint. Anyone who finds the URL can send it a fake request unless it verifies that requests genuinely come from FreeClimb.
 
-## Verify Requests Come From FreeClimb
+## Verify the FreeClimb-Signature Header
 
-FreeClimb signs webhook requests; check the platform docs (https://docs.freeclimb.com) for the current signature header and verification algorithm, and implement that check before trusting any webhook payload. If the signing mechanism isn't already documented in this repo, treat "verify the signature per FreeClimb's docs" as a requirement to research and implement, not something to skip.
+FreeClimb signs every webhook with a `FreeClimb-Signature` header. FreeClimb documents no IP allowlist — signature verification is the only supported source authentication.
 
-Until signature verification is in place, apply defense-in-depth so a forged request can't do real damage:
+Header format: `t=<unix_timestamp>,v1=<hmac_hex>`. When two signing secrets are active during rotation, the header carries multiple `v1=` entries (one per secret).
+
+Verification algorithm:
+
+1. Parse the header on `,` into key/value pairs; extract `t` and every `v1`.
+2. Reject requests whose timestamp differs from now by more than ~5 minutes (recommended tolerance).
+3. Compute HMAC-SHA256 over `"{timestamp}.{rawBody}"` using your signing secret; compare hex output to each `v1`.
+
+Signing secrets are dashboard-managed only (Account > API Credentials); there is no REST API to create or rotate them. Accounts may hold at most 2 active secrets for zero-downtime rotation — delete the old secret after all apps are updated.
+
+SDK helpers:
+
+| SDK | Version | Helper |
+|-----|---------|--------|
+| Node.js | ≥2.0.0 | `RequestVerifier.verifyRequestSignature` |
+| Java | ≥4.0.0 | `Utils.verifyRequest` |
+| Python | ≥3.0.0 | `RequestVerifier.verify_request_signature` |
+| Ruby | ≥3.0.0 | `FreeClimb::Utils.verify_request` |
+| C# / PHP | — | manual verification per docs |
+
+Use the raw request body (not re-serialized JSON) when verifying. Until verification is wired, apply defense-in-depth so a forged request can't do real damage:
 
 - Reject anything that isn't a `POST`.
 - Validate the shape of expected fields — `callId` starts with `CA`, `accountId` starts with `AC`, phone numbers are E.164 — and reject malformed payloads rather than trusting them blindly.

@@ -21,6 +21,25 @@ Registration matters once a workflow is:
 
 For a demo or a single test message on a trial account, registration is not the blocker — verified destination numbers are (see below). Tell the user 10DLC registration is a production requirement to raise with FreeClimb support/dashboard before scaling past a demo.
 
+## Throughput and Registration Limits
+
+Before brand/campaign registration completes, throughput is capped at 50 messages/hour and 100 messages/day; unregistered traffic is likely carrier-filtered. Numbers not linked to a registered 10DLC campaign count as unregistered.
+
+After linking a number to a registered 10DLC campaign, MPS throughput follows brand TCR Trust Score and campaign type:
+
+| TCR Trust Score | Total MPS | AT&T / Verizon / T-Mobile |
+|-----------------|-----------|---------------------------|
+| 75–100 | 225 | 75 each |
+| 50–74 | 120 | 40 each |
+| 1–49 | 12 | 4 each |
+| Low Volume Mixed campaign | 3.75 | 1.25 each (regardless of trust score) |
+
+Toll-free A2P verification typically takes 6–8 weeks; status shows Pending until FreeClimb support confirms Registered.
+
+Regardless of registration status, each phone number is limited to 200 outbound SMS/day. Contact support to raise the cap.
+
+Trial accounts: FreeClimb sends automatic platform responses to inbound STOP and HELP for compliance. Full accounts must implement keyword handling in `smsUrl` (see Mandatory Opt-Out Keywords below).
+
 ## Mandatory Opt-Out Keywords
 
 Every SMS-enabled `smsUrl` webhook must recognize these keywords case-insensitively, regardless of what the workflow otherwise does:

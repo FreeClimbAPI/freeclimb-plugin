@@ -9,6 +9,7 @@ import { getOutputFormat } from "./agent-config.js"
 import { isTTY } from "./ui/theme.js"
 import { prompts } from "./prompts.js"
 import { extractQuietIds, filterFieldsDeep, rejectControlChars, validateResourceId } from "./validation.js"
+import { sleep, calculateSinceTimestamp } from "./tail.js"
 
 export type CommandArgs = Record<string, any>
 export type CommandFlags = Record<string, any>
@@ -25,7 +26,13 @@ export interface ConfirmationSpec {
     message: (args: CommandArgs, flags: CommandFlags) => string
 }
 
+export interface TailSpec {
+    beforeTail?: (command: Command, args: CommandArgs, flags: CommandFlags) => void
+    buildPql: (args: CommandArgs, flags: CommandFlags, lastTime: number) => string
+}
+
 export interface CommandSpec {
+    afterParse?: (command: Command, args: CommandArgs, flags: CommandFlags) => void
     authenticate?: boolean
     buildData?: (args: CommandArgs, flags: CommandFlags) => Record<string, unknown>
     buildParams?: (args: CommandArgs, flags: CommandFlags) => Record<string, unknown>
@@ -35,9 +42,23 @@ export interface CommandSpec {
     endpoint: string | ((args: CommandArgs, flags: CommandFlags) => string)
     method: Method
     quietIdKey: string
+    skipRequest?: (args: CommandArgs, flags: CommandFlags) => boolean
     supportsNext?: boolean
+    tail?: TailSpec
     topic: string
+    transformResponse?: (data: unknown, args: CommandArgs, flags: CommandFlags) => unknown
     validations?: ValidationSpec[]
+}
+
+export function truncateLogs(
+    data: unknown,
+    _args: CommandArgs,
+    flags: CommandFlags,
+): unknown {
+    if (!flags.maxItem || !data || typeof data !== "object") return data
+    const page = data as { logs?: unknown[] }
+    if (!Array.isArray(page.logs)) return data
+    return { ...page, logs: page.logs.slice(0, flags.maxItem as number) }
 }
 
 function resolveEndpoint(spec: CommandSpec, args: CommandArgs, flags: CommandFlags): string {
@@ -75,6 +96,9 @@ function emitDryRun(context: ExecutionContext): void {
     if (spec.buildData) {
         dryRunOutput.body = spec.buildData(args, flags)
     }
+    if (spec.buildParams) {
+        dryRunOutput.params = spec.buildParams(args, flags)
+    }
     if (outputFormat === "json" || !isTTY()) {
         out.out(JSON.stringify(dryRunOutput, null, 2))
     } else {
@@ -83,7 +107,7 @@ function emitDryRun(context: ExecutionContext): void {
     }
 }
 
-function handleError(command: Command, error: unknown): never {
+export function handleCommandError(command: Command, error: unknown): never {
     let err: Errors.FreeClimbError
     if (error instanceof FreeClimbHttpError && error.response) {
         err = new Errors.FreeClimbAPIError(error.response.data)
@@ -95,10 +119,53 @@ function handleError(command: Command, error: unknown): never {
     command.error(err.message, { exit: err.code })
 }
 
+async function runTailLoop(command: Command, context: ExecutionContext): Promise<void> {
+    const { spec, args, flags, out } = context
+    const tailSpec = spec.tail!
+
+    tailSpec.beforeTail?.(command, args, flags)
+
+    let lastTime = 0
+    if (flags.since) {
+        try {
+            lastTime = Date.now() * 1000 - calculateSinceTimestamp(flags.since)
+        } catch (error) {
+            const err = new Errors.SinceFormatError(error)
+            command.error(err.message, { exit: err.code })
+        }
+    }
+
+    let tailMax = flags.maxItem ? flags.maxItem : 100
+
+    const tailEndpoint = resolveEndpoint(spec, args, flags)
+    const tailPath = tailEndpoint.length > 0 ? `/${tailEndpoint}` : ""
+
+    while (flags.tail) {
+        try {
+            const response = await apiRequest({
+                method: "POST",
+                path: tailPath,
+                data: { pql: tailSpec.buildPql(args, flags, lastTime) },
+            })
+            const data = response.data as { end?: number; logs?: Array<{ timestamp: number }> }
+            if (data.end !== 0 && data.logs && data.logs.length > 0) {
+                lastTime = data.logs[0].timestamp
+                out.out(JSON.stringify(data.logs.slice(0, tailMax).reverse(), null, 2))
+            }
+        } catch (error) {
+            handleCommandError(command, error)
+        }
+        await sleep(flags.sleep ?? 1000)
+        tailMax = 100
+    }
+}
+
 export async function runResourceCommand(command: Command, spec: CommandSpec): Promise<void> {
     const out = new Output(command)
     const { args, flags } = await (command as any).parse()
     const outputFormat = getOutputFormat(flags.json)
+
+    spec.afterParse?.(command, args, flags)
 
     runValidations(spec, args, flags)
 
@@ -121,6 +188,20 @@ export async function runResourceCommand(command: Command, spec: CommandSpec): P
         return
     }
 
+    if (spec.skipRequest?.(args, flags)) {
+        return
+    }
+
+    const executionContext: ExecutionContext = { spec, args, flags, out, outputFormat }
+
+    if (flags.tail && spec.tail) {
+        await runTailLoop(command, executionContext)
+        return
+    }
+
+    const applyTransform = (data: unknown): unknown =>
+        spec.transformResponse ? spec.transformResponse(data, args, flags) : data
+
     const formatOutput = (data: unknown): string | null => {
         const outputData = flags.fields
             ? filterFieldsDeep(data, flags.fields.split(",").map((f: string) => f.trim()))
@@ -133,12 +214,13 @@ export async function runResourceCommand(command: Command, spec: CommandSpec): P
     }
 
     const renderResponse = (data: unknown): void => {
+        const transformed = applyTransform(data)
         if (flags.quiet) {
-            const ids = extractQuietIds(data, spec.quietIdKey)
+            const ids = extractQuietIds(transformed, spec.quietIdKey)
             if (ids) out.out(ids)
             return
         }
-        const result = formatOutput(data)
+        const result = formatOutput(transformed)
         if (result !== null) out.out(result)
     }
 
@@ -191,7 +273,7 @@ export async function runResourceCommand(command: Command, spec: CommandSpec): P
                 out.out("== You are on the last page of output. ==")
             }
         } catch (error) {
-            handleError(command, error)
+            handleCommandError(command, error)
         }
         return
     }
@@ -206,6 +288,6 @@ export async function runResourceCommand(command: Command, spec: CommandSpec): P
             throw new Errors.UndefinedResponseError()
         }
     } catch (error) {
-        handleError(command, error)
+        handleCommandError(command, error)
     }
 }

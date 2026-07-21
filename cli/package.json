@@ -131,6 +131,12 @@
       },
       "dashboard": {
         "description": "AI-driven terminal dashboards for monitoring FreeClimb resources"
+      },
+      "exports": {
+        "description": " Exports are bulk data extracts of Calls or Messages that can be downloaded when processing completes."
+      },
+      "blobs": {
+        "description": " Blobs are account-scoped JSON documents for storing application state and configuration data."
       }
     }
   },

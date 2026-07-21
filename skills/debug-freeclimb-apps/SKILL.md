@@ -7,9 +7,13 @@ description: Troubleshoot FreeClimb demo apps, webhooks, calls, SMS, logs, trial
 
 Use this skill when a FreeClimb call, SMS, webhook, MCP tool, or local demo does not work.
 
+Guardrails: follow `rules/freeclimb.mdc` (canonical).
+
+For error codes and recovery patterns, use MCP resource `freeclimb://skills/freeclimb-error-recovery`.
+
 ## First Checks
 
-1. Confirm the account is connected. With the MCP tools, call `get_account` (it fails if unauthenticated). With the CLI installed, run `freeclimb diagnose`. If neither works, run `/freeclimb-setup` to build the MCP server and connect via the browser login.
+1. Confirm the account is connected. With the MCP tools, call `get_account` (it fails if unauthenticated). With the CLI installed, run `freeclimb diagnose`. If neither works, run `/freeclimb-setup`.
 
 2. Confirm the app server is running:
 
@@ -36,7 +40,13 @@ Inbound calls to an owned FreeClimb number are usually the most reliable trial-a
 - Menu input fails: check `GetDigits.actionUrl` and Express URL-encoded body parsing.
 - Outbound SMS/call fails: verify destination number on trial account.
 - PerCL step dies after the first prompt: an `actionUrl` is relative or points at `localhost`. Run `validate_percl` and rebuild URLs from the public base.
-- MCP tool fails on auth: re-run the browser login (`node mcp/lib/bin.js login`); if the CLI is installed, the equivalent `freeclimb` command isolates credentials vs MCP.
+- MCP tool fails on auth: re-run login per `rules/freeclimb.mdc`; if the CLI is installed, `freeclimb diagnose` isolates credentials vs MCP.
+- Call ends after first prompt with no app error: check `get_call` for `callEndedReason` of `webhookFailed` (could not reach webhook) or `webhookInvalidResponse` (bad PerCL/response).
+- Primary webhook unreachable: `voiceFallbackUrl`/`smsFallbackUrl` fire once when the primary `voiceUrl`/`smsUrl` times out or errors (voice fallback also on HTTP ≥400). They are a single alternate attempt, not a retry loop.
+
+## Per-Call Logs
+
+Scope logs to one call with GET `/Accounts/{accountId}/Calls/{callId}/Logs`, or the read-only MCP tool `list_call_logs` when available. Prefer this over account-wide `filter_logs` when you already have a `callId`.
 
 ## Useful Commands
 

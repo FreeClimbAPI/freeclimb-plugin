@@ -1,10 +1,24 @@
-import { Args, Command, Flags } from "@oclif/core"
+import { Command, Flags } from "@oclif/core"
+import axios from "axios"
 import chalk from "chalk"
+import { getBaseUrl } from "@freeclimb/core"
 import { cred } from "../credentials.js"
 import * as Errors from "../errors.js"
 import { prompts } from "../prompts.js"
 import { isTTY } from "../ui/theme.js"
-import { FreeClimbApi, FreeClimbResponse, FreeClimbErrorResponse } from "../freeclimb.js"
+
+async function verifyCredentials(accountId: string, apiKey: string): Promise<boolean> {
+    const baseUrl = getBaseUrl()
+    try {
+        await axios.get(`${baseUrl}/Accounts/${accountId}`, {
+            auth: { username: accountId, password: apiKey },
+            headers: { "Content-Type": "application/json" },
+        })
+        return true
+    } catch {
+        return false
+    }
+}
 
 export class login extends Command {
     static description = `Log in to FreeClimb with your credentials. Alternatively you can set the ACCOUNT_ID and API_KEY environment variables. To learn how to put them in a file, run freeclimb data -h`
@@ -28,31 +42,37 @@ export class login extends Command {
     async run() {
         const { flags } = await this.parse(login)
 
-        const fcApi = new FreeClimbApi(``, true, this)
-        const verifyResponse = (response: FreeClimbResponse) => {
+        const verifyResponse = () => {
             const resp =
                 "\n<---Your ACCOUNT_ID and API_KEY have been verified through Freeclimb.---> \n\nWhat Can I Do Next?\n\n  To check account information run: \n\t freeclimb accounts:get \n\n  To see all commands available through the api, run freeclimb with the help flag: \n\t freeclimb --help \n\n"
             this.log(chalk.green(resp))
         }
-        const verifyErrorResponse = (error: FreeClimbErrorResponse) => {
+        const verifyErrorResponse = () => {
             const respError =
                 "\n<---Inputted ACCOUNT_ID and API_KEY where not valid. Please try again.-->\n"
             this.log(chalk.red(respError))
         }
 
-        // Non-interactive login path
+        const storeAndVerify = async (accountId: string, apiKey: string) => {
+            await cred.removeCredentials()
+            try {
+                await cred.setCredentials(accountId, apiKey)
+            } catch (error: any) {
+                const err = new Errors.SetPasswordError()
+                this.error(err.message, { exit: err.code })
+            }
+            if (await verifyCredentials(accountId, apiKey)) {
+                verifyResponse()
+            } else {
+                verifyErrorResponse()
+            }
+        }
+
         if (flags.accountId && flags.apiKey) {
             if (!flags.yes) {
                 this.error("Non-interactive login requires the --yes flag to confirm.", { exit: 2 })
             }
-            await cred.removeCredentials()
-            try {
-                await cred.setCredentials(flags.accountId, flags.apiKey)
-            } catch (error: any) {
-                const err = new Errors.SetPasswordError(error.message)
-                this.error(err.message, { exit: err.code })
-            }
-            await fcApi.apiCall("GET", {}, verifyResponse, verifyErrorResponse)
+            await storeAndVerify(flags.accountId, flags.apiKey)
             return
         }
 
@@ -62,7 +82,6 @@ export class login extends Command {
             })
         }
 
-        // Non-TTY without flags — fail fast with actionable guidance
         if (!isTTY()) {
             this.error(
                 "Login requires --accountId, --apiKey, and --yes flags in non-interactive mode.\n" +
@@ -72,7 +91,6 @@ export class login extends Command {
             )
         }
 
-        // Interactive login path
         this.log("You can find your Account ID and API Key at https://www.freeclimb.com/dashboard")
         const confirmation: boolean = await prompts.confirm(
             "If you are already logged in to the FreeClimb CLI on this computer, you will first be logged out of that account. Would you like to continue?"
@@ -86,14 +104,7 @@ export class login extends Command {
             const apiKey = await prompts.password(
                 "-> Your API Key for your FreeClimb Account"
             )
-            await cred.removeCredentials()
-            try {
-                await cred.setCredentials(accountId, apiKey)
-            } catch (error: any) {
-                const err = new Errors.SetPasswordError(error.message)
-                this.error(err.message, { exit: err.code })
-            }
-            await fcApi.apiCall("GET", {}, verifyResponse, verifyErrorResponse)
+            await storeAndVerify(accountId, apiKey)
             if (/^AC[0-9a-fA-F]{40}$/gm.exec(accountId) === null) {
                 this.warn(
                     chalk.yellow(

@@ -1,5 +1,7 @@
 import type { ReactElement } from "react"
 import { render, Box } from "ink"
+import { getViewForCliTopic, viewColumns } from "@freeclimb/core"
+import { viewColumnsToTableColumns } from "../format.js"
 import { getTerminalWidth } from "../theme.js"
 import { Table, TableColumn } from "./table.js"
 import { KeyValue } from "./key-value.js"
@@ -8,77 +10,6 @@ import { PaginationBar } from "./pagination-bar.js"
 import { ErrorBox, ErrorBoxProps } from "./error-box.js"
 import { JsonView } from "./json-view.js"
 import { TerminalWidthProvider } from "./terminal-context.js"
-
-// Topic → list key mapping (which property holds the array in the response)
-const TOPIC_LIST_KEYS: Record<string, string> = {
-    calls: "calls",
-    sms: "messages",
-    applications: "applications",
-    "incoming-numbers": "incomingPhoneNumbers",
-    "call-queues": "queues",
-    conferences: "conferences",
-    "conference-participants": "participants",
-    recordings: "recordings",
-    logs: "logs",
-    "queue-members": "queueMembers",
-    "available-numbers": "availablePhoneNumbers",
-}
-
-// Topic → column definitions for list views
-const TOPIC_COLUMNS: Record<string, TableColumn[]> = {
-    calls: [
-        { key: "callId", header: "Call ID", width: 24 },
-        { key: "from", header: "From", width: 15 },
-        { key: "to", header: "To", width: 15 },
-        { key: "status", header: "Status", width: 12 },
-        { key: "direction", header: "Direction", width: 10 },
-        { key: "dateCreated", header: "Created", width: 22 },
-    ],
-    sms: [
-        { key: "messageId", header: "Message ID", width: 24 },
-        { key: "from", header: "From", width: 15 },
-        { key: "to", header: "To", width: 15 },
-        { key: "status", header: "Status", width: 12 },
-        { key: "direction", header: "Direction", width: 10 },
-        { key: "dateCreated", header: "Created", width: 22 },
-    ],
-    applications: [
-        { key: "applicationId", header: "App ID", width: 24 },
-        { key: "alias", header: "Alias", width: 20 },
-        { key: "voiceUrl", header: "Voice URL", width: 40 },
-    ],
-    "incoming-numbers": [
-        { key: "phoneNumberId", header: "Number ID", width: 24 },
-        { key: "phoneNumber", header: "Phone Number", width: 15 },
-        { key: "alias", header: "Alias", width: 20 },
-        { key: "applicationId", header: "App ID", width: 24 },
-    ],
-    "call-queues": [
-        { key: "queueId", header: "Queue ID", width: 24 },
-        { key: "alias", header: "Alias", width: 20 },
-        { key: "currentSize", header: "Size", width: 8 },
-        { key: "maxSize", header: "Max", width: 8 },
-        { key: "averageWaitTime", header: "Avg Wait", width: 10 },
-    ],
-    conferences: [
-        { key: "conferenceId", header: "Conference ID", width: 24 },
-        { key: "alias", header: "Alias", width: 20 },
-        { key: "status", header: "Status", width: 12 },
-        { key: "dateCreated", header: "Created", width: 22 },
-    ],
-    recordings: [
-        { key: "recordingId", header: "Recording ID", width: 24 },
-        { key: "callId", header: "Call ID", width: 24 },
-        { key: "durationSec", header: "Duration", width: 10 },
-        { key: "dateCreated", header: "Created", width: 22 },
-    ],
-    logs: [
-        { key: "timestamp", header: "Timestamp", width: 22 },
-        { key: "level", header: "Level", width: 8 },
-        { key: "requestId", header: "Request ID", width: 24 },
-        { key: "message", header: "Message", width: 50 },
-    ],
-}
 
 /**
  * Render an Ink element to stdout and immediately unmount (static output).
@@ -110,15 +41,17 @@ export function renderData(data: unknown, options: RenderDataOptions = {}): void
         return
     }
 
-    // Try to extract a list from the response
-    const listKey = topic ? TOPIC_LIST_KEYS[topic] : undefined
+    const view = topic ? getViewForCliTopic(topic) : undefined
+    const listKey = view?.listKey
     const dataObj = data as Record<string, unknown>
     const listData = listKey
         ? (dataObj[listKey] as Record<string, unknown>[] | undefined)
         : undefined
 
     if (listData && Array.isArray(listData)) {
-        const columns = (topic && TOPIC_COLUMNS[topic]) || autoColumns(listData)
+        const columns: TableColumn[] = view
+            ? viewColumnsToTableColumns(viewColumns(view, "wide"))
+            : autoColumns(listData)
         const titleText = topic
             ? topic.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
             : undefined
