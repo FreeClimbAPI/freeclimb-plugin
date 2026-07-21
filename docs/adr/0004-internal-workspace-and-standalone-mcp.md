@@ -33,7 +33,7 @@ Agent guidance is standardized on `AGENTS.md` (Cursor-only for v1); `CLAUDE.md` 
 - The MCP works without building or installing the CLI; the CLI install becomes an optional power-user path.
 - Updates flow through Cursor plugin sync; MCP version tracks the synced plugin, so there is no independent pin to manage.
 - Removing the build-from-source global install and any runtime fetch-and-execute surface resolves the supply-chain concern from the security review (F3); integrity comes from the synced repo plus the committed lockfile.
-- Build artifacts (`lib/`, `*.tsbuildinfo`) are git-ignored; a one-time `npm run setup` is required after first sync (and is safe to re-run after updates).
+- Build artifacts (`lib/`, `*.tsbuildinfo`) are git-ignored; a one-time `pnpm run setup` is required after first sync (and is safe to re-run after updates).
 - The loopback login is a new local secret-handling surface (security review F9); it is hardened (loopback-only bind, one-time CSRF/state token, short TTL, immediate shutdown, request-body cap, keyring-only write).
 
 ## v2 / future work

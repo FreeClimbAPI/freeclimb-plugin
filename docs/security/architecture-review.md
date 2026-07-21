@@ -1,7 +1,7 @@
 # Security Architecture Review (Self-Review): FreeClimb Cursor Plugin
 
 Status: Draft for internal review
-Reviewed artifact: `freeclimb` Cursor plugin v0.2.0 (`.cursor-plugin/plugin.json`) + private workspace packages `@freeclimb/core`, `@freeclimb/mcp`, and `freeclimb-cli`
+Reviewed artifact: `freeclimb` Cursor plugin v0.5.0 (`.cursor-plugin/plugin.json`) + private workspace packages `@freeclimb/core`, `@freeclimb/mcp`, and `freeclimb-cli`
 Purpose: Pre-empt findings before the formal Security Architecture Review process.
 
 This is an author self-review. Severities are a pre-review assessment, not final ratings, and are offered as input to the formal process.
@@ -79,6 +79,7 @@ Boundaries crossed:
 - `scripts/scan-secrets.mjs` fails CI if credential-shaped values (Account-ID/API-key patterns) appear in tracked files.
 - `hooks/hooks.json` declares `sessionStart` (setup nudge) and a `beforeShellExecution` guard that requires approval for billable/irreversible FreeClimb CLI commands issued without `--dry-run`. The prior `beforeMCPExecution` guard was removed with the mutating MCP tools.
 - Shared validation rejects control characters, path traversal in resource IDs, malformed phone numbers, and malformed URLs.
+- Shared HTTP pacing in `@freeclimb/core` limits request starts and concurrency per process, honors `Retry-After` on HTTP 429, and avoids automatic retries for mutating methods.
 - The dev proxy has a 1 MB body cap and strips hop-by-hop headers.
 - `render_dashboard` validates and renders in-IDE via MCP Apps UI instead of writing temp files or returning shell commands.
 
@@ -102,11 +103,11 @@ Recommendation: document the exposure prominently, use throwaway local apps for 
 
 ### F3 (Medium) - First-run setup executes dependency install scripts
 
-The first-run flow runs `npm run setup`, which installs workspace dependencies and builds local packages. Native dependencies such as keyring/tunnel packages may execute install scripts.
+The first-run flow runs `pnpm run setup`, which installs workspace dependencies and builds local packages. Native dependencies such as keyring/tunnel packages may execute install scripts.
 
 Impact: dependency install scripts execute locally with the user's privileges.
 
-Mitigations: root `package-lock.json` is committed, CI uses `npm ci`, nothing is fetched at MCP runtime, and no global CLI install is required for MCP.
+Mitigations: root `pnpm-lock.yaml` is committed, CI uses `pnpm install --frozen-lockfile`, nothing is fetched at MCP runtime, and no global CLI install is required for MCP.
 
 Recommendation: keep lockfile-based installs, review dependency updates, and consider a signed/published artifact in a future distribution model.
 

@@ -8,7 +8,7 @@ Command-line interface for the [FreeClimb](https://www.freeclimb.com/) voice and
 
 ## Requirements
 
-- [Node.js](https://nodejs.org/) >= 18.0.0
+- [Node.js](https://nodejs.org/) >= 20.0.0 (Node.js 22 recommended; pnpm 11.5.3 requires >= 22.13)
 - A [FreeClimb account](https://freeclimb.com/dashboard/)
 
 ## Install
@@ -164,7 +164,7 @@ freeclimb incoming-numbers:buy --phoneNumber "+15551234567" --dry-run
 ```sh
 git clone https://github.com/FreeClimbAPI/freeclimb-cli.git
 cd freeclimb-cli
-npm run setup             # Install, build, and verify (recommended)
+pnpm run setup             # Install, build, and verify (recommended)
 ```
 
 Or manually:
@@ -179,7 +179,7 @@ npm run prepack           # Build for distribution
 
 ### AI Agent Integration
 
-MCP server configs are auto-discovered by Claude Code (`.mcp.json`), Cursor (`.cursor/mcp.json`), and VS Code Copilot (`.vscode/mcp.json`). After `npm run setup`, run `node mcp/lib/bin.js login` from the plugin root to store credentials in the OS keyring. Do not put FreeClimb credentials in MCP config files. See [AGENTS.md](AGENTS.md) for details.
+MCP server configs are auto-discovered by Claude Code (`.mcp.json`), Cursor (`.cursor/mcp.json`), and VS Code Copilot (`.vscode/mcp.json`). After `pnpm run setup`, run `node mcp/lib/bin.js login` from the plugin root to store credentials in the OS keyring. Do not put FreeClimb credentials in MCP config files. See [AGENTS.md](AGENTS.md) for details.
 
 ## Contributing
 

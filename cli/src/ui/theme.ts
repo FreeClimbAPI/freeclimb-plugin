@@ -1,4 +1,4 @@
-import chalk from "chalk"
+import chalk, { supportsColor as chalkSupportsColor } from "chalk"
 
 // FreeClimb brand colors from website
 export const BrandColors = {
@@ -16,7 +16,7 @@ export function supportsColor(): boolean {
         return false
     }
     // Check if chalk thinks we support color
-    return Boolean(chalk.supportsColor)
+    return Boolean(chalkSupportsColor)
 }
 
 // Detect if output is a TTY (interactive terminal)

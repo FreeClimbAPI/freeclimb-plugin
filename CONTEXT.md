@@ -50,6 +50,10 @@ The `hooks/freeclimb-percl-guard.mjs` `afterFileEdit` hook. When the agent or us
 
 The `cli/src/executor.ts` module and its `runResourceCommand` pipeline. Generated oclif command files are thin stubs that declare a `CommandSpec`; the executor owns argument parsing, validation, HTTP dispatch, output formatting, and `--dry-run` handling so resource commands share one implementation path.
 
+## Request limiter
+
+The `core/src/request-limiter.ts` module and the pacing layer in `core/src/http.ts`. All authenticated FreeClimb REST traffic from MCP, CLI, and dashboard polling goes through one shared limiter: 5 request starts per second, at most 2 concurrent requests per process, adaptive cooldown on HTTP 429, and no automatic retries for POST/PATCH/DELETE. Override defaults with `FREECLIMB_REQUESTS_PER_SECOND`, `FREECLIMB_MAX_CONCURRENT_REQUESTS`, and `FREECLIMB_MAX_RETRIES`.
+
 ## Trial account
 
 A FreeClimb account that can only place outbound calls or send SMS to pre-verified numbers. Inbound calls are unrestricted, making them the safest demo centerpiece.

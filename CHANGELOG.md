@@ -2,12 +2,25 @@
 
 ## Unreleased
 
+- Added shared API request pacing in `@freeclimb/core`: 5 request starts per second, at most 2 concurrent requests per process, adaptive `Retry-After` handling on HTTP 429, and no automatic retries for POST/PATCH/DELETE. Override with `FREECLIMB_REQUESTS_PER_SECOND`, `FREECLIMB_MAX_CONCURRENT_REQUESTS`, and `FREECLIMB_MAX_RETRIES`.
+- Prevented overlapping dashboard refresh ticks so polling dashboards do not stack concurrent fetches.
+- Deepened module seams and hardened validation across `@freeclimb/core`, `@freeclimb/mcp`, and `freeclimb-cli`.
 - Fixed browser login so the loopback process exits after success and no longer prints the Account ID.
 - Fixed plugin MCP startup to resolve the bundled server from `${CURSOR_PLUGIN_ROOT}` instead of the process working directory.
 - Isolated core and CLI test keyrings so running the suite on an authenticated machine cannot read or overwrite the real FreeClimb credentials.
 - Fixed filtered log requests to send only the API-supported PQL body and apply result limits locally.
 - Added a privacy-safe onsite operations dashboard that shows account health, call counts, and error counts without exposing identifiers, phone numbers, message bodies, or log text.
 - Added a FreeClimb dashboard skill and constrained MCP App renderer for privacy-safe, manually refreshed in-IDE snapshots.
+- Added `.cursor-plugin/marketplace.json` for team-marketplace import.
+- CI and development now require Node.js 22 (pnpm 11.5.3 minimum).
+- Updated dependencies: `actions/setup-node` v7, `pnpm/action-setup` v6, `@types/node` 26, `nock` 14, `chalk` 5, `ink` 7, `nyc` 18.
+
+## 0.5.0 — 2026-07-21
+
+- Added shared API request pacing and adaptive 429 handling in `@freeclimb/core` (see Unreleased notes above).
+- Deepened module seams and hardened validation across core, CLI, and MCP.
+- Hardened onboarding and added in-IDE privacy-safe operations dashboards.
+- CI and development standardized on Node.js 22.
 
 ## 0.4.0 — 2026-07-06
 

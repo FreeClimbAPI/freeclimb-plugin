@@ -18,7 +18,7 @@ For operations and demos, ask Cursor to create a FreeClimb dashboard. The `rende
 
 A Cursor team admin adds this plugin from the repository:
 
-1. In Cursor team settings, add a plugin from `https://github.com/FreeClimbAPI/freeclimb-plugin`.
+1. In Cursor team settings, add a plugin from `https://github.com/FreeClimbAPI/freeclimb-plugin` (or import via `.cursor-plugin/marketplace.json` for team-marketplace distribution).
 2. Members receive the plugin automatically.
 
 Cursor syncs the repository as-is. The skills, rules, commands, and agent work immediately. The MCP tools require a one-time per-machine setup (below).
@@ -45,7 +45,7 @@ This command (see the `freeclimb-onboarding` skill) will:
 
 Power users who want the CLI can additionally `pnpm i -g ./cli` to put `freeclimb` on their PATH; `freeclimb login` writes the same keyring, so either path authenticates the other.
 
-Requirements: Node.js >= 20 and a working build toolchain (native modules are compiled during install).
+Requirements: Node.js >= 20 (Node.js 22 recommended for development and CI; pnpm 11.5.3 requires Node.js >= 22.13) and a working build toolchain (native modules are compiled during install).
 
 ## Credentials
 
@@ -68,6 +68,10 @@ This consolidates all account-changing operations onto a single surface that Cur
 ![Cursor Approvals & Execution settings](assets/image-8788a919-7fc8-471f-951d-f85884f888c0.png)
 
 Because the MCP surface can no longer mutate the account, prompt-injection that reaches the agent cannot place calls or send SMS through MCP; it would have to issue a CLI command, which the approval/allowlist Run Mode gates. In addition, the plugin's `beforeShellExecution` hook downgrades billable FreeClimb CLI commands without `--dry-run` from auto-run to an explicit approval prompt. Always `--dry-run` and confirm intent before running an action command.
+
+## API request controls
+
+The shared `@freeclimb/core` HTTP client paces FreeClimb API traffic to 5 request starts per second with at most 2 requests in flight per process. Safe and idempotent requests retry transient failures (including HTTP 429 with `Retry-After`) up to 3 times; POST, PATCH, and DELETE are never retried automatically. Override with `FREECLIMB_REQUESTS_PER_SECOND`, `FREECLIMB_MAX_CONCURRENT_REQUESTS`, and `FREECLIMB_MAX_RETRIES` (set `0` to disable retries).
 
 ## Included Components
 
