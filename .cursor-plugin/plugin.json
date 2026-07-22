@@ -12,6 +12,7 @@
     "url": "git+https://github.com/FreeClimbAPI/freeclimb-plugin.git"
   },
   "homepage": "https://github.com/FreeClimbAPI/freeclimb-plugin",
+  "logo": "assets/logo.svg",
   "keywords": [
     "freeclimb",
     "telephony",
