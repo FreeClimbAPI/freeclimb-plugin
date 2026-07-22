@@ -43,9 +43,11 @@ From `<plugin-root>`:
 node mcp/lib/bin.js login
 ```
 
-This opens a local page on `127.0.0.1` that deep-links the FreeClimb Dashboard → API Credentials. The user pastes their Account ID and API Key into that local page. The credentials are written to the OS keyring and a setup marker is recorded. Nothing is sent to chat.
+This opens a local page on `127.0.0.1` that deep-links the FreeClimb Dashboard → API Credentials. The user pastes their Account ID and API Key into that local page. The pair is verified against the configured API environment before it replaces the credentials in the OS keyring, and a setup marker is recorded. Nothing is sent to chat.
 
 Do not run a non-interactive login with credentials supplied in chat.
+
+Production is the default API environment. For staging or another custom environment, `FREECLIMB_CLI_BASE_URL` must be available to both this login process and Cursor's MCP process.
 
 ## Step 4 - Reload
 
@@ -73,3 +75,5 @@ freeclimb login
 ## Re-running
 
 This setup is safe to run again. Re-run `pnpm run setup` after the plugin updates so the MCP server is rebuilt from the latest synced source. Updates flow through the Cursor plugin sync setting; there is no npm publish in v1.
+
+For later account changes, use `/freeclimb-account` and follow the `manage-freeclimb-account` skill instead of repeating the build.
