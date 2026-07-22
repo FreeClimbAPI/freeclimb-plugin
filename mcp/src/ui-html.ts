@@ -1,29 +1,13 @@
+import { FREECLIMB_FONT_LINKS, FREECLIMB_THEME_CSS } from "./ui-brand.js"
+
 export const TABLE_HTML = `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+${FREECLIMB_FONT_LINKS}
 <style>
-  :root {
-    --brand-blue: #004e63;
-    --brand-blue-hover: #26697a;
-    --brand-green: #c2ff18;
-    --brand-orange: #fa660a;
-    --background-blue: #00333f;
-    --background-dark: #11242d;
-    --inner-blue: #003744;
-    --white: rgba(255, 255, 255, 0.92);
-    --muted: rgba(255, 255, 255, 0.62);
-    --faint: rgba(255, 255, 255, 0.12);
-  }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; }
+  ${FREECLIMB_THEME_CSS}
   body {
-    font-family: "Atkinson Hyperlegible", Helvetica, system-ui, sans-serif;
-    color: var(--white);
-    background: transparent;
     padding: 4px;
   }
   .card {
@@ -51,7 +35,7 @@ export const TABLE_HTML = `<!DOCTYPE html>
   thead th {
     text-align: left;
     padding: 10px 20px;
-    color: var(--mist, #a1d0d3);
+    color: var(--mist);
     font-size: 11px;
     letter-spacing: 0.06em;
     text-transform: uppercase;

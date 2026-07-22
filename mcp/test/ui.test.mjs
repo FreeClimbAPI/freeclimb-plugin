@@ -16,6 +16,9 @@ describe("MCP Apps UI", () => {
     it("declares a ui:// resource with the MCP app mime profile", () => {
         assert.ok(UI_TABLE_URI.startsWith("ui://"))
         assert.ok(UI_TABLE_MIME.includes("mcp-app"))
+        assert.match(TABLE_HTML, /--brand-blue: #004e63/)
+        assert.match(TABLE_HTML, /--brand-green: #c2ff18/)
+        assert.match(TABLE_HTML, /Atkinson Hyperlegible/)
     })
 
     it("requests fullscreen after rendering when the host supports it", () => {

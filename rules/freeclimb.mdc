@@ -11,6 +11,7 @@ When helping with FreeClimb:
 
 - Start from the user's business goal before naming implementation details.
 - Use the FreeClimb MCP tools for read-only inspection (account/call/SMS/log/number/application inspection) and local PerCL generation/validation. The MCP surface is read-only and cannot change the account (ADR 0005).
+- When a FreeClimb MCP tool renders an App, make that UI-producing tool the final tool call. Do not call another tool afterward. Lead the response by directing the user to expand the final FreeClimb tool card, then summarize only decision-relevant findings without repeating the raw payload.
 - Perform every billable or account-changing action through the FreeClimb CLI (`freeclimb calls:make`, `sms:send`, `applications:create`/`update`, `incoming-numbers:buy`, etc.). The CLI is the only surface that mutates the account.
 - When building a user application, start from the matching tested template and install the official SDK package; Java uses its exact official tag through JitPack because no Maven Central artifact exists. Never vendor generated SDK source or use application SDK code to bypass MCP/CLI operational guardrails (ADR 0010).
 - Use E.164 phone numbers, such as `+15551234567`.

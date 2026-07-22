@@ -73,7 +73,9 @@ Call `render_dashboard` with the complete spec. Do not generate HTML, JavaScript
 
 Describe the result as a read-only point-in-time snapshot. Do not call it live or continuously updating.
 
-Lead the final response by telling the user the FreeClimb view opened. Summarize only the decision-relevant findings and do not repeat the dashboard spec or raw tool payload.
+Make `render_dashboard` the final tool call and do not call another tool afterward.
+
+Lead the final response by directing the user to expand the final FreeClimb tool card. Summarize only the decision-relevant findings and do not repeat the dashboard spec or raw tool payload.
 
 If a source fails, keep successful panels visible and summarize the unavailable source without exposing raw API errors.
 

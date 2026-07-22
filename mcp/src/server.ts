@@ -147,7 +147,10 @@ export async function startMcpServer(): Promise<void> {
                     ui: {
                         prefersBorder: false,
                         csp: {
-                            resourceDomains: [],
+                            resourceDomains: [
+                                "https://fonts.googleapis.com",
+                                "https://fonts.gstatic.com",
+                            ],
                         },
                     },
                 },
@@ -194,7 +197,10 @@ export async function startMcpServer(): Promise<void> {
                             ui: {
                                 prefersBorder: false,
                                 csp: {
-                                    resourceDomains: [],
+                                    resourceDomains: [
+                                        "https://fonts.googleapis.com",
+                                        "https://fonts.gstatic.com",
+                                    ],
                                 },
                             },
                         },
