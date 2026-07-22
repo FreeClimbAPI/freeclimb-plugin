@@ -5,7 +5,7 @@ ruby ">= 3.2"
 gem "dotenv", "3.1.8"
 gem "freeclimb", "5.5.1"
 gem "puma", "7.1.0"
-gem "rackup", "2.2.1"
+gem "rackup", "2.3.1"
 gem "sinatra", "4.2.1"
 
 group :test do
