@@ -12,6 +12,7 @@ export function getDashboardPrompt(): string {
         "Prefer aggregate counts and statuses. Do not display account IDs, resource IDs, phone numbers,",
         "SMS bodies, log text, credentials, arbitrary HTML, scripts, styles, URLs, or actions.",
         "Call render_dashboard with the completed spec. Call it again when the user asks to refresh.",
+        "After rendering, lead the response by telling the user the FreeClimb view opened, summarize only decision-relevant findings, and do not repeat the spec or raw tool payload.",
     ].join(" ")
 }
 

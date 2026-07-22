@@ -137,6 +137,9 @@ export const TABLE_HTML = `<!DOCTYPE html>
 <script>
   var nextId = 1;
   var pending = {};
+  var fullscreenSupported = false;
+  var fullscreenRequested = false;
+  var rendered = false;
 
   function request(method, params) {
     var id = nextId++;
@@ -145,6 +148,11 @@ export const TABLE_HTML = `<!DOCTYPE html>
   }
   function notify(method, params) {
     window.parent.postMessage({ jsonrpc: "2.0", method: method, params: params }, "*");
+  }
+  function requestFullscreen() {
+    if (!rendered || !fullscreenSupported || fullscreenRequested) return;
+    fullscreenRequested = true;
+    request("ui/request-display-mode", { mode: "fullscreen" }).catch(function () {});
   }
   function esc(s) {
     return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
@@ -220,12 +228,16 @@ export const TABLE_HTML = `<!DOCTYPE html>
       document.getElementById("foot").hidden = true;
       empty.hidden = false;
       empty.textContent = "No results.";
+      rendered = true;
       reportSize();
+      requestFullscreen();
       return;
     }
     empty.hidden = true;
     tbl.hidden = false;
     draw();
+    rendered = true;
+    requestFullscreen();
   }
 
   document.getElementById("more").addEventListener("click", function () {
@@ -256,7 +268,9 @@ export const TABLE_HTML = `<!DOCTYPE html>
         "</span><span class=\\"field-value\\">" + v + "</span></div>";
     }).join("");
     dl.hidden = false;
+    rendered = true;
     reportSize();
+    requestFullscreen();
   }
 
   window.addEventListener("message", function (event) {
@@ -285,9 +299,14 @@ export const TABLE_HTML = `<!DOCTYPE html>
     }
     request("ui/initialize", {
       appInfo: { name: "freeclimb-table", version: "1.0.0" },
-      appCapabilities: { availableDisplayModes: ["inline"] },
+      appCapabilities: { availableDisplayModes: ["inline", "fullscreen"] },
       protocolVersion: "2025-06-18"
-    }).then(announce).catch(announce);
+    }).then(function (result) {
+      var modes = result && result.hostContext && result.hostContext.availableDisplayModes;
+      fullscreenSupported = Array.isArray(modes) && modes.indexOf("fullscreen") !== -1;
+      announce();
+      requestFullscreen();
+    }).catch(announce);
     setTimeout(announce, 800);
   })();
 </script>

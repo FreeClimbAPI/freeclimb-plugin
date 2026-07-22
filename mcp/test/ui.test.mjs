@@ -5,6 +5,7 @@ import {
     UI_TABLE_URI,
     UI_TABLE_MIME,
     UI_TOOLS,
+    TABLE_HTML,
     buildTablePayload,
     buildAccountPayload,
 } from "../lib/ui.js"
@@ -15,6 +16,12 @@ describe("MCP Apps UI", () => {
     it("declares a ui:// resource with the MCP app mime profile", () => {
         assert.ok(UI_TABLE_URI.startsWith("ui://"))
         assert.ok(UI_TABLE_MIME.includes("mcp-app"))
+    })
+
+    it("requests fullscreen after rendering when the host supports it", () => {
+        assert.match(TABLE_HTML, /availableDisplayModes: \["inline", "fullscreen"\]/)
+        assert.match(TABLE_HTML, /request\("ui\/request-display-mode", \{ mode: "fullscreen" \}\)/)
+        assert.match(TABLE_HTML, /hostContext\.availableDisplayModes/)
     })
 
     it("only attaches UI to tools that actually exist", () => {

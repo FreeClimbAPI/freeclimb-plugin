@@ -32,6 +32,15 @@ describe("dashboard MCP app", () => {
         assert.doesNotMatch(DASHBOARD_HTML, /\.innerHTML|insertAdjacentHTML/)
     })
 
+    it("requests fullscreen after rendering when the host supports it", () => {
+        assert.match(DASHBOARD_HTML, /availableDisplayModes:\["inline","fullscreen"\]/)
+        assert.match(
+            DASHBOARD_HTML,
+            /request\("ui\/request-display-mode",\{mode:"fullscreen"\}\)/,
+        )
+        assert.match(DASHBOARD_HTML, /hostContext&&result\.hostContext\.availableDisplayModes/)
+    })
+
     it("resolves state references into a bounded component tree", () => {
         const payload = buildDashboardPayload(
             metricSpec(),
