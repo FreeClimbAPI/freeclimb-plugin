@@ -15,11 +15,11 @@ Guardrails: follow `rules/freeclimb.mdc` (canonical).
 
 For every route that returns PerCL, validate the JSON before deploying:
 
-- Use the `validate_percl` MCP tool with the exact array your route returns.
-- Fix all `errors`. Treat `warnings` (especially localhost/relative `actionUrl`) as blockers for a real call.
+- Pipe the exact array returned by each route to `freeclimb percl:validate - --json`, or validate a captured response file with `freeclimb percl:validate <path> --json`.
+- Fix all `errors` before continuing. Validation exits nonzero for invalid output.
 - Confirm every `actionUrl` and webhook URL uses the public base URL (tunnel/deploy), not `localhost`.
 
-If you do not have the MCP tools, validate by inspection against the `percl-call-control` skill.
+Standalone `.percl.json` files are also checked automatically after agent writes. The CLI remains the explicit validation interface for runtime route output.
 
 ## Phase 2 - Simulate the webhook path
 
@@ -54,7 +54,7 @@ Only invite the user to call/text live when:
 - Every simulated route returns HTTP 200.
 - The `/voice` (or `smsUrl`) response contains absolute `actionUrl`s on the public domain, not `localhost`.
 - Each branch routes to the intended next step (1→sales, 2→support, other→voicemail; STOP→opt-out, HELP→help for SMS).
-- `validate_percl` reports no errors and no localhost/relative-URL warnings.
+- `freeclimb percl:validate` exits successfully for every serialized PerCL response.
 
 ## After the live call
 

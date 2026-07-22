@@ -12,7 +12,7 @@ The optional FreeClimb command-line tool whose source lives in `cli/`. Provides 
 
 ## MCP server
 
-The standalone read-only Model Context Protocol server launched by the plugin with `node mcp/lib/bin.js`. Exposes FreeClimb inspection tools and local PerCL/dashboard helpers to the agent without putting raw credentials in chat or MCP config.
+The standalone read-only Model Context Protocol server launched by the plugin with `node mcp/lib/bin.js`. Exposes FreeClimb inspection tools and local dashboard helpers to the agent without putting raw credentials in chat or MCP config.
 
 ## Onboarding / Setup
 
@@ -44,7 +44,7 @@ FreeClimb's call-control language, expressed as JSON command arrays returned by 
 
 ## PerCL guard hook
 
-The `hooks/freeclimb-percl-guard.mjs` `afterFileEdit` hook. When the agent or user saves a file ending in `.percl.json`, it loads `@freeclimb/core`'s `validatePercl` and injects validation errors into the agent context so invalid PerCL is caught before a webhook response is deployed.
+The `hooks/freeclimb-percl-guard.mjs` hook pair. `postToolUse` validates agent-written `.percl.json` files and injects errors into the active agent context; `stop` requests a bounded repair turn while tracked files remain invalid. Runtime SDK output is validated through `freeclimb percl:validate <file|-> --json`.
 
 ## Command executor
 

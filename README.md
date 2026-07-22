@@ -55,7 +55,7 @@ Requirements: Node.js >= 20 (Node.js 22 recommended for development and CI; pnpm
 
 ## Read-only MCP, CLI for actions
 
-The FreeClimb MCP tools are **read-only**: they inspect the account (calls, SMS, numbers, applications, logs) and generate/validate PerCL locally, but they cannot spend money or change the account. Every billable or irreversible action (place calls, send SMS, buy numbers, update calls/applications) is performed through the **FreeClimb CLI**, which the agent runs as a terminal command with `--dry-run` and input validation.
+The FreeClimb MCP tools are **read-only**: they inspect the account (calls, SMS, numbers, applications, logs) and render read-only dashboards, but they cannot spend money or change the account. PerCL validation is local and deterministic through the automatic hook and `freeclimb percl:validate <file|-> --json`. Every billable or irreversible action (place calls, send SMS, buy numbers, update calls/applications) is performed through the **FreeClimb CLI**, which the agent runs as a terminal command with `--dry-run` and input validation.
 
 This consolidates all account-changing operations onto a single surface that Cursor's command-execution approvals govern. We strongly recommend hardening these settings under **Cursor Settings → Agents → Approvals & Execution**:
 
@@ -84,7 +84,7 @@ The shared `@freeclimb/core` HTTP client paces FreeClimb API traffic to 5 reques
 - An always-applied rule (`rules/freeclimb.mdc`) that is the canonical guardrail source: credential handling, read-only MCP vs CLI-for-actions, dry-run/confirmation, and trial-account limits. Agents and commands reference it instead of restating it.
 - A contextual SMS compliance rule (`rules/sms-compliance.mdc`) for opt-out handling, consent, quiet hours, and 10DLC guardrails when composing or sending SMS.
 - A `freeclimb-builder` agent (reads via MCP, acts via the CLI) and a read-only `freeclimb-operator` agent for safe inspection.
-- Three hooks: a first-run setup nudge (`sessionStart`), a `beforeShellExecution` guard that requires approval for billable FreeClimb CLI commands issued without `--dry-run`, and an `afterFileEdit` PerCL guard that validates `.percl.json` files on save using the core PerCL validator.
+- Hooks for a first-run setup nudge (`sessionStart`), billable CLI approval (`beforeShellExecution`), immediate `.percl.json` validation feedback (`postToolUse`), and a bounded repair continuation (`stop`).
 - Starter templates under `templates/` (Node/Express and Python/Flask) using the official FreeClimb SDKs.
 
 ## Repository Layout
@@ -98,7 +98,7 @@ The shared `@freeclimb/core` HTTP client paces FreeClimb API traffic to 5 reques
 - `commands/`: `/freeclimb-setup`, `/build-freeclimb-phone-workflow`, `/freeclimb-test-flow`, and `/freeclimb-status`.
 - `rules/`: FreeClimb guardrails (`freeclimb.mdc`) and SMS compliance (`sms-compliance.mdc`).
 - `agents/`: `freeclimb-builder` (reads via MCP, acts via CLI) and `freeclimb-operator` (read-only) subagents.
-- `hooks/`: Session setup nudge, the billable-CLI dry-run guard, and the PerCL validation guard on `.percl.json` edits.
+- `hooks/`: Session setup nudge, the billable-CLI dry-run guard, and the automatic PerCL validation and repair loop for agent-written `.percl.json` files.
 - `templates/`: Node/Express and Python/Flask starter apps using the official SDKs.
 - `demo/slides/`: HTML presentation deck and assets.
 

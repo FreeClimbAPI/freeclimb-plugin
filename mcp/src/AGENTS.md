@@ -21,7 +21,7 @@ Runs over stdio with no dependency on the oclif/ink CLI.
 - `auth.ts`: Self-initiated local browser auth flow (writes to the OS keyring)
 - `bin.ts`: Standalone entry point (`node mcp/lib/bin.js`; `login` subcommand for auth)
 
-## Tools (33 read-only)
+## Tools (31 read-only)
 Account: `get_account`. Calls: `list_calls`, `get_call`, `list_call_logs`. SMS: `list_sms`,
 `get_sms`. Numbers: `list_numbers`, `get_number`, `search_available_numbers`. Applications:
 `list_applications`, `get_application`. Logs: `list_logs`, `filter_logs`. Recordings:
@@ -29,7 +29,7 @@ Account: `get_account`. Calls: `list_calls`, `get_call`, `list_call_logs`. SMS: 
 `list_conference_participants`. Queues: `list_queues`, `get_queue`, `list_queue_members`.
 10DLC: `list_brands`, `get_brand`, `list_campaigns`, `get_campaign`, `list_partner_campaigns`,
 `get_partner_campaign`. Exports: `list_exports`, `get_export`. Local helpers:
-`generate_percl`, `validate_percl`, `generate_dashboard_prompt`, `render_dashboard`.
+`generate_dashboard_prompt`, `render_dashboard`.
 
 ## Running (v1, internal, no publish)
 The plugin's `.mcp.json` launches the locally-built server from the synced repo:

@@ -11,9 +11,9 @@ PerCL is a JSON array of command objects returned by a webhook server. FreeClimb
 
 Guardrails: follow `rules/freeclimb.mdc` (canonical).
 
-For exact PerCL command syntax and parameters, use MCP resource `freeclimb://skills/freeclimb-percl-reference`.
+For exact PerCL command syntax and parameters, read `cli/skills/platform/percl-reference.md`.
 
-Generate starter PerCL with the `generate_percl` MCP tool (patterns: greeting, menu, voicemail, transfer, queue, record, play, speech, conference) and validate any PerCL array with the `validate_percl` MCP tool before deploying or making a test call.
+Build PerCL with the official SDK models. Standalone files must use the `.percl.json` suffix so the automatic guard validates them after each write. Validate serialized SDK output with `freeclimb percl:validate <file|-> --json` before deploying or making a test call. Fix every reported error before continuing.
 
 ## Common Commands
 
@@ -105,7 +105,7 @@ A call allows at most 256 `Redirect` commands over its lifetime; exceeding this 
 
 ### Validator coverage
 
-`validate_percl` accepts `TranscribeUtterance` and `SetDTMFPassThrough` as valid commands — use it before deploying flows that include them.
+The validator accepts `TranscribeUtterance` and `SetDTMFPassThrough` as valid commands.
 
 ## Demo IVR Pattern
 

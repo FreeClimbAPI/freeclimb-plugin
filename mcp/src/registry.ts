@@ -28,15 +28,10 @@ import {
     getPartnerCampaign,
     listExports,
     getExport,
-    rejectControlChars,
-    validateUrl,
     parseDashboardSpec,
     validateSourceBindings,
     resolveDashboardSnapshot,
     loadPreset,
-    generatePercl,
-    validatePercl,
-    type PerclPattern,
     type PresetName,
 } from "@freeclimb/core"
 import { getDashboardPrompt } from "./prompts.js"
@@ -44,10 +39,8 @@ import { buildDashboardPayload } from "./dashboard-ui.js"
 import {
     optionalBoolean,
     optionalNumber,
-    optionalObject,
     optionalString,
     parseToolArgs,
-    requiredArray,
     requiredObject,
     requiredString,
     type ToolInputSchema,
@@ -719,79 +712,6 @@ export const toolRegistry = {
                 message: "FreeClimb dashboard snapshot rendered in-IDE.",
             }
         },
-    },
-
-    generate_percl: {
-        name: "generate_percl",
-        description: "Generate valid PerCL JSON for common call flow patterns. Returns a PerCL command array ready to use in webhook responses.",
-        inputSchema: {
-            type: "object" as const,
-            properties: {
-                pattern: {
-                    type: "string",
-                    description: "The call flow pattern to generate",
-                    enum: [
-                        "greeting",
-                        "menu",
-                        "voicemail",
-                        "transfer",
-                        "queue",
-                        "record",
-                        "play",
-                        "speech",
-                        "conference",
-                    ],
-                },
-                text: {
-                    type: "string",
-                    description: "Text for Say commands (greeting text, menu prompt, voicemail greeting)",
-                },
-                actionUrl: {
-                    type: "string",
-                    description: "Webhook URL for callbacks (menu selection handler, recording handler, etc.)",
-                },
-                options: {
-                    type: "object",
-                    description: "Pattern-specific options: { destination, callingNumber, queueId, waitUrl, maxDigits, finishOnKey, maxLengthSec, file, conferenceId, grammarFile }",
-                },
-            },
-            required: [
-                "pattern",
-            ],
-        },
-        handler: async (args) => {
-            const pattern = requiredString(args, "pattern")
-            rejectControlChars(optionalString(args, "text"), "text")
-            rejectControlChars(pattern, "pattern")
-            validateUrl(optionalString(args, "actionUrl"), "actionUrl")
-            return generatePercl(
-                pattern as PerclPattern,
-                optionalString(args, "text"),
-                optionalString(args, "actionUrl"),
-                optionalObject(args, "options"),
-            )
-        },
-    },
-
-    validate_percl: {
-        name: "validate_percl",
-        description: "Validate a PerCL command array (the JSON your webhook returns) without making an API call. Checks structure, known commands, and that callback URLs are absolute HTTPS (not localhost). Use before deploying a webhook or making a test call.",
-        inputSchema: {
-            type: "object" as const,
-            properties: {
-                percl: {
-                    type: "array",
-                    description: "The PerCL command array to validate (e.g., [{ \"Say\": { \"text\": \"Hi\" } }])",
-                    items: {
-                        type: "object",
-                    },
-                },
-            },
-            required: [
-                "percl",
-            ],
-        },
-        handler: async (args) => validatePercl(requiredArray(args, "percl")),
     }
 } satisfies Record<string, ToolEntry>
 

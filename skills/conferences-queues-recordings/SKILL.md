@@ -9,7 +9,7 @@ Use this skill when a request involves multi-party calls, holding callers for an
 
 Guardrails: follow `rules/freeclimb.mdc` (canonical).
 
-For exact PerCL command syntax and parameters, use the `percl-call-control` skill and `generate_percl`/`validate_percl` MCP tools rather than duplicating the reference here.
+For exact PerCL command syntax and parameters, use the `percl-call-control` skill and `cli/skills/platform/percl-reference.md`, then validate serialized output with `freeclimb percl:validate <file|-> --json`.
 
 ## Conferences
 

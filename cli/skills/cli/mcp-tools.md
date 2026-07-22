@@ -14,7 +14,7 @@ The FreeClimb plugin includes a standalone MCP (Model Context Protocol) server t
 }
 ```
 
-> **Read-only by design.** The MCP surface only inspects the account and builds/validates PerCL locally. Billable or account-changing actions (placing calls, sending SMS, buying numbers, updating calls/applications) are performed through the FreeClimb CLI, not via MCP tools. The CLI equivalents are noted below.
+> **Read-only by design.** The MCP surface inspects the account and renders read-only dashboards. Billable or account-changing actions (placing calls, sending SMS, buying numbers, updating calls/applications) are performed through the FreeClimb CLI, not via MCP tools. The CLI equivalents are noted below.
 
 ## Setup
 
@@ -164,18 +164,6 @@ List conferences, optionally filtered by status.
 
 #### list_queues
 List all call queues. No parameters.
-
-### PerCL Generation
-
-#### generate_percl
-Generate valid PerCL JSON for common call flow patterns. Returns a PerCL command array.
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `pattern` | string | yes | Pattern: greeting, menu, voicemail, transfer, queue, record |
-| `text` | string | no | Text for Say commands |
-| `actionUrl` | string | no | Webhook URL for callbacks |
-| `options` | object | no | Pattern-specific: `destination`, `callingNumber`, `queueId`, `waitUrl`, `maxDigits`, `finishOnKey`, `maxLengthSec` |
 
 ## Resources
 

@@ -75,7 +75,7 @@ Honor opt-out and help per `rules/freeclimb.mdc`; see the `sms-compliance` skill
 
 ## Validate Before Going Live
 
-Before inviting a live call/SMS, validate each route's PerCL with the `validate_percl` MCP tool (or follow the `verify-flow` skill / `/freeclimb-test-flow` command). Fix every error and treat any localhost/relative `actionUrl` warning as a blocker.
+Before inviting a live call/SMS, validate each route's serialized PerCL with `freeclimb percl:validate <file|-> --json` (or follow the `verify-flow` skill / `/freeclimb-test-flow` command). Fix every error before continuing.
 
 ## Verify Before Telling The User To Call
 

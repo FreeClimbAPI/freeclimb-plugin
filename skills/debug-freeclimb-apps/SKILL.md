@@ -39,7 +39,7 @@ Inbound calls to an owned FreeClimb number are usually the most reliable trial-a
 - Caller hears nothing: check server logs and confirm routes return valid JSON arrays.
 - Menu input fails: check `GetDigits.actionUrl` and Express URL-encoded body parsing.
 - Outbound SMS/call fails: verify destination number on trial account.
-- PerCL step dies after the first prompt: an `actionUrl` is relative or points at `localhost`. Run `validate_percl` and rebuild URLs from the public base.
+- PerCL step dies after the first prompt: an `actionUrl` is relative, plain HTTP, or points at `localhost`. Run `freeclimb percl:validate <file|-> --json` and rebuild URLs from the public base.
 - MCP tool fails on auth: re-run login per `rules/freeclimb.mdc`; if the CLI is installed, `freeclimb diagnose` isolates credentials vs MCP.
 - Call ends after first prompt with no app error: check `get_call` for `callEndedReason` of `webhookFailed` (could not reach webhook) or `webhookInvalidResponse` (bad PerCL/response).
 - Primary webhook unreachable: `voiceFallbackUrl`/`smsFallbackUrl` fire once when the primary `voiceUrl`/`smsUrl` times out or errors (voice fallback also on HTTP ≥400). They are a single alternate attempt, not a retry loop.

@@ -162,15 +162,9 @@ describe("MCP tool dispatch", () => {
         assert.deepEqual(result, { exports: [{ exportId: "EX1", status: "completed" }] })
     })
 
-    it("validates PerCL locally without touching the context", async () => {
-        const result = await dispatchTool("validate_percl", { percl: [{ Hangup: {} }] })
-        assert.ok(result)
-    })
-
-    it("rejects generate_percl with control characters in text", async () => {
-        await assert.rejects(() =>
-            dispatchTool("generate_percl", { pattern: "greeting", text: "hi\x01there" }),
-        )
+    it("rejects removed PerCL helper tools", async () => {
+        await assert.rejects(() => dispatchTool("validate_percl", { percl: [{ Hangup: {} }] }))
+        await assert.rejects(() => dispatchTool("generate_percl", { pattern: "greeting" }))
     })
 
     it("resolves and renders a dashboard snapshot through the injected context", async () => {

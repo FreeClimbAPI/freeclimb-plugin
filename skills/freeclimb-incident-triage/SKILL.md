@@ -28,8 +28,8 @@ Use the MCP tools for every read in this runbook. Reach for the CLI only for `fr
 | Signature | Evidence Pattern | Fix |
 |-----------|-------------------|-----|
 | Dead/unreachable `actionUrl` | Call connects, plays the first prompt, then drops; logs show a webhook timeout or connection error for the follow-up POST | Confirm the tunnel/server is up; `get_application` to check the URL is current and HTTPS; redeploy or re-tunnel |
-| `webhookFailed` / `webhookInvalidResponse` | `get_call` shows matching `callEndedReason`; logs show POST failure or invalid PerCL after a webhook | Fix URL reachability/HTTPS on the failing route; run `validate_percl` on the response body |
-| Invalid PerCL response | Logs show a parse/validation error right after a webhook POST; call ends abruptly after a route change | Pull the offending route's response and run `validate_percl` on it; fix the malformed command or bad `actionUrl` |
+| `webhookFailed` / `webhookInvalidResponse` | `get_call` shows matching `callEndedReason`; logs show POST failure or invalid PerCL after a webhook | Fix URL reachability/HTTPS on the failing route; pipe the response body to `freeclimb percl:validate - --json` |
+| Invalid PerCL response | Logs show a parse/validation error right after a webhook POST; call ends abruptly after a route change | Pull the offending route's response and run `freeclimb percl:validate <file|-> --json`; fix the malformed command or bad `actionUrl` |
 | Fallback URL exhausted | Primary webhook timed out or errored once, then fallback also failed | `voiceFallbackUrl`/`smsFallbackUrl` are one-shot alternates — fix the primary server, not another fallback layer |
 | Trial-account limits | Error codes 29 (unverified outbound number) or 76 (number limit reached) in logs; outbound call/SMS to a new number fails immediately | Verify the destination in the dashboard, or note the account needs to upgrade past trial |
 | Rate limiting | Error code 24, or HTTP 429 in logs, clustered around a burst of requests | Confirm request volume/timing with the user; recommend backoff/spacing; this is not a code bug |

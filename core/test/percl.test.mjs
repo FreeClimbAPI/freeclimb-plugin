@@ -35,14 +35,45 @@ describe("validatePercl", () => {
         assert.equal(result.valid, false)
     })
 
-    it("flags localhost callback URLs", () => {
+    it("rejects localhost callback URLs", () => {
         const result = validatePercl([{ Redirect: { actionUrl: "http://localhost:3000/next" } }])
-        assert.ok(result.errors.length + result.warnings.length > 0)
+        assert.equal(result.valid, false)
+        assert.ok(result.errors.some((error) => error.includes("public HTTPS URL")))
     })
 
-    it("flags relative callback URLs", () => {
+    it("rejects relative callback URLs", () => {
         const result = validatePercl([{ Redirect: { actionUrl: "/next" } }])
-        assert.ok(result.errors.length + result.warnings.length > 0)
+        assert.equal(result.valid, false)
+        assert.ok(result.errors.some((error) => error.includes("public HTTPS URL")))
+    })
+
+    it("rejects insecure callback URLs", () => {
+        const result = validatePercl([{ Redirect: { actionUrl: "http://example.com/next" } }])
+        assert.equal(result.valid, false)
+        assert.ok(result.errors.some((error) => error.includes("public HTTPS URL")))
+    })
+
+    it("rejects private network callback URLs", () => {
+        const result = validatePercl([{ Redirect: { actionUrl: "https://192.168.1.10/next" } }])
+        assert.equal(result.valid, false)
+        assert.ok(result.errors.some((error) => error.includes("public HTTPS URL")))
+    })
+
+    it("rejects missing required command parameters", () => {
+        const result = validatePercl([{ Say: {} }, { Redirect: {} }])
+        assert.equal(result.valid, false)
+        assert.ok(result.errors.some((error) => error.includes("Say.text is required")))
+        assert.ok(result.errors.some((error) => error.includes("Redirect.actionUrl is required")))
+    })
+
+    it("rejects command parameters with invalid types", () => {
+        const result = validatePercl([
+            { Say: { text: 42 } },
+            { GetDigits: { actionUrl: "https://example.com/menu", maxDigits: "1" } },
+        ])
+        assert.equal(result.valid, false)
+        assert.ok(result.errors.some((error) => error.includes("Say.text must be a string")))
+        assert.ok(result.errors.some((error) => error.includes("GetDigits.maxDigits must be a number")))
     })
 })
 

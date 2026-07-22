@@ -24,7 +24,7 @@ Pick the SDK that matches the project you are working in. If the project is poly
 
 These are three different jobs; most apps use all three.
 
-- PerCL (webhook responses): the JSON your server returns when FreeClimb POSTs a call/SMS event. Use the SDK's PerCL builders (`PerclScript`, `Say`, `GetDigits`, `RecordUtterance`, `Redirect`, `Hangup`, `Sms`, ...) to construct it, or emit the JSON array directly. Validate with the `validate_percl` MCP tool.
+- PerCL (webhook responses): the JSON your server returns when FreeClimb POSTs a call/SMS event. Use the SDK's PerCL builders (`PerclScript`, `Say`, `GetDigits`, `RecordUtterance`, `Redirect`, `Hangup`, `Sms`, ...) to construct it, or emit the JSON array directly. Validate serialized output with `freeclimb percl:validate <file|-> --json`.
 - SDK REST client (outbound API calls): use the SDK's API client to send SMS, place calls, create/update applications, buy numbers, and read account state from your own backend code.
 - Raw REST: only when no SDK exists for the language or you need an endpoint the SDK does not expose. Authenticate with HTTP Basic (Account ID + API Key) against `https://www.freeclimb.com/apiserver/Accounts/{accountId}`.
 

@@ -7,7 +7,7 @@ description: Use when choosing a Say TTS engine, voice, SSML, or deciding betwee
 
 Use this skill when tuning how PerCL `Say` sounds—or when TTS is the wrong tool.
 
-Guardrails: follow `rules/freeclimb.mdc` (canonical). Validate PerCL with `validate_percl` before live calls.
+Guardrails: follow `rules/freeclimb.mdc` (canonical). Validate serialized PerCL with `freeclimb percl:validate <file|-> --json` before live calls.
 
 Engine details: https://docs.freeclimb.com/reference/say and https://docs.freeclimb.com/docs/freeclimb-tts
 

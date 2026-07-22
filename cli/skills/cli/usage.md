@@ -82,6 +82,15 @@ freeclimb conferences:create --alias "standup" --dry-run
 freeclimb conference-participants:list CONF_ID --fields callId,talk,listen --json
 ```
 
+### PerCL Validation
+
+```bash
+freeclimb percl:validate flow.percl.json --json
+curl -s -X POST "$BASE/voice" | freeclimb percl:validate - --json
+```
+
+This command is local, requires no authentication, and exits nonzero when the PerCL is invalid.
+
 ### Raw API
 
 ```bash
