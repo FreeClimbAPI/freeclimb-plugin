@@ -18,6 +18,22 @@ function resolveSkillsDir(): string {
 }
 
 const SKILLS_DIR = resolveSkillsDir()
+const PLUGIN_SKILLS_DIR = join(currentDir, "../../skills")
+
+interface SkillManifestEntry {
+    description: string
+    id: string
+    name: string
+    path: string
+    source?: "plugin-skill"
+}
+
+function resolveSkillPath(skill: SkillManifestEntry): string {
+    if (skill.source === "plugin-skill") {
+        return join(PLUGIN_SKILLS_DIR, skill.path, "SKILL.md")
+    }
+    return join(SKILLS_DIR, skill.path)
+}
 
 export interface SkillResource {
     description: string
@@ -33,8 +49,8 @@ export function discoverSkillResources(): SkillResource[] {
 
     try {
         const manifest = JSON.parse(readFileSync(join(SKILLS_DIR, "manifest.json"), "utf-8"))
-        for (const skill of manifest.skills) {
-            const filePath = join(SKILLS_DIR, skill.path)
+        for (const skill of manifest.skills as SkillManifestEntry[]) {
+            const filePath = resolveSkillPath(skill)
             if (existsSync(filePath)) {
                 resources.push({
                     uri: `freeclimb://skills/${skill.id}`,

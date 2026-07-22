@@ -10,6 +10,8 @@ Use this skill when the user asks for a phone line, IVR, voicemail, call routing
 Guardrails: follow `rules/freeclimb.mdc` (canonical).
 
 For voice application setup depth, use MCP resource `freeclimb://skills/freeclimb-voice-applications`.
+For language and package selection, load `freeclimb-sdks` or MCP resource `freeclimb://skills/freeclimb-sdk-applications`.
+For request verification, load `webhook-security`.
 
 ## Start With The Business Goal
 
@@ -35,11 +37,24 @@ Translate the request into:
 
 For local development, prefer `freeclimb dev` because it creates a tunnel, configures webhook URLs, and can assign a number.
 
+## Select The Tested SDK Starter
+
+Detect the current project's language and framework before creating files. Start from the matching template:
+
+- Node.js or TypeScript: `templates/node-express`
+- Python: `templates/python-flask`
+- Java: `templates/java-spring`
+- C# or .NET: `templates/dotnet-minimal`
+- Ruby: `templates/ruby-sinatra`
+- PHP: `templates/php-slim`
+
+Default to Node.js only when the project has no established language. Preserve the template's exact SDK version, request verifier, environment validation, and contract tests. Adapt the routes and business logic instead of recreating SDK setup. Install the published package; for Java, preserve the template's exact JitPack tag. Never copy generated SDK source into the application.
+
 ## Make Webhook URLs Publicly Reachable
 
 Build the app so it constructs absolute URLs from a configurable public base instead of hardcoding `localhost`:
 
-- Read a base URL from an environment variable (for example `BASE_URL`), defaulting to `http://localhost:PORT` only for local checks.
+- Require a public HTTPS base URL from an environment variable such as `BASE_URL`.
 - Build every `actionUrl` as `${BASE_URL}/route`.
 - When running with `freeclimb dev`, set `BASE_URL` to the tunnel URL it prints (the `tunnelUrl` in the ready event), then start the app:
 
@@ -61,7 +76,7 @@ For the live demo, build this flow:
 6. `/voicemail-saved`: thank caller and hang up.
 7. `/health`: return JSON so local checks are easy.
 
-Use Express for the simplest Node.js demo app unless the current project already uses another web framework.
+Use the selected template's framework unless the current project already has an equivalent web framework. Keep the official SDK and contract behavior when adapting to an existing framework.
 
 ## SMS Workflows
 
@@ -75,7 +90,7 @@ Honor opt-out and help per `rules/freeclimb.mdc`; see the `sms-compliance` skill
 
 ## Validate Before Going Live
 
-Before inviting a live call/SMS, validate each route's serialized PerCL with `freeclimb percl:validate <file|-> --json` (or follow the `verify-flow` skill / `/freeclimb-test-flow` command). Fix every error before continuing.
+Before inviting a live call/SMS, run the selected template's tests and validate each route's serialized SDK PerCL with `freeclimb percl:validate <file|-> --json` (or follow the `verify-flow` skill / `/freeclimb-test-flow` command). Fix every error before continuing.
 
 ## Verify Before Telling The User To Call
 

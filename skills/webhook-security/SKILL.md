@@ -23,15 +23,20 @@ Verification algorithm:
 
 Signing secrets are dashboard-managed only (Account > API Credentials); there is no REST API to create or rotate them. Accounts may hold at most 2 active secrets for zero-downtime rotation — delete the old secret after all apps are updated.
 
-SDK helpers:
+Pinned SDK behavior:
 
-| SDK | Version | Helper |
-|-----|---------|--------|
-| Node.js | ≥2.0.0 | `RequestVerifier.verifyRequestSignature` |
-| Java | ≥4.0.0 | `Utils.verifyRequest` |
-| Python | ≥3.0.0 | `RequestVerifier.verify_request_signature` |
-| Ruby | ≥3.0.0 | `FreeClimb::Utils.verify_request` |
-| C# / PHP | — | manual verification per docs |
+| SDK | Version | Built-in helper |
+|-----|---------|-----------------|
+| Node.js | 4.4.1 | `RequestVerifier.verifyRequestSignature` |
+| Python | 5.4.1 | `RequestVerifier.verify_request_signature` |
+| Java | 6.4.1 | `RequestVerifier.verifyRequestSignature` |
+| C# / .NET | 5.4.1 | `RequestVerifier.verifyRequestSignature` |
+| Ruby | 5.5.1 | `Freeclimb::RequestVerifier.verify_request_signature` |
+| PHP | 5.4.1 | `RequestVerifier::verifyRequestSignature` |
+
+Do not use those helpers directly at the pinned versions. Their defaults use milliseconds against second-based timestamps, they do not reject future timestamps, and they do not use constant-time comparisons. Ruby also depends on undeclared ActiveSupport behavior, while PHP 5.4.1 passes the request header where the signing secret is required.
+
+Use the hardened implementation in the matching starter template. It follows the documented algorithm, enforces absolute timestamp skew of at most 300 seconds, checks every `v1`, and compares digest bytes in constant time.
 
 Use the raw request body (not re-serialized JSON) when verifying. Until verification is wired, apply defense-in-depth so a forged request can't do real damage:
 

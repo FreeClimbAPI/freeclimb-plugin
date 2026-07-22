@@ -33,6 +33,20 @@ describe("MCP resource resolution", () => {
         assert.ok(resource.text.length > 0)
     })
 
+    it("exposes the canonical plugin SDK skill without duplicating it", async () => {
+        const uri = "freeclimb://skills/freeclimb-sdk-applications"
+        const skills = discoverSkillResources()
+        assert.ok(skills.some((skill) => skill.uri === uri))
+        const resource = await readFreeclimbResource(uri)
+        assert.match(resource.text, /# FreeClimb SDKs/)
+        assert.match(resource.text, /sdk\/sdk-matrix\.json/)
+        assert.match(resource.text, /sdk\/content-index\.json/)
+        assert.match(resource.text, /Do not clone a quickstart, tutorial, or SDK repository/)
+        assert.match(resource.text, /read exactly one reference/)
+        assert.doesNotMatch(resource.text, /createConfiguration/)
+        assert.ok(resource.text.split("\n").length < 80)
+    })
+
     it("throws for an unknown skill resource uri", async () => {
         await assert.rejects(() => readFreeclimbResource("freeclimb://skills/does-not-exist"))
     })

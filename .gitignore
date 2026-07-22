@@ -9,3 +9,11 @@ pnpm-debug.log*
 lib/
 *.tsbuildinfo
 *.tgz
+templates/**/bin/
+templates/**/obj/
+templates/**/target/
+templates/**/vendor/
+templates/**/.bundle/
+templates/**/.pytest_cache/
+templates/**/__pycache__/
+templates/**/.venv/

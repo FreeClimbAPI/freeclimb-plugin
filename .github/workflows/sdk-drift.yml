@@ -1,0 +1,57 @@
+name: SDK Drift
+
+on:
+  schedule:
+    - cron: "17 13 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: node scripts/sdk-matrix.mjs
+      - id: drift
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/check-sdk-drift.mjs --output sdk-drift-report.json --markdown sdk-drift-report.md
+      - uses: actions/upload-artifact@v7
+        with:
+          name: sdk-drift-report
+          path: |
+            sdk-drift-report.json
+            sdk-drift-report.md
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_DRIFT: ${{ steps.drift.outputs.release_drift }}
+          SPEC_DRIFT: ${{ steps.drift.outputs.spec_drift }}
+          CONTENT_DRIFT: ${{ steps.drift.outputs.content_drift }}
+        run: |
+          sync_issue() {
+            title="$1"
+            active="$2"
+            number="$(gh issue list --state open --search "\"$title\" in:title" --json number --jq '.[0].number // empty')"
+            if [ "$active" = "true" ]; then
+              if [ -n "$number" ]; then
+                gh issue edit "$number" --body-file sdk-drift-report.md
+              else
+                gh issue create --title "$title" --body-file sdk-drift-report.md
+              fi
+            elif [ -n "$number" ]; then
+              gh issue close "$number" --comment "The scheduled SDK drift check is clear."
+            fi
+          }
+          sync_issue "SDK release drift detected" "$RELEASE_DRIFT"
+          sync_issue "SDK OpenAPI divergence detected" "$SPEC_DRIFT"
+          sync_issue "SDK example content drift detected" "$CONTENT_DRIFT"
