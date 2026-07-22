@@ -29,6 +29,10 @@ describe("dashboard MCP app", () => {
         assert.ok(UI_DASHBOARD_URI.startsWith("ui://"))
         assert.ok(UI_DASHBOARD_MIME.includes("mcp-app"))
         assert.match(DASHBOARD_HTML, /freeclimb-dashboard/)
+        assert.match(DASHBOARD_HTML, /--brand-blue: #004e63/)
+        assert.match(DASHBOARD_HTML, /--brand-green: #c2ff18/)
+        assert.match(DASHBOARD_HTML, /Atkinson Hyperlegible/)
+        assert.match(DASHBOARD_HTML, /\.pill\.good/)
         assert.doesNotMatch(DASHBOARD_HTML, /\.innerHTML|insertAdjacentHTML/)
     })
 
