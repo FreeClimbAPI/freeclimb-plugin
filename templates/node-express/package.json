@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@freeclimb/sdk": "4.4.1",
-    "dotenv": "^16.4.5",
+    "dotenv": "^17.4.2",
     "express": "^4.19.2"
   },
   "devDependencies": {
