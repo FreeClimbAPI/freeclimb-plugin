@@ -102,7 +102,7 @@ jobs:
           distribution: temurin
           java-version: "17"
           cache: maven
-      - uses: actions/setup-dotnet@v5
+      - uses: actions/setup-dotnet@v6
         if: matrix.sdk == 'dotnet'
         with:
           dotnet-version: "8.0.x"
