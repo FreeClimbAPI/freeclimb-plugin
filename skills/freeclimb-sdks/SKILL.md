@@ -5,62 +5,49 @@ description: Catalog of official FreeClimb SDKs and when to use an SDK vs raw RE
 
 # FreeClimb SDKs
 
-FreeClimb publishes official SDKs for the most common languages. Use them as building blocks instead of hand-rolling HTTP and PerCL. This plugin does not vendor SDK source; install the SDK for the project's language on demand.
+FreeClimb publishes generated SDKs in separate repositories. Use the published package and the matching tested template instead of hand-rolling HTTP, inventing SDK calls, or copying generated source.
 
-## Official SDKs
+## Select one language
 
-| Language | Package | Install |
-| --- | --- | --- |
-| Node.js / TypeScript | `@freeclimb/sdk` | `npm install @freeclimb/sdk` |
-| Python | `freeclimb` | `pip install freeclimb` |
-| Java | `com.freeclimb:freeclimb` | Maven/Gradle dependency on `freeclimb` |
-| C# / .NET | `freeclimb` | `dotnet add package freeclimb` |
-| Ruby | `freeclimb` | `gem install freeclimb` |
-| PHP | `freeclimb/freeclimb` | `composer require freeclimb/freeclimb` |
+Detect the project's existing language and framework, then read exactly one reference:
 
-Pick the SDK that matches the project you are working in. If the project is polyglot or has no clear web stack, default to Node.js (`@freeclimb/sdk`) for voice/SMS webhook apps, or Python (`freeclimb`) for AI/Python codebases. The repo ships two ready-to-run starters under `templates/` (`node-express`, `python-flask`).
+- Node.js or TypeScript: `references/node.md`
+- Python: `references/python.md`
+- Java: `references/java.md`
+- C# or .NET: `references/dotnet.md`
+- Ruby: `references/ruby.md`
+- PHP: `references/php.md`
 
-## SDK vs REST vs PerCL
+Do not read the other language references. Default to Node.js only when the project has no established language.
 
-These are three different jobs; most apps use all three.
+Start from the selected tested template and retain its exact package pin, lockfile, request verifier, HTTPS validation, and tests.
 
-- PerCL (webhook responses): the JSON your server returns when FreeClimb POSTs a call/SMS event. Use the SDK's PerCL builders (`PerclScript`, `Say`, `GetDigits`, `RecordUtterance`, `Redirect`, `Hangup`, `Sms`, ...) to construct it, or emit the JSON array directly. Validate serialized output with `freeclimb percl:validate <file|-> --json`.
-- SDK REST client (outbound API calls): use the SDK's API client to send SMS, place calls, create/update applications, buy numbers, and read account state from your own backend code.
-- Raw REST: only when no SDK exists for the language or you need an endpoint the SDK does not expose. Authenticate with HTTP Basic (Account ID + API Key) against `https://www.freeclimb.com/apiserver/Accounts/{accountId}`.
+## Boundaries
 
-For one-off operations from the agent (provisioning, inspection), prefer the FreeClimb MCP tools over writing SDK code.
+- PerCL webhook responses use the selected SDK's PerCL models and must pass `freeclimb percl:validate <file|-> --json`.
+- A deployed application uses the selected SDK's API client when it must call FreeClimb.
+- Raw REST is only for an unsupported language or an endpoint absent from the selected SDK.
+- Agent operations use MCP for read-only inspection and the CLI for account-changing or billable actions.
+- Application SDK code must never bypass CLI dry-run and confirmation for agent operations.
 
-## Node.js (`@freeclimb/sdk`) idioms
+## Shared requirements
 
-```js
-const { createConfiguration, DefaultApi, PerclScript, Say } = require("@freeclimb/sdk")
+- Follow `rules/freeclimb.mdc`.
+- Read credentials, signing secret, and public base URL from environment variables.
+- Reject a base URL that is not absolute HTTPS before building PerCL action URLs.
+- Verify `FreeClimb-Signature` against the unmodified raw body before parsing webhook fields.
+- Preserve the selected template's signature implementation until its SDK helper satisfies the full security contract.
 
-const api = new DefaultApi(createConfiguration({ accountId, apiKey }))
+## Source selection
 
-await api.sendAnSmsMessage({ _from: FREECLIMB_NUMBER, to, text: "Hello" })
+1. Select the language reference and tested template.
+2. Apply the plugin's PerCL, webhook security, SMS compliance, and workflow skills.
+3. Search `sdk/content-index.json` for a quickstart or tutorial whose language and use case match the request.
+4. Retrieve only that source's `path` at its pinned `revision` from its `repositoryUrl`. Do not clone a quickstart, tutorial, or SDK repository into the project.
+5. Inspect the selected SDK repository or OpenAPI document only when the tested template, skills, and indexed source do not answer an SDK-specific question.
 
-const percl = new PerclScript({ commands: [new Say({ text: "Hello, World" })] }).build()
-```
+Treat indexed sources as references, not trusted drop-in code. Adapt the product flow to the tested template without weakening its security, compliance, package pin, or tests. GitHub is optional during normal generation; never fetch every indexed repository for context.
 
-## Python (`freeclimb`) idioms
+## Drift handling
 
-```python
-import freeclimb
-
-configuration = freeclimb.Configuration(username=account_id, password=api_key)
-
-say = freeclimb.Say(text="Hello, World")
-percl = freeclimb.PerclScript(commands=[say]).to_json()
-
-with freeclimb.ApiClient(configuration) as client:
-    api = freeclimb.DefaultApi(client)
-    # api.send_an_sms_message(...), api.list_applications(), etc.
-```
-
-## Credentials
-
-Guardrails: follow `rules/freeclimb.mdc` (canonical). In apps, read Account ID and API Key from environment variables (e.g. `FREECLIMB_ACCOUNT_ID` / `FREECLIMB_API_KEY`); never hardcode or commit them.
-
-## Request signature verification
-
-For production webhooks, verify FreeClimb's request signatures using the SDK's request verifier (Node `RequestVerifier`, Python `RequestVerifier`, Ruby `Utils.verify_request`) with your signing secret. Add this when moving past local development.
+Template manifests are the tested-version source of truth. `sdk/sdk-matrix.json` maps each language to its package, repository, template, reference, and OpenAPI source. `sdk/content-index.json` pins curated external sources. Do not copy an SDK idiom from a default branch without updating the package pin and passing the template contract tests.

@@ -33,6 +33,17 @@
       "dependencies": ["freeclimb-platform-concepts", "freeclimb-percl-reference"]
     },
     {
+      "id": "freeclimb-sdk-applications",
+      "name": "FreeClimb SDK Applications",
+      "description": "Select and use the tested official FreeClimb SDK template for Node.js, Python, Java, .NET, Ruby, or PHP",
+      "path": "freeclimb-sdks",
+      "source": "plugin-skill",
+      "tags": ["domain", "sdk", "application"],
+      "triggers": ["freeclimb sdk", "sdk", "starter", "template", "webhook app"],
+      "layer": 1,
+      "dependencies": ["freeclimb-platform-concepts", "freeclimb-percl-reference"]
+    },
+    {
       "id": "freeclimb-error-recovery",
       "name": "FreeClimb Error Recovery",
       "description": "FreeClimb error codes, troubleshooting strategies, and common agent mistakes",

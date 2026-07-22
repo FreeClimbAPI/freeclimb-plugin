@@ -1,0 +1,82 @@
+{
+  "version": 1,
+  "contractFixture": "templates/contract-fixtures.json",
+  "sdks": [
+    {
+      "id": "node",
+      "language": "Node.js / TypeScript",
+      "repository": "FreeClimbAPI/nodejs-sdk",
+      "packageManager": "npm",
+      "packageName": "@freeclimb/sdk",
+      "template": "templates/node-express",
+      "reference": "skills/freeclimb-sdks/references/node.md",
+      "manifest": "package.json",
+      "lockfile": "package-lock.json",
+      "releaseTagPrefix": "",
+      "openapiPath": "openapi.json"
+    },
+    {
+      "id": "python",
+      "language": "Python",
+      "repository": "FreeClimbAPI/python-sdk",
+      "packageManager": "pip",
+      "packageName": "freeclimb",
+      "template": "templates/python-flask",
+      "reference": "skills/freeclimb-sdks/references/python.md",
+      "manifest": "requirements.txt",
+      "releaseTagPrefix": "",
+      "openapiPath": "openapi.json"
+    },
+    {
+      "id": "java",
+      "language": "Java",
+      "repository": "FreeClimbAPI/java-sdk",
+      "packageManager": "maven",
+      "packageName": "com.github.FreeClimbAPI:java-sdk",
+      "template": "templates/java-spring",
+      "reference": "skills/freeclimb-sdks/references/java.md",
+      "manifest": "pom.xml",
+      "releaseTagPrefix": "v",
+      "openapiPath": "openapi.json"
+    },
+    {
+      "id": "dotnet",
+      "language": ".NET",
+      "repository": "FreeClimbAPI/csharp-sdk",
+      "packageManager": "nuget",
+      "packageName": "freeclimb",
+      "template": "templates/dotnet-minimal",
+      "reference": "skills/freeclimb-sdks/references/dotnet.md",
+      "manifest": "FreeClimbStarter.csproj",
+      "lockfile": "packages.lock.json",
+      "releaseTagPrefix": "",
+      "openapiPath": "api/openapi.yaml"
+    },
+    {
+      "id": "ruby",
+      "language": "Ruby",
+      "repository": "FreeClimbAPI/ruby-sdk",
+      "packageManager": "bundler",
+      "packageName": "freeclimb",
+      "template": "templates/ruby-sinatra",
+      "reference": "skills/freeclimb-sdks/references/ruby.md",
+      "manifest": "Gemfile",
+      "lockfile": "Gemfile.lock",
+      "releaseTagPrefix": "",
+      "openapiPath": "openapi.json"
+    },
+    {
+      "id": "php",
+      "language": "PHP",
+      "repository": "FreeClimbAPI/php-sdk",
+      "packageManager": "composer",
+      "packageName": "freeclimbapi/php-sdk",
+      "template": "templates/php-slim",
+      "reference": "skills/freeclimb-sdks/references/php.md",
+      "manifest": "composer.json",
+      "lockfile": "composer.lock",
+      "releaseTagPrefix": "v",
+      "openapiPath": "openapi.json"
+    }
+  ]
+}

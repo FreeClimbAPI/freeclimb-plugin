@@ -12,8 +12,14 @@
   "scripts": {
     "build": "pnpm --filter @freeclimb/core build && pnpm --filter @freeclimb/mcp build && pnpm --filter freeclimb-cli build",
     "setup": "pnpm install && pnpm build",
-    "test": "pnpm -r --if-present test",
+    "test": "node --test scripts/test/*.test.mjs && pnpm -r --if-present test",
     "lint": "pnpm -r --if-present lint",
-    "validate": "node scripts/validate-plugin.mjs && node scripts/scan-secrets.mjs"
+    "validate": "node scripts/validate-plugin.mjs && node scripts/scan-secrets.mjs",
+    "sdk:validate": "node scripts/sdk-matrix.mjs",
+    "sdk:test": "node --test scripts/test/*.test.mjs",
+    "sdk:drift": "node scripts/check-sdk-drift.mjs"
+  },
+  "devDependencies": {
+    "yaml": "^2.9.0"
   }
 }

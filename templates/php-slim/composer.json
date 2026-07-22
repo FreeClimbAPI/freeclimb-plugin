@@ -1,0 +1,30 @@
+{
+  "name": "freeclimb/php-slim-starter",
+  "description": "Minimal signed FreeClimb voice and SMS webhooks with Slim",
+  "type": "project",
+  "license": "Unlicense",
+  "require": {
+    "php": ">=8.2",
+    "freeclimbapi/php-sdk": "5.4.1",
+    "slim/psr7": "1.8.0",
+    "slim/slim": "4.15.2",
+    "vlucas/phpdotenv": "5.6.4"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "11.5.56"
+  },
+  "autoload": {
+    "psr-4": {
+      "FreeClimbStarter\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "FreeClimbStarter\\Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "start": "php -S 0.0.0.0:3000 -t public",
+    "test": "phpunit"
+  }
+}

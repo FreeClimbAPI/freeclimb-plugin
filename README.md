@@ -65,6 +65,12 @@ node mcp/lib/bin.js login
 node mcp/lib/bin.js logout
 ```
 
+## Official SDK workflow
+
+When an agent builds a user application, it detects the project's language and loads only that language's SDK reference and matching template under `templates/`. Each of the six templates uses an exact official SDK release, SDK-native PerCL, raw-body request signature verification, absolute HTTPS action URLs, and non-billable contract tests. For specialized flows, the agent can select one pinned source from `sdk/content-index.json`; it retrieves only the matching quickstart or tutorial and adapts the product flow to the tested template.
+
+The plugin runtime does not vendor or import generated SDKs, quickstarts, or tutorials, and normal generation does not require GitHub. MCP remains read-only through `@freeclimb/core`, while account-changing agent operations remain CLI-only. Run `pnpm sdk:validate` to verify SDK and content catalogs, `pnpm sdk:test` to test drift automation, and `pnpm sdk:drift` to compare tested releases, normalized OpenAPI contracts, and pinned content revisions with upstream repositories.
+
 ## Read-only MCP, CLI for actions
 
 The FreeClimb MCP tools are **read-only**: they inspect the account (calls, SMS, numbers, applications, logs) and render read-only dashboards, but they cannot spend money or change the account. PerCL validation is local and deterministic through the automatic hook and `freeclimb percl:validate <file|-> --json`. Every billable or irreversible action (place calls, send SMS, buy numbers, update calls/applications) is performed through the **FreeClimb CLI**, which the agent runs as a terminal command with `--dry-run` and input validation.
@@ -98,7 +104,7 @@ The shared `@freeclimb/core` HTTP client paces FreeClimb API traffic to 5 reques
 - A contextual SMS compliance rule (`rules/sms-compliance.mdc`) for opt-out handling, consent, quiet hours, and 10DLC guardrails when composing or sending SMS.
 - A `freeclimb-builder` agent (reads via MCP, acts via the CLI) and a read-only `freeclimb-operator` agent for safe inspection.
 - Hooks for a first-run setup nudge (`sessionStart`), billable CLI approval (`beforeShellExecution`), immediate `.percl.json` validation feedback (`postToolUse`), and a bounded repair continuation (`stop`).
-- Starter templates under `templates/` (Node/Express and Python/Flask) using the official FreeClimb SDKs.
+- Tested starter templates under `templates/` for Node/Express, Python/Flask, Java/Spring Boot, .NET minimal APIs, Ruby/Sinatra, and PHP/Slim using the official FreeClimb SDKs.
 
 ## Repository Layout
 
@@ -112,7 +118,11 @@ The shared `@freeclimb/core` HTTP client paces FreeClimb API traffic to 5 reques
 - `rules/`: FreeClimb guardrails (`freeclimb.mdc`) and SMS compliance (`sms-compliance.mdc`).
 - `agents/`: `freeclimb-builder` (reads via MCP, acts via CLI) and `freeclimb-operator` (read-only) subagents.
 - `hooks/`: Session setup nudge, the billable-CLI dry-run guard, and the automatic PerCL validation and repair loop for agent-written `.percl.json` files.
-- `templates/`: Node/Express and Python/Flask starter apps using the official SDKs.
+- `templates/`: Six reproducible starter apps using exact official SDK releases, SDK-native PerCL, and request verification.
+- `sdk/sdk-matrix.json`: Machine-readable mapping from each supported language and package to its SDK repository, template, release convention, and OpenAPI source.
+- `sdk/content-index.json`: Curated quickstart and tutorial metadata pinned to immutable source revisions.
+- `scripts/sdk-matrix.mjs`: Deterministic SDK, template, exact-version, lockfile, and content-index validation.
+- `scripts/check-sdk-drift.mjs`: Scheduled release, OpenAPI fingerprint, and indexed-content revision comparison.
 - `demo/slides/`: HTML presentation deck and assets.
 
 ## Demo Prompt
@@ -139,6 +149,16 @@ pnpm run build    # rebuild all packages (core -> mcp -> cli)
 pnpm test         # run the core, mcp, and cli test suites
 pnpm run validate # validate the plugin manifest/frontmatter and scan for secrets
 ```
+
+SDK integration checks:
+
+```bash
+pnpm sdk:validate
+pnpm sdk:test
+pnpm sdk:drift
+```
+
+Protect `main` with the `plugin-validate`, `build`, `test`, and `sdk-templates` checks after the SDK workflow has run once on the default branch.
 
 To work on the CLI directly:
 

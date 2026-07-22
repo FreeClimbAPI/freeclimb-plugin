@@ -8,3 +8,27 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+  - package-ecosystem: "npm"
+    directory: "/templates/node-express"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "pip"
+    directory: "/templates/python-flask"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "maven"
+    directory: "/templates/java-spring"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "nuget"
+    directory: "/templates/dotnet-minimal"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "bundler"
+    directory: "/templates/ruby-sinatra"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "composer"
+    directory: "/templates/php-slim"
+    schedule:
+      interval: "weekly"

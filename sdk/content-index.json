@@ -1,0 +1,195 @@
+{
+  "version": 1,
+  "sources": [
+    {
+      "id": "node-voice-quickstart",
+      "kind": "quickstart",
+      "title": "Node Voice Quickstart",
+      "useCase": "Receive a call and return a basic PerCL voice response",
+      "language": "node",
+      "repositoryUrl": "https://github.com/FreeClimbAPI/Node-Voice-Quickstart",
+      "path": "README.md",
+      "revision": "573505bae685c120ee6cebea2b938b32c41b8a6d"
+    },
+    {
+      "id": "node-messaging-quickstart",
+      "kind": "quickstart",
+      "title": "Node Messaging Quickstart",
+      "useCase": "Send and receive SMS messages",
+      "language": "node",
+      "repositoryUrl": "https://github.com/FreeClimbAPI/Node-Messaging-Quickstart",
+      "path": "README.md",
+      "revision": "4386f9b7d76934da10bd648c7e9db04794606c3a"
+    },
+    {
+      "id": "python-voice-quickstart",
+      "kind": "quickstart",
+      "title": "Python Voice Quickstart",
+      "useCase": "Receive a call and return a basic PerCL voice response",
+      "language": "python",
+      "repositoryUrl": "https://github.com/FreeClimbAPI/Python-Voice-Quickstart",
+      "path": "README.md",
+      "revision": "6e9bda05cbeabeab8a199787409e2af4ba3b9e7f"
+    },
+    {
+      "id": "python-sms-quickstart",
+      "kind": "quickstart",
+      "title": "Python SMS Quickstart",
+      "useCase": "Send and receive SMS messages",
+      "language": "python",
+      "repositoryUrl": "https://github.com/FreeClimbAPI/Python-SMS-Quickstart",
+      "path": "README.md",
+      "revision": "a5aba2a9dd10f2d79c8f9e1b626727a69423c859"
+    },
+    {
+      "id": "java-voice-quickstart",
+      "kind": "quickstart",
+      "title": "Java Voice Quickstart",
+      "useCase": "Receive a call and return a basic PerCL voice response",
+      "language": "java",
+      "repositoryUrl": "https://github.com/FreeClimbAPI/Java-Voice-Quickstart",
+      "path": "README.md",
+      "revision": "eff7ebd6318b123826c1318c586f5422531b7847"
+    },
+    {
+      "id": "java-messaging-quickstart",
+      "kind": "quickstart",
+      "title": "Java Messaging Quickstart",
+      "useCase": "Send and receive SMS messages",
+      "language": "java",
+      "repositoryUrl": "https://github.com/FreeClimbAPI/Java-Messaging-Quickstart",
+      "path": "README.md",
+      "revision": "1e285b3f7fc5aff2ef6cecd1aabb347fcc93c1fd"
+    },
+    {
+      "id": "dotnet-voice-quickstart",
+      "kind": "quickstart",
+      "title": ".NET Voice Quickstart",
+      "useCase": "Receive a call and return a basic PerCL voice response",
+      "language": "dotnet",
+      "repositoryUrl": "https://github.com/FreeClimbAPI/CSharp-Voice-Quickstart",
+      "path": "README.md",
+      "revision": "52b743e7cc6695421981796889952da7e55f3023"
+    },
+    {
+      "id": "dotnet-sms-quickstart",
+      "kind": "quickstart",
+      "title": ".NET SMS Quickstart",
+      "useCase": "Send and receive SMS messages",
+      "language": "dotnet",
+      "repositoryUrl": "https://github.com/FreeClimbAPI/CSharp-SMS-Quickstart",
+      "path": "README.md",
+      "revision": "10aa6a72b2d40a66d7061174c2b613f2b96adaf7"
+    },
+    {
+      "id": "ruby-voice-quickstart",
+      "kind": "quickstart",
+      "title": "Ruby Voice Quickstart",
+      "useCase": "Receive a call and return a basic PerCL voice response",
+      "language": "ruby",
+      "repositoryUrl": "https://github.com/FreeClimbAPI/Ruby-Voice-Quickstart",
+      "path": "README.md",
+      "revision": "f3866ed27da4a5e01ddc0d1702113b0ae992c136"
+    },
+    {
+      "id": "ruby-sms-quickstart",
+      "kind": "quickstart",
+      "title": "Ruby SMS Quickstart",
+      "useCase": "Send and receive SMS messages",
+      "language": "ruby",
+      "repositoryUrl": "https://github.com/FreeClimbAPI/Ruby-SMS-Quickstart",
+      "path": "README.md",
+      "revision": "d469ea16a5a58e665134a6e4e5883b3047ab2de5"
+    },
+    {
+      "id": "php-voice-quickstart",
+      "kind": "quickstart",
+      "title": "PHP Voice Quickstart",
+      "useCase": "Receive a call and return a basic PerCL voice response",
+      "language": "php",
+      "repositoryUrl": "https://github.com/FreeClimbAPI/PHP-Voice-Quickstart",
+      "path": "README.md",
+      "revision": "f28c97d51280824b4f9c9ad3baa1e3f6bdfab933"
+    },
+    {
+      "id": "php-sms-quickstart",
+      "kind": "quickstart",
+      "title": "PHP SMS Quickstart",
+      "useCase": "Send and receive SMS messages",
+      "language": "php",
+      "repositoryUrl": "https://github.com/FreeClimbAPI/PHP-SMS-Quickstart",
+      "path": "README.md",
+      "revision": "01a9afde6e8e1cbd93dffe980a4c701246d35580"
+    },
+    {
+      "id": "python-outbound-call-tutorial",
+      "kind": "tutorial",
+      "title": "Python Make Outbound Call Tutorial",
+      "useCase": "Place an outbound call from application code",
+      "language": "python",
+      "repositoryUrl": "https://github.com/FreeClimbAPI/Python-Make-Outbound-Call-Tutorial",
+      "path": "README.md",
+      "revision": "694b515386603a3d910065cb261f4c7fd34c6933"
+    },
+    {
+      "id": "node-connect-caller-tutorial",
+      "kind": "tutorial",
+      "title": "Node Connect Caller to Another Party",
+      "useCase": "Bridge an incoming caller to another phone number",
+      "language": "node",
+      "repositoryUrl": "https://github.com/FreeClimbAPI/Node-Connect-Caller-To-Another-Party",
+      "path": "README.md",
+      "revision": "35a9ccfbb784341db12a4707b78109d3f163243e"
+    },
+    {
+      "id": "node-collect-digits-tutorial",
+      "kind": "tutorial",
+      "title": "Node Collect Digits Tutorial",
+      "useCase": "Collect keypad input during a call",
+      "language": "node",
+      "repositoryUrl": "https://github.com/FreeClimbAPI/Node-Collect-Digits-How-To-Guide",
+      "path": "README.md",
+      "revision": "26a3ce9560ef65313d842ccac020de4345192af2"
+    },
+    {
+      "id": "node-speech-recognition-tutorial",
+      "kind": "tutorial",
+      "title": "Node Speech Recognition Tutorial",
+      "useCase": "Capture and recognize caller speech",
+      "language": "node",
+      "repositoryUrl": "https://github.com/FreeClimbAPI/Node-Speech-Recognition-How-To-Guide",
+      "path": "README.md",
+      "revision": "2d02db1e128140d5ef7067808ef8f56a74af96b0"
+    },
+    {
+      "id": "node-queue-tutorial",
+      "kind": "tutorial",
+      "title": "Node Make a Queue Tutorial",
+      "useCase": "Create and use a call queue",
+      "language": "node",
+      "repositoryUrl": "https://github.com/FreeClimbAPI/Node-Make-A-Queue-How-To-Guide",
+      "path": "README.md",
+      "revision": "61bfef334f31c076a8570b7931d352c5113df6f3"
+    },
+    {
+      "id": "node-recording-tutorial",
+      "kind": "tutorial",
+      "title": "Node Make Recording Tutorial",
+      "useCase": "Record audio during a call",
+      "language": "node",
+      "repositoryUrl": "https://github.com/FreeClimbAPI/Node-Make-Recording-How-To-Guide",
+      "path": "README.md",
+      "revision": "66472d220a7ecb9d99b79c3b24add431f26f155d"
+    },
+    {
+      "id": "node-conference-tutorial",
+      "kind": "tutorial",
+      "title": "Node Create Conference Tutorial",
+      "useCase": "Create a conference and add call participants",
+      "language": "node",
+      "repositoryUrl": "https://github.com/FreeClimbAPI/Node-Create-Conference-How-To-Guide",
+      "path": "README.md",
+      "revision": "067a403cecd3162e7d36b140cb1c3d0df3c0a907"
+    }
+  ]
+}

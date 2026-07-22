@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "baseUrl": "https://example.test",
+  "voice": {
+    "method": "POST",
+    "path": "/voice",
+    "request": {
+      "callId": "CA0123456789abcdefABCDEF0123456789abcdef00",
+      "from": "+13121000109",
+      "to": "+13121000096"
+    },
+    "requiredCommand": "GetDigits",
+    "actionUrl": "https://example.test/menu",
+    "maxDigits": 1
+  },
+  "sms": {
+    "method": "POST",
+    "path": "/sms-inbound",
+    "request": {
+      "from": "+13121000109",
+      "to": "+13121000096",
+      "text": "STOP"
+    },
+    "requiredCommand": "Sms",
+    "replyText": "You are unsubscribed and will receive no more messages. Reply HELP for help."
+  },
+  "health": {
+    "method": "GET",
+    "path": "/health",
+    "status": "ok"
+  }
+}
