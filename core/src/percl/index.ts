@@ -40,7 +40,95 @@ const URL_FIELDS: ReadonlySet<string> = new Set([
     "ifMachineUrl",
     "callControlUrl",
     "file",
+    "grammarFile",
 ])
+
+type PerclParameterType = "array" | "boolean" | "number" | "string"
+
+const REQUIRED_FIELDS: Readonly<Record<string, readonly string[]>> = {
+    Say: ["text"],
+    Play: ["file"],
+    PlayEarlyMedia: ["file"],
+    Pause: ["length"],
+    GetDigits: ["actionUrl"],
+    GetSpeech: ["actionUrl", "grammarFile"],
+    Redirect: ["actionUrl"],
+    SendDigits: ["digits"],
+    OutDial: ["destination", "callingNumber", "actionUrl", "callConnectUrl"],
+    Sms: ["to", "from", "text"],
+    RecordUtterance: ["actionUrl"],
+    Enqueue: ["queueId", "waitUrl", "actionUrl"],
+    AddToConference: ["conferenceId"],
+    CreateConference: ["actionUrl"],
+    SetListen: ["listen"],
+    SetTalk: ["talk"],
+    SetDTMFPassThrough: ["dtmfPassThrough"],
+}
+
+const PARAMETER_TYPES: Readonly<Record<string, Readonly<Record<string, PerclParameterType>>>> = {
+    Say: { text: "string", language: "string", loop: "number", privacyMode: "boolean" },
+    Play: { file: "string", loop: "number", privacyMode: "boolean" },
+    PlayEarlyMedia: { file: "string", loop: "number" },
+    Pause: { length: "number" },
+    GetDigits: {
+        actionUrl: "string",
+        prompts: "array",
+        maxDigits: "number",
+        minDigits: "number",
+        initialTimeoutMs: "number",
+        digitTimeoutMs: "number",
+        finishOnKey: "string",
+        flushBuffer: "boolean",
+        privacyMode: "boolean",
+    },
+    GetSpeech: {
+        actionUrl: "string",
+        grammarFile: "string",
+        grammarRule: "string",
+        prompts: "array",
+        playBeep: "boolean",
+        privacyMode: "boolean",
+    },
+    Redirect: { actionUrl: "string" },
+    SendDigits: { digits: "string", pauseMs: "number", privacyMode: "boolean" },
+    OutDial: {
+        destination: "string",
+        callingNumber: "string",
+        actionUrl: "string",
+        callConnectUrl: "string",
+        timeout: "number",
+        privacyMode: "boolean",
+    },
+    Sms: { to: "string", from: "string", text: "string" },
+    RecordUtterance: {
+        actionUrl: "string",
+        silenceTimeoutMs: "number",
+        maxLengthSec: "number",
+        finishOnKey: "string",
+        playBeep: "boolean",
+    },
+    Enqueue: { queueId: "string", waitUrl: "string", actionUrl: "string" },
+    AddToConference: {
+        conferenceId: "string",
+        startConfOnEnter: "boolean",
+        talk: "boolean",
+        listen: "boolean",
+        leaveConferenceUrl: "string",
+        notificationUrl: "string",
+        allowCallControl: "boolean",
+        callControlSequence: "string",
+        callControlUrl: "string",
+    },
+    CreateConference: {
+        actionUrl: "string",
+        alias: "string",
+        record: "boolean",
+        statusCallbackUrl: "string",
+    },
+    SetListen: { listen: "boolean" },
+    SetTalk: { talk: "boolean" },
+    SetDTMFPassThrough: { dtmfPassThrough: "boolean" },
+}
 
 export interface PerclValidationResult {
     valid: boolean
@@ -48,23 +136,41 @@ export interface PerclValidationResult {
     warnings: string[]
 }
 
-function isAbsoluteHttpUrl(value: string): boolean {
+function isHttpsUrl(value: string): boolean {
     try {
         const url = new URL(value)
-        return url.protocol === "http:" || url.protocol === "https:"
+        return url.protocol === "https:"
     } catch {
         return false
     }
 }
 
-function isLocalHost(value: string): boolean {
+function isNonPublicHost(value: string): boolean {
     try {
         const url = new URL(value)
+        const hostname = url.hostname.toLowerCase()
+        if (
+            hostname === "localhost" ||
+            hostname === "0.0.0.0" ||
+            hostname === "[::1]" ||
+            hostname.endsWith(".local")
+        ) {
+            return true
+        }
+        const octets = hostname.split(".").map(Number)
+        if (octets.length === 4 && octets.every((octet) => Number.isInteger(octet))) {
+            return (
+                octets[0] === 10 ||
+                octets[0] === 127 ||
+                (octets[0] === 169 && octets[1] === 254) ||
+                (octets[0] === 172 && octets[1] >= 16 && octets[1] <= 31) ||
+                (octets[0] === 192 && octets[1] === 168)
+            )
+        }
         return (
-            url.hostname === "localhost" ||
-            url.hostname === "127.0.0.1" ||
-            url.hostname === "0.0.0.0" ||
-            url.hostname.endsWith(".local")
+            hostname.startsWith("[fc") ||
+            hostname.startsWith("[fd") ||
+            hostname.startsWith("[fe80:")
         )
     } catch {
         return false
@@ -78,22 +184,63 @@ function validateCommandUrls(
     result: PerclValidationResult,
 ): void {
     for (const [key, value] of Object.entries(params)) {
-        if (URL_FIELDS.has(key) && typeof value === "string" && value.length > 0) {
-            if (!isAbsoluteHttpUrl(value)) {
+        if (URL_FIELDS.has(key)) {
+            if (
+                typeof value !== "string" ||
+                value.length === 0 ||
+                !isHttpsUrl(value) ||
+                isNonPublicHost(value)
+            ) {
                 result.errors.push(
-                    `${path}.${commandName}.${key} must be an absolute http(s) URL (got "${value}"). FreeClimb rejects relative paths.`,
-                )
-            } else if (isLocalHost(value)) {
-                result.warnings.push(
-                    `${path}.${commandName}.${key} points at localhost ("${value}"). FreeClimb cannot reach localhost; use a public tunnel/deploy URL.`,
+                    `${path}.${commandName}.${key} must be a public HTTPS URL (got ${JSON.stringify(value)}).`,
                 )
             }
         }
-        // Recurse into nested PerCL (e.g. GetDigits.prompts is an array of commands).
         if (key === "prompts" && Array.isArray(value)) {
             validatePerclArray(value, `${path}.${commandName}.prompts`, result)
         }
     }
+}
+
+function matchesParameterType(value: unknown, type: PerclParameterType): boolean {
+    switch (type) {
+        case "array":
+            return Array.isArray(value)
+        case "boolean":
+            return typeof value === "boolean"
+        case "number":
+            return typeof value === "number" && Number.isFinite(value)
+        case "string":
+            return typeof value === "string"
+        default: {
+            const exhaustive: never = type
+            return exhaustive
+        }
+    }
+}
+
+function validateCommandParameters(
+    commandName: string,
+    params: Record<string, unknown>,
+    path: string,
+    result: PerclValidationResult,
+): void {
+    for (const field of REQUIRED_FIELDS[commandName] ?? []) {
+        const value = params[field]
+        if (value === undefined || value === null || value === "") {
+            result.errors.push(`${path}.${commandName}.${field} is required.`)
+        }
+    }
+
+    const parameterTypes = PARAMETER_TYPES[commandName] ?? {}
+    for (const [field, value] of Object.entries(params)) {
+        const expectedType = parameterTypes[field]
+        if (expectedType && !matchesParameterType(value, expectedType)) {
+            result.errors.push(`${path}.${commandName}.${field} must be a ${expectedType}.`)
+        }
+    }
+
+    validateCommandUrls(commandName, params, path, result)
 }
 
 function validatePerclArray(input: unknown, path: string, result: PerclValidationResult): void {
@@ -126,7 +273,7 @@ function validatePerclArray(input: unknown, path: string, result: PerclValidatio
             result.errors.push(`${entryPath}.${commandName} must be an object of parameters.`)
             return
         }
-        validateCommandUrls(commandName, params as Record<string, unknown>, entryPath, result)
+        validateCommandParameters(commandName, params as Record<string, unknown>, entryPath, result)
     })
 }
 

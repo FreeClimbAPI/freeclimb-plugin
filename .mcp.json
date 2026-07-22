@@ -12,7 +12,6 @@
           "search_available_numbers": "Search Available FreeClimb Numbers",
           "list_applications": "List FreeClimb Applications",
           "get_application": "Get FreeClimb Application",
-          "validate_percl": "Validate PerCL",
           "list_calls": "List FreeClimb Calls",
           "get_call": "Get FreeClimb Call",
           "list_sms": "List FreeClimb SMS",
@@ -22,7 +21,6 @@
           "list_recordings": "List FreeClimb Recordings",
           "list_conferences": "List FreeClimb Conferences",
           "list_queues": "List FreeClimb Queues",
-          "generate_percl": "Generate PerCL",
           "generate_dashboard_prompt": "Generate FreeClimb Dashboard Prompt",
           "render_dashboard": "Render FreeClimb Dashboard"
         }

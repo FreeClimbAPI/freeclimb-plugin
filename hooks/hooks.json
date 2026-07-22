@@ -12,9 +12,16 @@
         "matcher": "freeclimb\\s"
       }
     ],
-    "afterFileEdit": [
+    "postToolUse": [
       {
-        "command": "hooks/freeclimb-percl-guard.mjs"
+        "command": "hooks/freeclimb-percl-guard.mjs",
+        "matcher": "Write"
+      }
+    ],
+    "stop": [
+      {
+        "command": "hooks/freeclimb-percl-guard.mjs",
+        "loop_limit": 3
       }
     ]
   }

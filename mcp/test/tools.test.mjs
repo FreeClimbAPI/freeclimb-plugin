@@ -14,8 +14,8 @@ const MUTATING_TOOL_NAMES = [
 ]
 
 describe("MCP tool definitions", () => {
-    it("exposes exactly the 33 read-only tools", () => {
-        assert.equal(Object.keys(tools).length, 33)
+    it("exposes exactly the 31 read-only tools", () => {
+        assert.equal(Object.keys(tools).length, 31)
     })
 
     it("contains no mutating tools (ADR 0005)", () => {
@@ -52,9 +52,9 @@ describe("MCP tool definitions", () => {
         }
     })
 
-    it("keeps the local PerCL helpers available", () => {
-        assert.ok("generate_percl" in tools)
-        assert.ok("validate_percl" in tools)
+    it("keeps PerCL generation and validation out of MCP", () => {
+        assert.ok(!("generate_percl" in tools))
+        assert.ok(!("validate_percl" in tools))
     })
 
     it("describes render_dashboard as a manually refreshed snapshot", () => {

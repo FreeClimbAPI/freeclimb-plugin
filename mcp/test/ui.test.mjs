@@ -26,7 +26,7 @@ describe("MCP Apps UI", () => {
     it("routes render_dashboard to its dedicated MCP app resource", () => {
         assert.equal(getUiResourceUri("render_dashboard"), UI_DASHBOARD_URI)
         assert.equal(getUiResourceUri("list_calls"), UI_TABLE_URI)
-        assert.equal(getUiResourceUri("validate_percl"), undefined)
+        assert.equal(getUiResourceUri("unknown_tool"), undefined)
     })
 
     it("builds a calls table from list_calls data", () => {

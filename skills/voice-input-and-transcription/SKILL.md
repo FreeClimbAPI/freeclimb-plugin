@@ -7,9 +7,9 @@ description: Use when building voice menus with GetSpeech or TranscribeUtterance
 
 Use this skill when callers should speak instead of (or in addition to) pressing keys, or when outbound calls must detect voicemail.
 
-Guardrails: follow `rules/freeclimb.mdc` (canonical). Validate every PerCL array with the `validate_percl` MCP tool (`TranscribeUtterance` is supported).
+Guardrails: follow `rules/freeclimb.mdc` (canonical). Validate every serialized PerCL array with `freeclimb percl:validate <file|-> --json` (`TranscribeUtterance` is supported).
 
-For full PerCL syntax, use MCP resource `freeclimb://skills/freeclimb-percl-reference`.
+For full PerCL syntax, read `cli/skills/platform/percl-reference.md`.
 
 ## Core Workflow
 

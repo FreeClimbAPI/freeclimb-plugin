@@ -105,6 +105,9 @@
       "logs": {
         "description": " A Log instance resource represents a log entry made by FreeClimb in the course of processing a PerCL script or servicing a REST API request. It is mostly useful for debugging purposes. The Logs list resource represents the set of logs generated for an account."
       },
+      "percl": {
+        "description": "Validate PerCL JSON locally without authentication or API calls."
+      },
       "incoming-numbers": {
         "description": " This is the collection of all the phone numbers that you have purchased from FreeClimb and which now belong to the account. These phone numbers can receive and send calls."
       },

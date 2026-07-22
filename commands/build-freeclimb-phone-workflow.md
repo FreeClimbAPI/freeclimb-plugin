@@ -21,7 +21,7 @@ Create a simple FreeClimb support line for a small business. When someone calls,
 1. Load the `freeclimb-concepts`, `percl-call-control`, `build-a-phone-workflow`, and `verify-flow` skills.
 2. Restate the requested phone workflow in business language.
 3. Create a minimal local Express webhook app with `/voice`, `/menu`, `/sales`, `/support`, `/voicemail`, `/voicemail-saved`, and `/health` (add `/sms-inbound` with STOP/HELP handling for SMS workflows).
-4. Use valid PerCL JSON arrays in every voice/SMS route; validate them with the `validate_percl` MCP tool.
+4. Use valid PerCL JSON arrays in every voice/SMS route; validate serialized arrays with `freeclimb percl:validate <file|-> --json`.
 5. Tell the user how to run the app locally.
 6. Use `freeclimb dev --port 3000` when the user is ready to connect the app to FreeClimb. If the MCP tools are unavailable, run `/freeclimb-setup` first to build the MCP server and connect the account.
 7. Before inviting a live call, run `/freeclimb-test-flow` (validate PerCL + simulate the webhook path).

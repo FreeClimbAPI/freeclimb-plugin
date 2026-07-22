@@ -83,7 +83,7 @@ DESCRIPTION
   - list_numbers, get_number, search_available_numbers: Inspect phone numbers
   - list_applications, get_application: View applications
   - get_account, list_logs, filter_logs: View account info and logs
-  - generate_percl, validate_percl: Build and check PerCL locally
+  - generate_dashboard_prompt, render_dashboard: Build read-only dashboards
   - And more...
 
   To configure Claude Desktop to use this server:

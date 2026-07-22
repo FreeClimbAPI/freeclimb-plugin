@@ -21,7 +21,7 @@ You turn business requests into working FreeClimb communications workflows.
    - `debug-freeclimb-apps`
 4. Build the smallest working local app first.
 5. Use `freeclimb dev` for local tunnel and Application setup.
-6. Before inviting a live call/SMS, validate every route's PerCL with `validate_percl` and simulate the path (`verify-flow` / `/freeclimb-test-flow`).
+6. Before inviting a live call/SMS, validate every route's serialized PerCL with `freeclimb percl:validate <file|-> --json` and simulate the path (`verify-flow` / `/freeclimb-test-flow`).
 7. For read-only inspection/debugging, defer to the `freeclimb-operator` agent.
 
 ## Default Demo

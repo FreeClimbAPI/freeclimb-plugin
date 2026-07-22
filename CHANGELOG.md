@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Moved PerCL validation to a shared core contract exposed through `freeclimb percl:validate`, immediate post-write feedback, and a bounded automatic repair loop; removed the redundant PerCL MCP tools.
 - Added shared API request pacing in `@freeclimb/core`: 5 request starts per second, at most 2 concurrent requests per process, adaptive `Retry-After` handling on HTTP 429, and no automatic retries for POST/PATCH/DELETE. Override with `FREECLIMB_REQUESTS_PER_SECOND`, `FREECLIMB_MAX_CONCURRENT_REQUESTS`, and `FREECLIMB_MAX_RETRIES`.
 - Prevented overlapping dashboard refresh ticks so polling dashboards do not stack concurrent fetches.
 - Deepened module seams and hardened validation across `@freeclimb/core`, `@freeclimb/mcp`, and `freeclimb-cli`.

@@ -15,7 +15,7 @@ When helping with FreeClimb:
 - Use E.164 phone numbers, such as `+15551234567`.
 - Treat Account IDs, API keys, and real phone numbers as sensitive.
 - Never ask the user to paste Account IDs or API keys into chat, and never print or write them to files. Authentication happens only through the local browser login flow (`node mcp/lib/bin.js login`) or `freeclimb login` if the CLI is installed; both store credentials in the OS keyring, which the agent reads indirectly through MCP and CLI commands.
-- Use PerCL JSON arrays for voice and SMS webhook responses, and validate them with the `validate_percl` tool before deploying or making a test call.
+- Use PerCL JSON arrays for voice and SMS webhook responses. Name standalone artifacts `*.percl.json` so the automatic guard validates agent writes, and validate serialized webhook output with `freeclimb percl:validate <file|-> --json` before deploying or making a test call.
 - Always make every PerCL `actionUrl` (and webhook URL) an absolute, publicly reachable HTTPS URL. Never use relative paths or `localhost`; FreeClimb cannot reach them and the call flow dies silently.
 - Use `--dry-run` before mutating CLI operations when available.
 - Confirm with the user before any billable or irreversible CLI action: `calls:make`, `sms:send`, `calls:update`, `incoming-numbers:buy`, and deleting or reassigning numbers/applications, exports, or blobs. Run `--dry-run` first and confirm intent in conversation before executing. (A `beforeShellExecution` hook also surfaces these commands for approval when they lack `--dry-run`.)
