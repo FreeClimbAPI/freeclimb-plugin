@@ -73,6 +73,7 @@ if (manifest) {
     if (manifest[key]) requirePath(manifest[key], `plugin.json ${key}`);
   }
   if (manifest.mcpServers) requirePath(manifest.mcpServers, "plugin.json mcpServers");
+  if (manifest.logo) requirePath(manifest.logo, "plugin.json logo");
 }
 
 const mcp = readJson(".mcp.json");
