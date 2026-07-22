@@ -9,7 +9,7 @@
   "license": "MIT",
   "repository": "https://github.com/FreeClimbAPI/freeclimb-plugin",
   "homepage": "https://github.com/FreeClimbAPI/freeclimb-plugin",
-  "logo": "assets/logo.svg",
+  "logo": "assets/logo.png",
   "keywords": [
     "freeclimb",
     "telephony",
