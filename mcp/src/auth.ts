@@ -2,23 +2,89 @@ import { createServer } from "node:http"
 import type { IncomingMessage, ServerResponse } from "node:http"
 import { randomBytes, timingSafeEqual } from "node:crypto"
 import { spawn } from "node:child_process"
-import { mkdirSync, writeFileSync } from "node:fs"
+import { mkdirSync, rmSync, writeFileSync } from "node:fs"
 import { homedir } from "node:os"
 import { join } from "node:path"
-import { cred, rejectControlChars } from "@freeclimb/core"
+import { cred, getBaseUrl, rejectControlChars } from "@freeclimb/core"
 
 const LOOPBACK_HOST = "127.0.0.1"
 const AUTH_TTL_MS = 5 * 60 * 1000
 const DASHBOARD_CREDENTIALS_URL = "https://www.freeclimb.com/dashboard/portal/account/credentials"
+const SETUP_MARKER = join(homedir(), ".cursor", ".freeclimb-setup-complete")
+const CREDENTIAL_ENVIRONMENT_VARIABLES = [
+    "FREECLIMB_ACCOUNT_ID",
+    "FREECLIMB_API_KEY",
+    "ACCOUNT_ID",
+    "API_KEY",
+]
 
 function writeSetupMarker(): void {
     try {
         const dir = join(homedir(), ".cursor")
         mkdirSync(dir, { recursive: true })
-        writeFileSync(join(dir, ".freeclimb-setup-complete"), "")
+        writeFileSync(SETUP_MARKER, "")
     } catch {
-        // Non-fatal: the marker is only a hint for the setup-nudge hook.
     }
+}
+
+function removeSetupMarker(markerPath = SETUP_MARKER): void {
+    try {
+        rmSync(markerPath, { force: true })
+    } catch {
+    }
+}
+
+export function configuredCredentialEnvironmentVariables(
+    environment: NodeJS.ProcessEnv = process.env,
+): string[] {
+    return CREDENTIAL_ENVIRONMENT_VARIABLES.filter((name) => Boolean(environment[name]))
+}
+
+export async function verifyCredentials(
+    accountId: string,
+    apiKey: string,
+    request: typeof fetch = fetch,
+): Promise<string | undefined> {
+    try {
+        const response = await request(`${getBaseUrl()}/Accounts/${encodeURIComponent(accountId)}`, {
+            method: "GET",
+            headers: {
+                Accept: "application/json",
+                Authorization: `Basic ${Buffer.from(`${accountId}:${apiKey}`).toString("base64")}`,
+            },
+        })
+        if (response.ok) return undefined
+        if (response.status === 401 || response.status === 403) {
+            return "Those credentials are not authorized for the configured FreeClimb environment. Confirm that the Account ID and API Key are a matching pair."
+        }
+        return `FreeClimb credential verification returned HTTP ${response.status}. Your saved account was not changed.`
+    } catch {
+        return "FreeClimb credential verification could not reach the configured API environment. Your saved account was not changed."
+    }
+}
+
+export async function connectCredentials(
+    accountId: string,
+    apiKey: string,
+    credentials: Pick<typeof cred, "setCredentials"> = cred,
+    request: typeof fetch = fetch,
+    markSetup: () => void = writeSetupMarker,
+): Promise<string | undefined> {
+    const verificationError = await verifyCredentials(accountId, apiKey, request)
+    if (verificationError) return verificationError
+    await credentials.setCredentials(accountId, apiKey)
+    markSetup()
+    return undefined
+}
+
+export async function runLogout(
+    credentials: Pick<typeof cred, "removeCredentials"> = cred,
+    markerPath = SETUP_MARKER,
+    environment: NodeJS.ProcessEnv = process.env,
+): Promise<string[]> {
+    await credentials.removeCredentials()
+    removeSetupMarker(markerPath)
+    return configuredCredentialEnvironmentVariables(environment)
 }
 
 function constantTimeEquals(a: string, b: string): boolean {
@@ -157,9 +223,12 @@ export function runLoginFlow(): Promise<void> {
                         res.end(renderPage(state, "Both Account ID and API Key are required."))
                         return
                     }
-                    await cred.removeCredentials()
-                    await cred.setCredentials(accountId, apiKey)
-                    writeSetupMarker()
+                    const verificationError = await connectCredentials(accountId, apiKey)
+                    if (verificationError) {
+                        res.writeHead(401, { "Content-Type": "text/html; charset=utf-8" })
+                        res.end(renderPage(state, verificationError))
+                        return
+                    }
                     res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" })
                     res.once("finish", () => finish(resolve))
                     res.end(successPage())
@@ -193,8 +262,6 @@ export function runLoginFlow(): Promise<void> {
             const address = server.address()
             const port = typeof address === "object" && address ? address.port : 0
             const localUrl = `http://${LOOPBACK_HOST}:${port}/`
-            // Safe to print here: this runs in the standalone `login` process, not
-            // the stdio JSON-RPC server. The API key is never printed.
             console.error("FreeClimb login: opening your browser to connect your account.")
             console.error(`If it does not open, visit: ${localUrl}`)
             openBrowser(localUrl)

@@ -1,7 +1,7 @@
 import axios, { AxiosInstance, AxiosError, Method } from "axios"
 import { randomUUID } from "crypto"
 import { Environment } from "./environment.js"
-import { cred, clearCredentialCache } from "./credentials.js"
+import { cred } from "./credentials.js"
 import { getRequestLimiter, type RequestLimiter } from "./request-limiter.js"
 
 const DEFAULT_TIMEOUT = 30_000
@@ -377,7 +377,6 @@ async function executeWithAuthRefresh<T>(
             error.status === 401 &&
             canRetry(options.method)
         ) {
-            clearCredentialCache()
             clientCache.clear()
             const freshClient = await createClient()
             return execute<T>(freshClient, options)

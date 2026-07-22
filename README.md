@@ -40,7 +40,7 @@ This command (see the `freeclimb-onboarding` skill) will:
    node mcp/lib/bin.js login
    ```
 
-   A local page opens at `127.0.0.1`, deep-links your FreeClimb Dashboard → API Credentials, and lets you paste your Account ID and API Key into that local page. They are written to your OS keyring. Never paste them into chat.
+   A local page opens at `127.0.0.1`, deep-links your FreeClimb Dashboard → API Credentials, and lets you paste your Account ID and API Key into that local page. The pair is verified against the configured API environment before it replaces the credentials in your OS keyring. Never paste credentials into chat.
 3. Reload Cursor so the MCP server starts.
 
 Power users who want the CLI can additionally `pnpm i -g ./cli` to put `freeclimb` on their PATH; `freeclimb login` writes the same keyring, so either path authenticates the other.
@@ -50,8 +50,20 @@ Requirements: Node.js >= 20 (Node.js 22 recommended for development and CI; pnpm
 ## Credentials
 
 - The agent never sees, requests, or writes your Account ID or API Key.
-- Credentials live only in the OS keyring, set by the browser login flow (`node mcp/lib/bin.js login`) or by `freeclimb login` if you install the CLI.
-- The MCP server and CLI read the keyring automatically. For CI only, `FREECLIMB_ACCOUNT_ID` / `FREECLIMB_API_KEY` env vars are supported, but never commit them or paste them into chat.
+- Interactive credentials live in the OS keyring, set by the browser login flow (`node mcp/lib/bin.js login`) or by `freeclimb login` if you install the CLI.
+- The MCP server and CLI read the keyring automatically on each request. For CI only, `FREECLIMB_ACCOUNT_ID` / `FREECLIMB_API_KEY` and legacy `ACCOUNT_ID` / `API_KEY` env vars are used only when the corresponding keyring entry is absent or unavailable. Never commit them or paste them into chat.
+- Production is the default API environment. Staging and custom environments use `FREECLIMB_CLI_BASE_URL`, which must be available to both the login process and Cursor's MCP process.
+
+## Account management
+
+Run `/freeclimb-account` to inspect the connected account, connect or switch accounts through the verified local browser flow, or log out. Switching replaces the current keyring credentials only after the new pair succeeds. Logging out removes the keyring entries and setup marker, then reports the names of any credential environment variables that could still act as fallbacks.
+
+The same operations are available from the plugin root:
+
+```bash
+node mcp/lib/bin.js login
+node mcp/lib/bin.js logout
+```
 
 ## Read-only MCP, CLI for actions
 
@@ -78,6 +90,7 @@ The shared `@freeclimb/core` HTTP client paces FreeClimb API traffic to 5 reques
 - Skills for FreeClimb concepts, PerCL call control, phone workflow building, privacy-safe dashboard rendering, flow verification, debugging, first-run onboarding, the official SDK catalog, SMS compliance, webhook security, incident triage, conferences/queues/recordings, MMS messaging, voice input and transcription, TTS, WebRTC calling, and blob-store state.
 - A standalone FreeClimb MCP server entry (`command: "node", args: ["${CURSOR_PLUGIN_ROOT}/mcp/lib/bin.js"]`).
 - A `/freeclimb-setup` command for first-run build and browser authentication.
+- A `/freeclimb-account` command for viewing, switching, and disconnecting the active account.
 - A `/build-freeclimb-phone-workflow` command for the demo flow.
 - A `/freeclimb-test-flow` command to validate PerCL and simulate the webhook path before a live call.
 - A `/freeclimb-status` command for a one-shot read-only account health check across calls, SMS, logs, and webhook configuration.
@@ -94,8 +107,8 @@ The shared `@freeclimb/core` HTTP client paces FreeClimb API traffic to 5 reques
 - `core/`: `@freeclimb/core` — shared HTTP, credentials, validation, errors, and PerCL generate/validate.
 - `mcp/`: `@freeclimb/mcp` — the standalone stdio MCP server and browser login bin.
 - `cli/`: `freeclimb-cli` — the power-user CLI frontend over `core`.
-- `skills/`: Agent guidance for FreeClimb concepts, PerCL, workflow building, dashboard rendering, verification, debugging, onboarding, SDKs, SMS compliance, webhook security, incident triage, conferences/queues/recordings, MMS messaging, voice input and transcription, TTS, WebRTC calling, and blob-store state.
-- `commands/`: `/freeclimb-setup`, `/build-freeclimb-phone-workflow`, `/freeclimb-test-flow`, and `/freeclimb-status`.
+- `skills/`: Agent guidance for FreeClimb concepts, PerCL, workflow building, dashboard rendering, verification, debugging, onboarding, account management, SDKs, SMS compliance, webhook security, incident triage, conferences/queues/recordings, MMS messaging, voice input and transcription, TTS, WebRTC calling, and blob-store state.
+- `commands/`: `/freeclimb-setup`, `/freeclimb-account`, `/build-freeclimb-phone-workflow`, `/freeclimb-test-flow`, and `/freeclimb-status`.
 - `rules/`: FreeClimb guardrails (`freeclimb.mdc`) and SMS compliance (`sms-compliance.mdc`).
 - `agents/`: `freeclimb-builder` (reads via MCP, acts via CLI) and `freeclimb-operator` (read-only) subagents.
 - `hooks/`: Session setup nudge, the billable-CLI dry-run guard, and the automatic PerCL validation and repair loop for agent-written `.percl.json` files.
