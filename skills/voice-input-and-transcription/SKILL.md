@@ -9,7 +9,7 @@ Use this skill when callers should speak instead of (or in addition to) pressing
 
 Guardrails: follow `rules/freeclimb.mdc` (canonical). Validate every serialized PerCL array with `freeclimb percl:validate <file|-> --json` (`TranscribeUtterance` is supported).
 
-For full PerCL syntax, read `cli/skills/platform/percl-reference.md`.
+For full, current PerCL syntax, query the read-only hosted docs MCP (`https://docs.freeclimb.com/mcp`) or `https://docs.freeclimb.com/reference/`; a curated offline copy lives at `cli/skills/platform/percl-reference.md`.
 
 ## Core Workflow
 

@@ -87,6 +87,12 @@ This consolidates all account-changing operations onto a single surface that Cur
 
 Because the MCP surface can no longer mutate the account, prompt-injection that reaches the agent cannot place calls or send SMS through MCP; it would have to issue a CLI command, which the approval/allowlist Run Mode gates. In addition, the plugin's `beforeShellExecution` hook downgrades billable FreeClimb CLI commands without `--dry-run` from auto-run to an explicit approval prompt. Always `--dry-run` and confirm intent before running an action command.
 
+## Hosted docs MCP (read-only reference)
+
+The plugin also registers FreeClimb's ReadMe-hosted docs MCP at `https://docs.freeclimb.com/mcp` (`.mcp.json` server `freeclimb-docs`). It exposes the live REST API reference — `list-endpoints`, `get-endpoint`, and `search-endpoints`, driven by the canonical `freeclimb-api.json` — so the agent can look up current endpoints, parameters, and schemas without the plugin bundling a mirror. Combined with the published `llms.txt` (per-page Markdown for PerCL, webhooks, errors, and guides), factual reference stays current at the source.
+
+This surface must stay read-only: **disable the `execute-request` tool** (and keep Enabled MCP Routes read-only) in the ReadMe MCP settings. With `execute-request` off, the remaining tools only read and describe the OpenAPI spec and cannot call the live API, so the hosted MCP stays consistent with the read-only-MCP / CLI-for-actions guardrail (ADR 0005). Account-changing actions still go only through the FreeClimb CLI. `scripts/check-docs-drift.mjs` (scheduled via `.github/workflows/docs-drift.yml`) watches `llms.txt` and the canonical PerCL command set for additions or removals so the guardrail skills can be updated when the surface changes.
+
 ## API request controls
 
 The shared `@freeclimb/core` HTTP client paces FreeClimb API traffic to 5 request starts per second with at most 2 requests in flight per process. Safe and idempotent requests retry transient failures (including HTTP 429 with `Retry-After`) up to 3 times; POST, PATCH, and DELETE are never retried automatically. Override with `FREECLIMB_REQUESTS_PER_SECOND`, `FREECLIMB_MAX_CONCURRENT_REQUESTS`, and `FREECLIMB_MAX_RETRIES` (set `0` to disable retries).
@@ -94,7 +100,7 @@ The shared `@freeclimb/core` HTTP client paces FreeClimb API traffic to 5 reques
 ## Included Components
 
 - Skills for FreeClimb concepts, PerCL call control, phone workflow building, privacy-safe dashboard rendering, flow verification, debugging, first-run onboarding, the official SDK catalog, SMS compliance, webhook security, incident triage, conferences/queues/recordings, MMS messaging, voice input and transcription, TTS, WebRTC calling, and blob-store state.
-- A standalone FreeClimb MCP server entry (`command: "node", args: ["${CURSOR_PLUGIN_ROOT}/mcp/lib/bin.js"]`).
+- A standalone FreeClimb MCP server entry (`command: "node", args: ["${CURSOR_PLUGIN_ROOT}/mcp/lib/bin.js"]`) plus the read-only hosted docs MCP entry (`freeclimb-docs` → `https://docs.freeclimb.com/mcp`).
 - A `/freeclimb-setup` command for first-run build and browser authentication.
 - A `/freeclimb-account` command for viewing, switching, and disconnecting the active account.
 - A `/build-freeclimb-phone-workflow` command for the demo flow.
@@ -109,7 +115,7 @@ The shared `@freeclimb/core` HTTP client paces FreeClimb API traffic to 5 reques
 ## Repository Layout
 
 - `.cursor-plugin/plugin.json`: Cursor plugin manifest.
-- `.mcp.json`: MCP server wiring (`node ${CURSOR_PLUGIN_ROOT}/mcp/lib/bin.js`, stdio).
+- `.mcp.json`: MCP server wiring — the local stdio server (`node ${CURSOR_PLUGIN_ROOT}/mcp/lib/bin.js`) and the read-only hosted docs MCP (`freeclimb-docs`).
 - `core/`: `@freeclimb/core` — shared HTTP, credentials, validation, errors, and PerCL generate/validate.
 - `mcp/`: `@freeclimb/mcp` — the standalone stdio MCP server and browser login bin.
 - `cli/`: `freeclimb-cli` — the power-user CLI frontend over `core`.

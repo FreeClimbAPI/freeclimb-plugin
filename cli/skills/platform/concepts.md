@@ -1,5 +1,7 @@
 # FreeClimb Platform Concepts
 
+> Canonical source: for the live REST API surface (endpoints, parameters, schemas) use the read-only hosted docs MCP (`https://docs.freeclimb.com/mcp`) or `https://docs.freeclimb.com/reference/`; for guides use the per-page Markdown indexed at `https://docs.freeclimb.com/llms.txt`. This file is a curated conceptual overview and carries plugin guardrails, not an exhaustive API mirror.
+
 FreeClimb is a cloud communications API for building voice and SMS applications. This document covers the core concepts any agent needs to work effectively with FreeClimb.
 
 ## Account Model

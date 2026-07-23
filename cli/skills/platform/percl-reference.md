@@ -1,5 +1,7 @@
 # PerCL Reference
 
+> Canonical source: the live FreeClimb docs are authoritative. For exact, current command syntax, parameters, and edge cases, query the read-only hosted docs MCP (`https://docs.freeclimb.com/mcp` → `search-endpoints`/`get-endpoint`) or read the per-command pages under `https://docs.freeclimb.com/reference/` and the PerCL overview at `https://docs.freeclimb.com/docs/performance-command-language.md`. This file is a curated offline quick reference and carries the plugin's PerCL guardrails; when it disagrees with the live docs, the live docs win.
+
 PerCL (Performance Command Language) is FreeClimb's JSON-based language for controlling call flow. Your webhook server responds to FreeClimb's requests with PerCL commands that tell FreeClimb what to do next.
 
 ## Structure

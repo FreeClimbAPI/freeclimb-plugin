@@ -17,7 +17,8 @@
     "validate": "node scripts/validate-plugin.mjs && node scripts/scan-secrets.mjs",
     "sdk:validate": "node scripts/sdk-matrix.mjs",
     "sdk:test": "node --test scripts/test/*.test.mjs",
-    "sdk:drift": "node scripts/check-sdk-drift.mjs"
+    "sdk:drift": "node scripts/check-sdk-drift.mjs",
+    "docs:drift": "node scripts/check-docs-drift.mjs"
   },
   "devDependencies": {
     "yaml": "^2.9.0"

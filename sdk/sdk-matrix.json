@@ -1,6 +1,10 @@
 {
   "version": 1,
   "contractFixture": "templates/contract-fixtures.json",
+  "canonicalSpec": {
+    "sdkId": "node",
+    "note": "Single source of truth for the FreeClimb OpenAPI surface (freeclimb-api.json). All SDK specs and the docs drift check compare against this."
+  },
   "sdks": [
     {
       "id": "node",

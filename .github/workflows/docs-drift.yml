@@ -1,0 +1,53 @@
+name: Docs Drift
+
+on:
+  schedule:
+    - cron: "17 13 * * 2"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: node scripts/sdk-matrix.mjs
+      - id: drift
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/check-docs-drift.mjs --output docs-drift-report.json --markdown docs-drift-report.md
+      - uses: actions/upload-artifact@v7
+        with:
+          name: docs-drift-report
+          path: |
+            docs-drift-report.json
+            docs-drift-report.md
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          DOCS_DRIFT: ${{ steps.drift.outputs.docs_drift }}
+        run: |
+          sync_issue() {
+            title="$1"
+            active="$2"
+            number="$(gh issue list --state open --search "\"$title\" in:title" --json number --jq '.[0].number // empty')"
+            if [ "$active" = "true" ]; then
+              if [ -n "$number" ]; then
+                gh issue edit "$number" --body-file docs-drift-report.md
+              else
+                gh issue create --title "$title" --body-file docs-drift-report.md
+              fi
+            elif [ -n "$number" ]; then
+              gh issue close "$number" --comment "The scheduled docs reference drift check is clear."
+            fi
+          }
+          sync_issue "FreeClimb docs reference drift detected" "$DOCS_DRIFT"

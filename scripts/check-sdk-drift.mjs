@@ -69,13 +69,13 @@ export function openApiSemanticHash(spec) {
     })
 }
 
-async function githubJson(path) {
+export async function githubJson(path) {
     const response = await fetch(`https://api.github.com${path}`, { headers })
     if (!response.ok) throw new Error(`GitHub ${path} returned ${response.status}`)
     return response.json()
 }
 
-function decodeContent(content) {
+export function decodeContent(content) {
     return Buffer.from(content.replace(/\n/g, ""), "base64").toString("utf8")
 }
 
@@ -88,7 +88,7 @@ export function repositoryFromUrl(repositoryUrl) {
     return new URL(repositoryUrl).pathname.replace(/^\//, "")
 }
 
-function parseSpec(path, content) {
+export function parseSpec(path, content) {
     return path.endsWith(".json") ? JSON.parse(content) : parseYaml(content)
 }
 
@@ -146,13 +146,13 @@ function markdownReport(report) {
         "# FreeClimb SDK drift report",
         "",
         `Release drift: ${report.releaseDrift ? "yes" : "no"}`,
-        `OpenAPI divergence: ${report.specDrift ? "yes" : "no"}`,
+        `OpenAPI divergence from canonical (${report.canonicalSpecSdk}): ${report.specDrift ? "yes" : "no"}`,
         `Indexed content drift: ${report.contentDrift ? "yes" : "no"}`,
         "",
     ]
     for (const sdk of report.sdks) {
         lines.push(
-            `## ${sdk.language}`,
+            `## ${sdk.language}${sdk.canonical ? " (canonical spec)" : ""}`,
             "",
             `- Repository: ${sdk.repository}`,
             `- Tested release: ${sdk.testedVersion}`,
@@ -160,6 +160,7 @@ function markdownReport(report) {
             `- Default branch commit: ${sdk.commitSha}`,
             `- OpenAPI source: ${sdk.openapiPath}`,
             `- OpenAPI hash: ${sdk.semanticHash}`,
+            `- Diverges from canonical: ${sdk.specDivergesFromCanonical ? "yes" : "no"}`,
             `- Paths: ${sdk.pathCount}`,
             `- Schemas: ${sdk.schemaCount}`,
             "",
@@ -191,11 +192,18 @@ export async function createDriftReport() {
         Promise.all(matrix.sdks.map(inspectSdk)),
         Promise.all(contentIndex.sources.map(inspectContentSource)),
     ])
-    const hashes = new Set(sdks.map((sdk) => sdk.semanticHash))
+    const canonicalId = matrix.canonicalSpec?.sdkId
+    const canonical = sdks.find((sdk) => sdk.id === canonicalId)
+    const canonicalHash = canonical?.semanticHash
+    for (const sdk of sdks) {
+        sdk.canonical = sdk.id === canonicalId
+        sdk.specDivergesFromCanonical = sdk.semanticHash !== canonicalHash
+    }
     return {
         checkedAt: new Date().toISOString(),
+        canonicalSpecSdk: canonicalId,
         releaseDrift: sdks.some((sdk) => sdk.releaseDrift),
-        specDrift: hashes.size > 1,
+        specDrift: sdks.some((sdk) => sdk.specDivergesFromCanonical),
         contentDrift: contentSources.some((source) => source.revisionDrift),
         sdks,
         contentSources,

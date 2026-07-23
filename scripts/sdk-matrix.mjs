@@ -16,6 +16,18 @@ export function loadContentIndex() {
     return JSON.parse(readFileSync(join(root, "sdk/content-index.json"), "utf8"))
 }
 
+export function loadDocsIndex() {
+    return JSON.parse(readFileSync(join(root, "sdk/docs-index.json"), "utf8"))
+}
+
+export function canonicalSpecSdk() {
+    const matrix = loadSdkMatrix()
+    const sdkId = matrix.canonicalSpec?.sdkId
+    const sdk = matrix.sdks.find((entry) => entry.id === sdkId)
+    if (!sdk) throw new Error(`sdk-matrix canonicalSpec.sdkId does not reference a known SDK: ${sdkId}`)
+    return sdk
+}
+
 function isSafeRelativePath(path) {
     return typeof path === "string" && path.length > 0 && !isAbsolute(path) && !normalize(path).startsWith("..")
 }
@@ -79,6 +91,11 @@ export function validateSdkMatrix() {
     }
     if (!isSafeRelativePath(matrix.contractFixture) || !existsSync(join(root, matrix.contractFixture))) {
         errors.push("sdk/sdk-matrix.json must reference an existing safe contractFixture")
+    }
+    if (!matrix.canonicalSpec || typeof matrix.canonicalSpec.sdkId !== "string") {
+        errors.push("sdk/sdk-matrix.json must declare canonicalSpec.sdkId")
+    } else if (!matrix.sdks.some((sdk) => sdk.id === matrix.canonicalSpec.sdkId)) {
+        errors.push("sdk/sdk-matrix.json canonicalSpec.sdkId must reference a defined SDK")
     }
 
     for (const sdk of matrix.sdks) {
@@ -229,8 +246,55 @@ export function validateContentIndex() {
     return errors
 }
 
+export function validateDocsIndex() {
+    const index = loadDocsIndex()
+    const errors = []
+
+    if (index.version !== 1) {
+        return ["sdk/docs-index.json must contain version 1"]
+    }
+
+    if (
+        typeof index.llmsUrl !== "string" ||
+        !/^https:\/\/docs\.freeclimb\.com\/llms\.txt$/.test(index.llmsUrl)
+    ) {
+        errors.push("sdk/docs-index.json llmsUrl must be https://docs.freeclimb.com/llms.txt")
+    }
+
+    if (
+        typeof index.hostedMcpUrl !== "string" ||
+        !/^https:\/\/docs\.freeclimb\.com\/mcp$/.test(index.hostedMcpUrl)
+    ) {
+        errors.push("sdk/docs-index.json hostedMcpUrl must be https://docs.freeclimb.com/mcp")
+    }
+
+    const baseline = index.baseline
+    if (!baseline || typeof baseline !== "object") {
+        errors.push("sdk/docs-index.json must contain a baseline object")
+        return errors
+    }
+
+    if (
+        !Array.isArray(baseline.pages) ||
+        baseline.pages.length === 0 ||
+        baseline.pages.some((page) => typeof page !== "string" || !page.startsWith("https://docs.freeclimb.com/"))
+    ) {
+        errors.push("sdk/docs-index.json baseline.pages must be a non-empty array of docs.freeclimb.com URLs")
+    }
+
+    if (
+        !Array.isArray(baseline.percl) ||
+        baseline.percl.length === 0 ||
+        baseline.percl.some((command) => typeof command !== "string")
+    ) {
+        errors.push("sdk/docs-index.json baseline.percl must be a non-empty string array")
+    }
+
+    return errors
+}
+
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-    const errors = [...validateSdkMatrix(), ...validateContentIndex()]
+    const errors = [...validateSdkMatrix(), ...validateContentIndex(), ...validateDocsIndex()]
     if (errors.length > 0) {
         process.stderr.write(`${errors.join("\n")}\n`)
         process.exit(1)

@@ -1,7 +1,7 @@
 import { readFileSync, existsSync, statSync, readdirSync } from "node:fs";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { validateContentIndex, validateSdkMatrix } from "./sdk-matrix.mjs";
+import { validateContentIndex, validateDocsIndex, validateSdkMatrix } from "./sdk-matrix.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const errors = [];
@@ -143,6 +143,7 @@ for (const command of listFiles("commands", ".md")) {
 
 errors.push(...validateSdkMatrix());
 errors.push(...validateContentIndex());
+errors.push(...validateDocsIndex());
 
 if (errors.length > 0) {
   console.error("Plugin validation failed:");

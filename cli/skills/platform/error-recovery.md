@@ -1,5 +1,7 @@
 # Error Recovery Guide
 
+> Canonical source: the complete, current error dictionary lives at `https://docs.freeclimb.com/reference/error-and-warning-dictionary` (also reachable through the read-only hosted docs MCP). This file curates the high-frequency codes with agent-oriented fixes plus the plugin's troubleshooting guardrails; consult the live dictionary for codes not listed here.
+
 FreeClimb error codes, troubleshooting strategies, and common mistakes.
 
 ## Error Code Reference

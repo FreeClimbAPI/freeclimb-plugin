@@ -11,7 +11,7 @@ PerCL is a JSON array of command objects returned by a webhook server. FreeClimb
 
 Guardrails: follow `rules/freeclimb.mdc` (canonical).
 
-For exact PerCL command syntax and parameters, read `cli/skills/platform/percl-reference.md`.
+For exact, current PerCL command syntax and parameters, query the read-only hosted docs MCP (`https://docs.freeclimb.com/mcp`) or read `https://docs.freeclimb.com/reference/` and `https://docs.freeclimb.com/docs/performance-command-language.md`. The curated offline quick reference lives at `cli/skills/platform/percl-reference.md`.
 
 Build PerCL with the official SDK models. Standalone files must use the `.percl.json` suffix so the automatic guard validates them after each write. Validate serialized SDK output with `freeclimb percl:validate <file|-> --json` before deploying or making a test call. Fix every reported error before continuing.
 

@@ -1,5 +1,7 @@
 # Voice Application Patterns
 
+> Canonical source: for exact PerCL/webhook syntax and the live API reference, use the read-only hosted docs MCP (`https://docs.freeclimb.com/mcp`) or `https://docs.freeclimb.com/reference/`; how-to guides are indexed at `https://docs.freeclimb.com/llms.txt`. This file is a curated set of prescriptive application patterns and guardrails, not an API mirror.
+
 This document covers common architectures for building production voice applications with FreeClimb. All patterns use PerCL webhooks.
 
 ## Webhook Server Architecture

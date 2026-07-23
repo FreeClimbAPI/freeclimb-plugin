@@ -25,6 +25,17 @@
           "render_dashboard": "Render FreeClimb Dashboard"
         }
       }
+    },
+    "freeclimb-docs": {
+      "type": "http",
+      "url": "https://docs.freeclimb.com/mcp",
+      "_meta": {
+        "ideToolTitles": {
+          "list-endpoints": "List FreeClimb API Endpoints",
+          "get-endpoint": "Get FreeClimb API Endpoint",
+          "search-endpoints": "Search FreeClimb API Endpoints"
+        }
+      }
     }
   }
 }
