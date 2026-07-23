@@ -21,7 +21,8 @@
     "freeclimb-mcp": "./lib/bin.js"
   },
   "files": [
-    "/lib"
+    "/lib",
+    "/assets"
   ],
   "engines": {
     "node": ">=20.0.0"
