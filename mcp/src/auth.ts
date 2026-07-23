@@ -2,14 +2,16 @@ import { createServer } from "node:http"
 import type { IncomingMessage, ServerResponse } from "node:http"
 import { randomBytes, timingSafeEqual } from "node:crypto"
 import { spawn } from "node:child_process"
-import { mkdirSync, rmSync, writeFileSync } from "node:fs"
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { homedir } from "node:os"
 import { join } from "node:path"
 import { cred, getBaseUrl, rejectControlChars } from "@freeclimb/core"
 
 const LOOPBACK_HOST = "127.0.0.1"
 const AUTH_TTL_MS = 5 * 60 * 1000
-const DASHBOARD_CREDENTIALS_URL = "https://www.freeclimb.com/dashboard/portal/account/credentials"
+const DASHBOARD_CREDENTIALS_URL = "https://freeclimb.com/dashboard/login/"
+const LOGIN_BACKGROUND = readFileSync(new URL("../assets/FC_login_background.webp", import.meta.url))
+const LOGIN_LOGO = readFileSync(new URL("../assets/FreeClimb_Logo.svg", import.meta.url))
 const SETUP_MARKER = join(homedir(), ".cursor", ".freeclimb-setup-complete")
 const CREDENTIAL_ENVIRONMENT_VARIABLES = [
     "FREECLIMB_ACCOUNT_ID",
@@ -120,27 +122,32 @@ function renderPage(state: string, error?: string): string {
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Connect FreeClimb</title>
 <style>
-  :root { --blue:#004e63; --blue2:#26697a; --lime:#c2ff18; --bg:#00333f; --bg2:#11242d; --white:rgba(255,255,255,.92); --muted:rgba(255,255,255,.62); --faint:rgba(255,255,255,.14); }
+  :root { --card:#00333f; --lime:#c2ff18; --white:#fff; --muted:rgba(255,255,255,.8); --border:#a1d0d3; }
   * { box-sizing:border-box; }
-  body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; font-family:Helvetica,system-ui,sans-serif; color:var(--white); background:linear-gradient(135deg,var(--bg),var(--bg2)); padding:24px; }
-  .card { width:100%; max-width:480px; background:rgba(0,55,68,.6); border:1px solid var(--faint); border-radius:16px; padding:28px; box-shadow:0 20px 60px rgba(0,0,0,.35); }
-  .eyebrow { color:var(--lime); font-size:11px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; margin:0 0 6px; }
-  h1 { font-size:22px; margin:0 0 8px; }
-  p { color:var(--muted); font-size:14px; line-height:1.5; }
-  a.dash { display:inline-block; margin:6px 0 18px; color:var(--lime); font-weight:700; text-decoration:none; }
-  label { display:block; font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); margin:14px 0 6px; }
-  input { width:100%; padding:11px 12px; border-radius:10px; border:1px solid var(--faint); background:rgba(0,0,0,.25); color:var(--white); font-size:14px; font-family:ui-monospace,monospace; }
-  button { margin-top:20px; width:100%; padding:12px; border:0; border-radius:999px; background:var(--lime); color:#06231a; font-weight:700; font-size:14px; cursor:pointer; }
-  .error { color:#ffb4a1; background:rgba(250,102,10,.16); border:1px solid rgba(250,102,10,.4); padding:10px 12px; border-radius:10px; font-size:13px; }
-  .hint { font-size:12px; color:var(--muted); margin-top:14px; }
+  body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; font-family:"Open Sans",Arial,sans-serif; color:var(--white); background-color:#00333f; background-image:linear-gradient(to bottom right,#00333f90 30%,#89bb61 120%),url("/assets/login-background"); background-position:center; background-size:cover; background-repeat:no-repeat; }
+  .card { width:452px; max-width:100%; padding:48px 40px; border-radius:8px; background:var(--card); }
+  .brand { display:flex; align-items:center; justify-content:center; gap:10px; margin:0 0 32px; color:var(--white); font-size:32px; font-weight:600; line-height:32px; }
+  .brand-logo { display:block; width:174px; height:25px; }
+  h1 { margin:0 0 16px; text-align:center; font-size:24px; line-height:32px; font-weight:400; }
+  .intro { margin:0 0 32px; color:var(--muted); text-align:center; font-size:14px; line-height:1.55; }
+  .intro a { color:var(--lime); font-weight:600; text-decoration:none; }
+  .intro a:hover { text-decoration:underline; }
+  label { display:block; margin:0 0 2px; color:var(--muted); font-size:14px; font-weight:500; }
+  input { width:100%; height:44px; margin:0 0 24px; padding:12px; border:1px solid var(--border); outline:0; background:var(--card); color:var(--muted); font:14px/24px "Open Sans",Arial,sans-serif; }
+  input::placeholder { color:#a3a3a3; }
+  input:focus { border-color:var(--lime); }
+  button { width:100%; margin-top:8px; padding:16px; border:0; border-radius:48px; background:var(--lime); color:#004e63; font-size:15px; font-weight:600; cursor:pointer; }
+  button:hover { background:#d0ff4d; }
+  .error { margin:0 0 20px; padding:10px 12px; border:1px solid #ff9b81; border-radius:4px; background:rgba(250,102,10,.15); color:#ffd6cc; font-size:13px; line-height:1.45; }
+  .hint { margin:20px 0 0; color:var(--muted); text-align:center; font-size:11px; line-height:1.5; }
+  @media (max-width:520px) { body { padding:16px; } .card { padding:40px 24px; } }
 </style>
 </head>
 <body>
   <form class="card" method="POST" action="/callback">
-    <p class="eyebrow">FreeClimb · Connect</p>
-    <h1>Connect your FreeClimb account</h1>
-    <p>Open your FreeClimb Dashboard, copy your <strong>Account ID</strong> and <strong>API Key</strong>, and paste them below. They are stored only in your operating system's secure keychain on this machine.</p>
-    <a class="dash" href="${DASHBOARD_CREDENTIALS_URL}" target="_blank" rel="noreferrer noopener">Open FreeClimb Dashboard → API Credentials ↗</a>
+    <div class="brand"><img class="brand-logo" src="/assets/login-logo" alt="FreeClimb" /><span>Plugin</span></div>
+    <h1>Connect your account</h1>
+    <p class="intro">Enter the Account ID and API Key from your <a href="${DASHBOARD_CREDENTIALS_URL}" target="_blank" rel="noreferrer noopener">FreeClimb Dashboard</a>.</p>
     ${errorBlock}
     <input type="hidden" name="state" value="${state}" />
     <label for="accountId">Account ID</label>
@@ -148,7 +155,7 @@ function renderPage(state: string, error?: string): string {
     <label for="apiKey">API Key</label>
     <input id="apiKey" name="apiKey" type="password" autocomplete="off" spellcheck="false" placeholder="Your API key" required />
     <button type="submit">Connect</button>
-    <p class="hint">This page is served locally on ${LOOPBACK_HOST} and shuts down as soon as you connect. Nothing is sent to the chat.</p>
+    <p class="hint">This page runs only on your device. Your credentials are saved to your system keychain and never sent to chat.</p>
   </form>
 </body>
 </html>`
@@ -156,7 +163,7 @@ function renderPage(state: string, error?: string): string {
 
 function successPage(): string {
     return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/><title>Connected</title>
-<style>body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:Helvetica,system-ui,sans-serif;background:linear-gradient(135deg,#00333f,#11242d);color:rgba(255,255,255,.92)}.c{text-align:center;padding:32px}.l{color:#c2ff18;font-size:40px}</style>
+<style>*{box-sizing:border-box}body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;font-family:"Open Sans",Arial,sans-serif;background-color:#00333f;background-image:linear-gradient(to bottom right,#00333f90 30%,#89bb61 120%),url("/assets/login-background");background-position:center;background-size:cover;background-repeat:no-repeat;color:#fff}.c{width:452px;max-width:100%;padding:48px 40px;border-radius:8px;background:#00333f;text-align:center}.l{color:#c2ff18;font-size:40px}p{color:rgba(255,255,255,.8)}</style>
 </head><body><div class="c"><div class="l">✓</div><h1>FreeClimb connected</h1><p>You can close this tab and return to your editor.</p></div></body></html>`
 }
 
@@ -196,6 +203,22 @@ export function runLoginFlow(): Promise<void> {
         const server = createServer(async (req: IncomingMessage, res: ServerResponse) => {
             try {
                 const url = new URL(req.url || "/", `http://${LOOPBACK_HOST}`)
+                if (req.method === "GET" && url.pathname === "/assets/login-background") {
+                    res.writeHead(200, {
+                        "Content-Type": "image/webp",
+                        "Cache-Control": "public, max-age=300",
+                    })
+                    res.end(LOGIN_BACKGROUND)
+                    return
+                }
+                if (req.method === "GET" && url.pathname === "/assets/login-logo") {
+                    res.writeHead(200, {
+                        "Content-Type": "image/svg+xml",
+                        "Cache-Control": "public, max-age=300",
+                    })
+                    res.end(LOGIN_LOGO)
+                    return
+                }
                 if (req.method === "GET" && url.pathname === "/") {
                     res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" })
                     res.end(renderPage(state))
