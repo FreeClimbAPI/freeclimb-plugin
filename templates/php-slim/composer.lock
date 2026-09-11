@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5a6e4c4aa6003bb54a905f5bf52180e6",
+    "content-hash": "3e393e99e51357b151bc17f3586f03bf",
     "packages": [
         {
             "name": "fig/http-message-util",
@@ -1140,16 +1140,16 @@
         },
         {
             "name": "slim/slim",
-            "version": "4.15.2",
+            "version": "4.15.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/slimphp/Slim.git",
-                "reference": "e12cb05ca2a14e8f459d019e87a31dc915b80470"
+                "reference": "3675bf6baac66b07032575b7bef4200b60b7974b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/slimphp/Slim/zipball/e12cb05ca2a14e8f459d019e87a31dc915b80470",
-                "reference": "e12cb05ca2a14e8f459d019e87a31dc915b80470",
+                "url": "https://api.github.com/repos/slimphp/Slim/zipball/3675bf6baac66b07032575b7bef4200b60b7974b",
+                "reference": "3675bf6baac66b07032575b7bef4200b60b7974b",
                 "shasum": ""
             },
             "require": {
@@ -1252,7 +1252,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-05-22T08:00:12+00:00"
+            "time": "2026-09-01T17:11:05+00:00"
         },
         {
             "name": "symfony/deprecation-contracts",
@@ -3437,5 +3437,5 @@
         "php": ">=8.2"
     },
     "platform-dev": {},
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.9.0"
 }
